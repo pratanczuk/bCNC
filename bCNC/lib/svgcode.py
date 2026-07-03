@@ -23,13 +23,15 @@ class SVGcode:
         if isinstance(path, str):
             path = Path(path)
 
-        def rv(v):
-            return (f"{round(v, d):{d}}").rstrip("0").rstrip(".")
+        # Pre-build the format string once; avoid round() per call.
+        _fmt = f"%.{d}f"
+
+        def rv(v, _fmt=_fmt):
+            s = _fmt % v
+            s = s.rstrip("0")
+            return s[:-1] if s[-1] == "." else s
 
         for segment in path:
-            subdiv = max(1, round(segment.length(
-                error=1e-5) * samples_per_unit))
-
             if isinstance(segment, Move):
                 gcode.append(f"G0 X{rv(segment.end.x)} Y{rv(-segment.end.y)}")
             elif isinstance(segment, (Line, Close)):
@@ -44,13 +46,19 @@ class SVGcode:
                     f"Y{rv(-segment.end.y)}", f"R{rv(segment.rx)}"
                 ]))
             else:  # Non-circular arc, Cubic or Quad Bezier Curves.
-                subdiv_points = numpy.linspace(0, 1, subdiv, endpoint=True)[1:]
-                # numpy accelerated point() call
-                points = segment.npoint(subdiv_points)
-                gcode.extend(
-                    [f"G1 X{rv(sp[0])} Y{rv(-sp[1])}" for sp in points])
+                # Only compute arc length (expensive) when actually needed.
+                subdiv = max(1, round(segment.length(
+                    error=1e-5) * samples_per_unit))
+                t = numpy.linspace(0, 1, subdiv, endpoint=True)[1:]
+                pts = segment.npoint(t)
+                # Vectorized rounding: numpy round+tolist avoids per-point
+                # rv() call overhead for the common bezier subdivision path.
+                xs = pts[:, 0].round(d).tolist()
+                ys = (-pts[:, 1]).round(d).tolist()
+                gcode += [f"G1 X{x} Y{y}" for x, y in zip(xs, ys)]
 
-        return "\n".join(gcode)
+        # Return a list; callers join if they need a string.
+        return gcode
 
     def get_gcode(self,
                   scale=1.0 / 96.0,

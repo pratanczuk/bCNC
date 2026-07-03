@@ -81,10 +81,12 @@ class UndoRedo:
         if isinstance(undoinfo, list):
             return None, undoinfo, None
         elif undoinfo[0] is None or isinstance(undoinfo[0], str):
-            assert callable(undoinfo[1]) or isinstance(undoinfo[1], list)
+            if not (callable(undoinfo[1]) or isinstance(undoinfo[1], list)):
+                return None, [], None   # malformed — skip silently
             return undoinfo[0], undoinfo[1], undoinfo[2:]
         else:
-            assert callable(undoinfo[0]) or isinstance(undoinfo[0], list)
+            if not (callable(undoinfo[0]) or isinstance(undoinfo[0], list)):
+                return None, [], None   # malformed — skip silently
             return None, undoinfo[0], undoinfo[1:]
 
     # -----------------------------------------------------------------------
