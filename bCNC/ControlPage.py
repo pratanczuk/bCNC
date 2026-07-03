@@ -82,9 +82,9 @@ class ConnectionGroup(CNCRibbon.ButtonMenuGroup):
             app,
             [(_("Hard Reset"), "reset", app.hardReset)],
         )
-        self.grid2rows()
+        self.grid3rows()
 
-        # ---
+        # --- Home ---
         col, row = 0, 0
         b = Ribbon.LabelButton(
             self.frame,
@@ -99,46 +99,33 @@ class ConnectionGroup(CNCRibbon.ButtonMenuGroup):
         tkExtra.Balloon.set(b, _("Perform a homing cycle [$H] now"))
         self.addWidget(b)
 
-        # ---
-        col, row = 1, 0
+        # --- Connection ---
+        col = 1
         b = Ribbon.LabelButton(
             self.frame,
-            image=Utils.icons["unlock"],
-            text=_("Unlock"),
-            compound=LEFT,
-            anchor=W,
-            command=app.unlock,
-            background=Ribbon._BACKGROUND,
-        )
-        b.grid(row=row, column=col, padx=0, pady=0, sticky=NSEW)
-        tkExtra.Balloon.set(b, _("Unlock controller [$X]"))
-        self.addWidget(b)
-
-        row += 1
-        b = Ribbon.LabelButton(
-            self.frame,
-            image=Utils.icons["serial"],
-            text=_("Connection"),
-            compound=LEFT,
+            image=Utils.icons["serial48"],
+            text=_("Connect"),
+            compound=TOP,
             anchor=W,
             command=lambda s=self: s.event_generate("<<Connect>>"),
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=row, column=col, rowspan=3, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(b, _("Open/Close connection"))
         self.addWidget(b)
 
-        row += 1
+        # --- Reset ---
+        col = 2
         b = Ribbon.LabelButton(
             self.frame,
-            image=Utils.icons["reset"],
+            image=Utils.icons["refresh"],
             text=_("Reset"),
-            compound=LEFT,
+            compound=TOP,
             anchor=W,
             command=app.softReset,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=row, column=col, rowspan=3, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(b, _("Software reset of controller [ctrl-x]"))
         self.addWidget(b)
 
@@ -163,12 +150,17 @@ class UserGroup(CNCRibbon.ButtonGroup):
 
 
 # =============================================================================
-# Run Group
+# Run Group  (Req F – includes Load Mat / Unload Mat buttons at 1.5× width)
 # =============================================================================
 class RunGroup(CNCRibbon.ButtonGroup):
+    # Extra internal horizontal padding that makes all buttons 50 % wider
+    # than the bCNC default (which uses no explicit ipadx).
+    _IPADX = 10
+
     def __init__(self, master, app):
         CNCRibbon.ButtonGroup.__init__(self, master, "Run", app)
 
+        # [Play]
         b = Ribbon.LabelButton(
             self.frame,
             self,
@@ -178,11 +170,12 @@ class RunGroup(CNCRibbon.ButtonGroup):
             compound=TOP,
             background=Ribbon._BACKGROUND,
         )
-        b.pack(side=LEFT, fill=BOTH)
+        b.pack(side=LEFT, fill=BOTH, ipadx=self._IPADX)
         tkExtra.Balloon.set(
             b, _("Run g-code commands from editor to controller"))
         self.addWidget(b)
 
+        # [Pause]
         b = Ribbon.LabelButton(
             self.frame,
             self,
@@ -192,13 +185,14 @@ class RunGroup(CNCRibbon.ButtonGroup):
             compound=TOP,
             background=Ribbon._BACKGROUND,
         )
-        b.pack(side=LEFT, fill=BOTH)
+        b.pack(side=LEFT, fill=BOTH, ipadx=self._IPADX)
         tkExtra.Balloon.set(
             b,
             _("Pause running program. Sends either FEED_HOLD ! "
               + "or CYCLE_START ~")
         )
 
+        # [Stop]
         b = Ribbon.LabelButton(
             self.frame,
             self,
@@ -208,10 +202,57 @@ class RunGroup(CNCRibbon.ButtonGroup):
             compound=TOP,
             background=Ribbon._BACKGROUND,
         )
-        b.pack(side=LEFT, fill=BOTH)
+        b.pack(side=LEFT, fill=BOTH, ipadx=self._IPADX)
         tkExtra.Balloon.set(
             b, _("Pause running program and soft reset controller to "
                  + "empty the buffer.")
+        )
+
+        # [Load Mat]  – Req F
+        b = Ribbon.LabelButton(
+            self.frame,
+            self,
+            "<<LoadMat>>",
+            image=Utils.icons["lock"],
+            text=_("Load Mat"),
+            compound=TOP,
+            background="#d0ffd0",
+        )
+        b.pack(side=LEFT, fill=BOTH, ipadx=self._IPADX)
+        tkExtra.Balloon.set(
+            b,
+            _("Load cutting mat: zero workspace to mat origin (G54/G92) "
+              "and snap knife to mat corner")
+        )
+
+        # [Unload Mat]  – Req F
+        b = Ribbon.LabelButton(
+            self.frame,
+            self,
+            "<<UnloadMat>>",
+            image=Utils.icons["unlock"],
+            text=_("Unload Mat"),
+            compound=TOP,
+            background="#ffd0d0",
+        )
+        b.pack(side=LEFT, fill=BOTH, ipadx=self._IPADX)
+        tkExtra.Balloon.set(b, _("Unload cutting mat and reset workspace offset"))
+
+        # [Exit / Settings]  – Req G: settings icon/button right on toolbar
+        b = Ribbon.LabelButton(
+            self.frame,
+            self,
+            "<<PlotterSettings>>",
+            image=Utils.icons.get("settings", Utils.icons.get("info")),
+            text=_("Settings"),
+            compound=TOP,
+            background="#d0e8ff",
+        )
+        b.pack(side=LEFT, fill=BOTH, ipadx=self._IPADX)
+        tkExtra.Balloon.set(
+            b,
+            _("Open plotter settings: pressure, speed, knife offset, "
+              "and drag-knife auto-apply")
         )
 
 
@@ -930,13 +971,13 @@ class ControlFrame(CNCRibbon.PageExLabelFrame):
         b = Button(
             frame,
             text=Unicode.BLACK_UP_POINTING_TRIANGLE,
-            command=self.moveZup,
+            command=self.pressureOff,
             width=width,
             height=height,
-            activebackground="LightYellow",
+            activebackground="#ffd0d0",
         )
         b.grid(row=row, column=col, sticky=EW)
-        tkExtra.Balloon.set(b, _("Move +Z"))
+        tkExtra.Balloon.set(b, _("Pen Up / Spindle OFF (M5)"))
         self.addWidget(b)
 
         col += 2
@@ -1100,13 +1141,13 @@ class ControlFrame(CNCRibbon.PageExLabelFrame):
         b = Button(
             frame,
             text=Unicode.BLACK_DOWN_POINTING_TRIANGLE,
-            command=self.moveZdown,
+            command=self.pressureOn,
             width=width,
             height=height,
-            activebackground="LightYellow",
+            activebackground="#d0ffd0",
         )
         b.grid(row=row, column=col, sticky=EW)
-        tkExtra.Balloon.set(b, _("Move -Z"))
+        tkExtra.Balloon.set(b, _("Pen Down / Spindle ON (M3 S<pressure>)"))
         self.addWidget(b)
 
         col += 2
@@ -1234,6 +1275,13 @@ class ControlFrame(CNCRibbon.PageExLabelFrame):
         if event is not None and not self.acceptKey():
             return
         self.app.mcontrol.jog(f"Z-{self.getStep('z')}")
+
+    def pressureOn(self, event=None):
+        pressure = int(round(CNC.vars.get("mat_pressure", 500)))
+        self.sendGCode(f"M3 S{pressure}")
+
+    def pressureOff(self, event=None):
+        self.sendGCode("M5")
 
     def go2origin(self, event=None):
         self.sendGCode("G90")
@@ -2347,6 +2395,6 @@ class ControlPage(CNCRibbon.Page):
         wcsvar.set(0)
 
         self._register(
-            (ConnectionGroup, UserGroup, RunGroup),
+            (ConnectionGroup, RunGroup),
             (DROFrame, abcDROFrame, ControlFrame, abcControlFrame, StateFrame),
         )

@@ -91,6 +91,12 @@ WORK_COLOR = "Orange"
 CAMERA_COLOR = "Cyan"
 CANVAS_COLOR = "White"
 
+# ── Cutting-mat visual styling (Req A) ───────────────────────────────────────
+MAT_COLOR        = "#ccffcc"   # mat background fill
+MAT_GRID_COLOR   = "#88cc88"   # 10 mm grid lines inside mat
+MAT_BORDER_COLOR = "#009900"   # mat perimeter outline
+MAT_WARN_COLOR   = "#ff4444"   # boundary-overflow warning outline
+
 ENABLE_COLOR = "Black"
 DISABLE_COLOR = "LightGray"
 SELECT_COLOR = "Blue"
@@ -117,6 +123,7 @@ ACTION_MOVE = 20
 ACTION_ROTATE = 21
 ACTION_GANTRY = 22
 ACTION_WPOS = 23
+ACTION_MAT_DRAG = 25   # Req B – click-and-drag gcode positioning on mat
 
 ACTION_RULER = 30
 ACTION_ADDORIENT = 31
@@ -144,6 +151,7 @@ MOUSE_CURSOR = {
     ACTION_WPOS: "diamond_cross",
     ACTION_RULER: "tcross",
     ACTION_ADDORIENT: "tcross",
+    ACTION_MAT_DRAG: "fleur",   # Req B
 }
 
 
@@ -260,6 +268,11 @@ class CNCCanvas(Canvas):
         self.draw_workarea = True
         self.draw_paths = True
         self.draw_rapid = True  # draw rapid motions
+        self.draw_cutting_mat = True  # Req A – show physical mat background
+
+        # Req A canvas items
+        self._cuttingMat     = None
+        self._matWarning     = None
         self._wx = self._wy = self._wz = 0.0  # work position
         self._dx = self._dy = self._dz = 0.0  # work-machine position
 
@@ -564,6 +577,22 @@ class CNCCanvas(Canvas):
                 (i, j, i, j), fill=fill, arrow=arrow)
             self._vx0, self._vy0, self._vz0 = self.canvas2xyz(i, j)
             self._mouseAction = self.action
+
+        # Req B – Mat drag-to-position mode
+        elif self.action == ACTION_MAT_DRAG:
+            # Auto-select all gcode blocks so they move together
+            if not self.bbox("sel"):
+                self.app.editor.selectAll()
+                self.app.selectionChange()
+            i = self.canvasx(event.x)
+            j = self.canvasy(event.y)
+            if self._vector:
+                self.delete(self._vector)
+            self._vector = self.create_line(
+                (i, j, i, j), fill=MOVE_COLOR, arrow=LAST)
+            self._vx0, self._vy0, self._vz0 = self.canvas2xyz(i, j)
+            # Delegate to ACTION_MOVE so buttonMotion/release handle it
+            self._mouseAction = ACTION_MOVE
 
         # Move gantry to position
         elif self.action == ACTION_GANTRY:
@@ -1389,6 +1418,7 @@ class CNCCanvas(Canvas):
         self._last = (0.0, 0.0, 0.0)
         self.initPosition()
 
+        self.drawCuttingMat()   # Req A – must be first (lowest layer)
         self.drawPaths()
         self.drawGrid()
         self.drawMargin()
@@ -1610,6 +1640,117 @@ class CNCCanvas(Canvas):
         self.tag_lower(self._workarea)
 
     # ----------------------------------------------------------------------
+    # Req A – Draw the physical cutting mat background with 10 mm grid
+    # ----------------------------------------------------------------------
+    def drawCuttingMat(self):
+        """
+        Renders a filled rectangle representing the physical cutting mat,
+        bounded by MAT_BORDER_COLOR and filled MAT_COLOR, with a 10 mm
+        internal grid (MAT_GRID_COLOR).  The mat occupies machine coordinates
+        [0, mat_width] × [0, mat_height].
+
+        Also raises a red boundary-warning outline (Req D) when loaded
+        G-code paths extend outside the mat perimeter.
+        """
+        self.delete("CuttingMat")
+        self._cuttingMat = None
+        self._matWarning = None
+
+        if not self.draw_cutting_mat:
+            return
+        if self.view not in (VIEW_XY, VIEW_ISO1, VIEW_ISO2, VIEW_ISO3):
+            return
+
+        mat_w = CNC.vars.get("mat_width",  300.0)
+        mat_h = CNC.vars.get("mat_height", 300.0)
+        if mat_w <= 0 or mat_h <= 0:
+            return
+
+        # ── filled background polygon ────────────────────────────────────
+        corners = self.plotCoords([
+            (0.0,   0.0,   0.0),
+            (mat_w, 0.0,   0.0),
+            (mat_w, mat_h, 0.0),
+            (0.0,   mat_h, 0.0),
+        ])
+        flat = [c for xy in corners for c in xy]
+
+        mat_item = self.create_polygon(
+            flat,
+            fill=MAT_COLOR,
+            outline=MAT_BORDER_COLOR,
+            width=2,
+            tag="CuttingMat",
+        )
+        self._cuttingMat = mat_item
+
+        # ── 10 mm internal grid ──────────────────────────────────────────
+        x_steps = int(mat_w) // 10
+        y_steps = int(mat_h) // 10
+
+        for yi in range(1, y_steps + 1):
+            y = yi * 10.0
+            if y >= mat_h:
+                break
+            xyz = [(0.0, y, 0.0), (mat_w, y, 0.0)]
+            self.create_line(
+                self.plotCoords(xyz),
+                fill=MAT_GRID_COLOR,
+                dash=(2, 4),
+                tag="CuttingMat",
+            )
+
+        for xi in range(1, x_steps + 1):
+            x = xi * 10.0
+            if x >= mat_w:
+                break
+            xyz = [(x, 0.0, 0.0), (x, mat_h, 0.0)]
+            self.create_line(
+                self.plotCoords(xyz),
+                fill=MAT_GRID_COLOR,
+                dash=(2, 4),
+                tag="CuttingMat",
+            )
+        # Lower all mat items with one Tcl call (O(1) vs O(n))
+        self.tag_lower("CuttingMat")
+
+        # ── Req D boundary-overflow warning ─────────────────────────────
+        if CNC.isMarginValid():
+            out = (
+                CNC.vars["xmin"] < -0.01
+                or CNC.vars["xmax"] > mat_w + 0.01
+                or CNC.vars["ymin"] < -0.01
+                or CNC.vars["ymax"] > mat_h + 0.01
+            )
+            if out:
+                warn_item = self.create_polygon(
+                    flat,
+                    fill="",
+                    outline=MAT_WARN_COLOR,
+                    width=4,
+                    tag="CuttingMat",
+                )
+                self.tag_raise(warn_item)
+                self._matWarning = warn_item
+                self.status(
+                    _("WARNING: G-code paths extend outside the cutting mat!")
+                )
+
+    # ----------------------------------------------------------------------
+    # Req B – Action mode: drag-to-position layout on the mat
+    # ----------------------------------------------------------------------
+    def setActionMatDrag(self, event=None):
+        """
+        Switch to mat-drag mode.  Clicking on any gcode item (or anywhere
+        on the canvas) auto-selects all blocks and starts a MOVE operation.
+        """
+        self.setAction(ACTION_MAT_DRAG)
+        self.config(background="#f0fff0")
+        self.status(
+            _("Click and drag to reposition g-code on the cutting mat")
+        )
+
+    # ----------------------------------------------------------------------
     # Draw coordinates grid
     # ----------------------------------------------------------------------
     def drawGrid(self):
@@ -1626,21 +1767,21 @@ class CNCCanvas(Canvas):
             ):
                 y = i * 10.0
                 xyz = [(xmin, y, 0), (xmax, y, 0)]
-                item = self.create_line(
+                self.create_line(
                     self.plotCoords(xyz), tag="Grid",
                     fill=GRID_COLOR, dash=(1, 3)
                 )
-                self.tag_lower(item)
 
             for i in range(
                 int(CNC.vars["axmin"] // 10), int(CNC.vars["axmax"] // 10) + 2
             ):
                 x = i * 10.0
                 xyz = [(x, ymin, 0), (x, ymax, 0)]
-                item = self.create_line(
+                self.create_line(
                     self.plotCoords(xyz), fill=GRID_COLOR, tag="Grid", dash=(1, 3)
                 )
-                self.tag_lower(item)
+            # Lower all grid items with one Tcl call (O(1) vs O(n))
+            self.tag_lower("Grid")
 
     # ----------------------------------------------------------------------
     # Display orientation markers
@@ -1665,7 +1806,6 @@ class CNCCanvas(Canvas):
                 tag="Orient",
                 fill="Green",
             )
-            self.tag_lower(item)
             paths.append(item)
 
             item = self.create_line(
@@ -1673,7 +1813,6 @@ class CNCCanvas(Canvas):
                 tag="Orient",
                 fill="Green",
             )
-            self.tag_lower(item)
             paths.append(item)
 
             # GCode position (cross)
@@ -1682,7 +1821,6 @@ class CNCCanvas(Canvas):
                 tag="Orient",
                 fill="Red",
             )
-            self.tag_lower(item)
             paths.append(item)
 
             item = self.create_line(
@@ -1690,7 +1828,6 @@ class CNCCanvas(Canvas):
                 tag="Orient",
                 fill="Red",
             )
-            self.tag_lower(item)
             paths.append(item)
 
             # Draw error if any
@@ -1703,7 +1840,6 @@ class CNCCanvas(Canvas):
                     tag="Orient",
                     outline="Red",
                 )
-                self.tag_lower(item)
                 paths.append(item)
 
                 err = self.gcode.orient.errors[i]
@@ -1713,7 +1849,6 @@ class CNCCanvas(Canvas):
                     tag="Orient",
                     outline="Red",
                 )
-                self.tag_lower(item)
                 paths.append(item)
             except IndexError:
                 pass
@@ -1725,10 +1860,12 @@ class CNCCanvas(Canvas):
                 fill="Blue",
                 dash=(1, 1),
             )
-            self.tag_lower(item)
             paths.append(item)
 
             self.gcode.orient.addPath(paths)
+
+        # Lower all orient items with one Tcl call (O(1) vs O(n))
+        self.tag_lower("Orient")
 
         if self._orientSelected is not None:
             try:
@@ -1754,26 +1891,25 @@ class CNCCanvas(Canvas):
         probe = self.gcode.probe
         for x in bmath.frange(probe.xmin, probe.xmax + 0.00001, probe.xstep()):
             xyz = [(x, probe.ymin, 0.0), (x, probe.ymax, 0.0)]
-            item = self.create_line(
+            self.create_line(
                 self.plotCoords(xyz), tag="Probe", fill="Yellow")
-            self.tag_lower(item)
 
         for y in bmath.frange(probe.ymin, probe.ymax + 0.00001, probe.ystep()):
             xyz = [(probe.xmin, y, 0.0), (probe.xmax, y, 0.0)]
-            item = self.create_line(
+            self.create_line(
                 self.plotCoords(xyz), tag="Probe", fill="Yellow")
-            self.tag_lower(item)
 
         # Draw probe points
         for i, uv in enumerate(self.plotCoords(probe.points)):
-            item = self.create_text(
+            self.create_text(
                 uv,
                 text=f"{probe.points[i][2]:.{CNC.digits}f}",
                 tag="Probe",
                 justify=CENTER,
                 fill=PROBE_TEXT_COLOR,
             )
-            self.tag_lower(item)
+        # Lower all probe items with one Tcl call (O(1) vs O(n))
+        self.tag_lower("Probe")
 
         # Draw image map if numpy exists
         if (
@@ -1908,9 +2044,28 @@ class CNCCanvas(Canvas):
             startTime = before = time.time()
             self.cnc.resetAllMargins()
             drawG = self.draw_rapid or self.draw_paths or self.draw_margin
+            curVersion = self.gcode._drawVersion
             for i, block in enumerate(self.gcode.blocks):
                 start = True  # start location found
                 block.resetPath()
+
+                # Re-use pre-computed xyz geometry when the G-code hasn't
+                # changed (e.g. view/zoom-triggered redraws).  Skips the
+                # expensive evaluate → compileLine → motionPath pipeline.
+                useCache = (
+                    block._xyzVersion == curVersion
+                    and len(block._xyzPaths) == len(block)
+                )
+                if not useCache:
+                    block._xyzPaths = [None] * len(block)
+
+                # Consecutive G1 segments are merged into one polyline
+                # canvas item, cutting Tkinter create_line calls from O(N)
+                # to O(runs).  Only applied on the fast cached path where we
+                # know the gcode_code up-front without re-parsing.
+                _g1_pts = []    # flat screen coords [x1,y1, x2,y2, ...]
+                _g1_fill = None
+                _g1_j0 = None   # first j of the current G1 run
 
                 # Draw block
                 for j, line in enumerate(block):
@@ -1918,36 +2073,123 @@ class CNCCanvas(Canvas):
                     if n == 0:
                         if time.time() - startTime > DRAW_TIME:
                             raise AlarmException()
-                        # Force a periodic update since this loop can take time
-                        if time.time() - before > 1.0:
+                        # Only pump the event loop on the slow (parsing) path;
+                        # cached draws complete quickly enough to skip it.
+                        if not useCache and time.time() - before > 1.0:
                             self.update()
                             before = time.time()
                         n = 1000
-                    try:
-                        cmd = self.gcode.evaluate(
-                            CNC.compileLine(line), self.app)
-                        if isinstance(cmd, tuple):
-                            cmd = None
+
+                    if useCache:
+                        cached = block._xyzPaths[j]
+                        if cached is None or not drawG:
+                            # Flush any pending G1 polyline at a gap
+                            if _g1_pts:
+                                poly = self.create_line(
+                                    _g1_pts, fill=_g1_fill,
+                                    width=0, cap="projecting")
+                                self._items[poly] = i, _g1_j0
+                                block._path[_g1_j0] = poly
+                                _g1_pts = []; _g1_fill = None; _g1_j0 = None
+                            block.addPath(None)
+                            continue
+                        xyz_orig, gcode_code = cached
+                        # A no-motion command (G21, G90, dwell, spindle, …)
+                        # stores (None, gcode_code) in the cache.  Skip it
+                        # without flushing the G1 polyline buffer so that
+                        # the polyline remains continuous across modal lines.
+                        if xyz_orig is None:
+                            block.addPath(None)
+                            continue
+                        # Restore the cnc cursor so that subsequent
+                        # relative-coordinate lines compute correctly.
+                        self.cnc.gcode = gcode_code
+                        end = xyz_orig[-1]
+                        self.cnc.x = end[0]
+                        self.cnc.y = end[1]
+                        self.cnc.z = end[2]
+                        # Update path statistics (fast – no parsing)
+                        self.cnc.pathLength(block, xyz_orig)
+                        if gcode_code in (1, 2, 3):
+                            block.pathMargins(xyz_orig)
+                            self.cnc.pathMargins(block)
+                        # G1 cutting moves: accumulate into polyline buffer
+                        if gcode_code == 1 and block.enable and self.draw_paths:
+                            coords = self.plotCoords(xyz_orig)
+                            if coords:
+                                if _g1_j0 is None:
+                                    _g1_j0 = j
+                                    _g1_fill = block.color or ENABLE_COLOR
+                                    for pt in coords:
+                                        _g1_pts += [pt[0], pt[1]]
+                                else:
+                                    # Only add the endpoint; start deduplicates
+                                    # with the previous segment's endpoint.
+                                    pt = coords[-1]
+                                    _g1_pts += [pt[0], pt[1]]
+                            self._last = end
+                            block.addPath(None)   # placeholder; j0 patched on flush
+                            if start:
+                                block.startPath(end[0], end[1], end[2])
+                                start = False
                         else:
-                            cmd = CNC.breakLine(cmd)
-                    except AlarmException:
-                        raise
-                    except Exception:
-                        sys.stderr.write(
-                            _(">>> ERROR: {}\n").format(str(sys.exc_info()[1]))
-                        )
-                        sys.stderr.write(_("     line: {}\n").format(line))
-                        cmd = None
-                    if cmd is None or not drawG:
-                        block.addPath(None)
+                            # Non-G1 item: flush any pending polyline first
+                            if _g1_pts:
+                                poly = self.create_line(
+                                    _g1_pts, fill=_g1_fill,
+                                    width=0, cap="projecting")
+                                self._items[poly] = i, _g1_j0
+                                block._path[_g1_j0] = poly
+                                _g1_pts = []; _g1_fill = None; _g1_j0 = None
+                            path = self._drawPathCached(
+                                block, xyz_orig, gcode_code)
+                            self._items[path] = i, j
+                            block.addPath(path)
+                            if start and gcode_code in (1, 2, 3):
+                                block.startPath(end[0], end[1], end[2])
+                                start = False
                     else:
-                        path = self.drawPath(block, cmd)
-                        self._items[path] = i, j
-                        block.addPath(path)
-                        if start and self.cnc.gcode in (1, 2, 3):
-                            # Mark as start the first non-rapid motion
-                            block.startPath(self.cnc.x, self.cnc.y, self.cnc.z)
-                            start = False
+                        try:
+                            cmd = self.gcode.evaluate(
+                                CNC.compileLine(line), self.app)
+                            if isinstance(cmd, tuple):
+                                cmd = None
+                            else:
+                                cmd = CNC.breakLine(cmd)
+                        except AlarmException:
+                            raise
+                        except Exception:
+                            sys.stderr.write(
+                                _(">>> ERROR: {}\n").format(
+                                    str(sys.exc_info()[1]))
+                            )
+                            sys.stderr.write(
+                                _("     line: {}\n").format(line))
+                            cmd = None
+                        if cmd is None or not drawG:
+                            block._xyzPaths[j] = None
+                            block.addPath(None)
+                        else:
+                            _entry = []
+                            path = self.drawPath(block, cmd, _entry)
+                            block._xyzPaths[j] = _entry[0] if _entry else None
+                            self._items[path] = i, j
+                            block.addPath(path)
+                            if start and self.cnc.gcode in (1, 2, 3):
+                                # Mark as start the first non-rapid motion
+                                block.startPath(
+                                    self.cnc.x, self.cnc.y, self.cnc.z)
+                                start = False
+
+                # Flush any G1 polyline remaining at end of block
+                if _g1_pts:
+                    poly = self.create_line(
+                        _g1_pts, fill=_g1_fill, width=0, cap="projecting")
+                    self._items[poly] = i, _g1_j0
+                    block._path[_g1_j0] = poly
+
+                if not useCache:
+                    block._xyzVersion = curVersion
                 block.endPath(self.cnc.x, self.cnc.y, self.cnc.z)
         except AlarmException:
             self.status("Rendering takes TOO Long. Interrupted...")
@@ -1955,10 +2197,14 @@ class CNCCanvas(Canvas):
     # ----------------------------------------------------------------------
     # Create path for one g command
     # ----------------------------------------------------------------------
-    def drawPath(self, block, cmds):
+    def drawPath(self, block, cmds, _cache=None):
         self.cnc.motionStart(cmds)
         xyz = self.cnc.motionPath()
         self.cnc.motionEnd()
+        if _cache is not None:
+            # Snapshot geometry before the draw_rapid xyz[0] correction below;
+            # used to populate the per-block xyz cache in drawPaths.
+            _cache.append((list(xyz) if xyz else None, self.cnc.gcode))
         if xyz:
             self.cnc.pathLength(block, xyz)
             if self.cnc.gcode in (1, 2, 3):
@@ -1988,6 +2234,37 @@ class CNCCanvas(Canvas):
                     return self.create_line(
                         coords, fill=fill, width=0, cap="projecting"
                     )
+        return None
+
+    # ----------------------------------------------------------------------
+    # Draw a path from pre-computed xyz geometry (no G-code interpretation).
+    # Called by drawPaths when the per-block xyz cache is valid.
+    # ----------------------------------------------------------------------
+    def _drawPathCached(self, block, xyz_orig, gcode_code):
+        if xyz_orig is None:
+            return None
+        if block.enable:
+            if gcode_code == 0 and self.draw_rapid:
+                xyz = list(xyz_orig)
+                xyz[0] = self._last
+            else:
+                xyz = xyz_orig
+            self._last = xyz_orig[-1]
+        else:
+            if gcode_code == 0:
+                return None
+            xyz = xyz_orig
+        coords = self.plotCoords(xyz)
+        if coords:
+            fill = (block.color or ENABLE_COLOR) if block.enable else DISABLE_COLOR
+            if gcode_code == 0:
+                if self.draw_rapid:
+                    return self.create_line(coords, fill=fill,
+                                            width=0, dash=(4, 3))
+            elif self.draw_paths:
+                return self.create_line(
+                    coords, fill=fill, width=0, cap="projecting"
+                )
         return None
 
     # ----------------------------------------------------------------------

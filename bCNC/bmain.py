@@ -75,6 +75,12 @@ from CNCRibbon import Page
 from ControlPage import ControlPage
 from EditorPage import EditorPage
 from FilePage import FilePage
+from MatManager import (        # Req E / G / H
+    CuttingMatSettingsDialog,
+    MatStatusPanel,
+    apply_dragknife_auto,
+    snap_to_mat,
+)
 from ProbePage import ProbePage
 from Sender import NOT_CONNECTED, STATECOLOR, STATECOLORDEF, Sender
 from TerminalPage import TerminalPage
@@ -238,6 +244,10 @@ class Application(Tk, Sender):
         # XXX FIXME do I need the self.canvas?
         self.canvas = self.canvasFrame.canvas
 
+        # Req E – mat status panel, always visible above the canvas.
+        self.matPanel = MatStatusPanel(frame, self)
+        self.matPanel.pack(side=TOP, fill=X, before=self.canvasFrame)
+
         # fist create Pages
         self.pages = {}
         for cls in (
@@ -362,6 +372,14 @@ class Application(Tk, Sender):
         self.bind("<<Run>>", lambda e, s=self: s.run())
         self.bind("<<Stop>>", self.stopRun)
         self.bind("<<Pause>>", self.pause)
+
+        # Req D / E / F / G event hooks ──────────────────────────────────
+        self.bind("<<LoadMat>>",       lambda e, s=self: s.loadMat())
+        self.bind("<<UnloadMat>>",     lambda e, s=self: s.unloadMat())
+        self.bind("<<PlotterSettings>>",
+                  lambda e, s=self: s.openPlotterSettings())
+        self.bind("<<MatDrag>>",
+                  lambda e, s=self: s.canvas.setActionMatDrag())
 
         tkExtra.bindEventData(self, "<<Status>>", self.updateStatus)
         tkExtra.bindEventData(self, "<<Coords>>", self.updateCanvasCoords)
@@ -541,6 +559,11 @@ class Application(Tk, Sender):
         self.canvasFrame.toggleDrawFlag()
 
         self.paned.sash_place(0, Utils.getInt(Utils.__prg__, "sash", 340), 0)
+
+        # Collapse the State sub-panel by default to save screen real estate.
+        # Use after_idle() so the widget is fully laid out before collapse()
+        # reads winfo_width() – otherwise it would get 1 (un-rendered size).
+        self.after_idle(self.gstate.collapse)
 
         # Auto start pendant and serial
         if Utils.getBool("Connection", "pendant"):
@@ -758,6 +781,15 @@ class Application(Tk, Sender):
         Sender.loadConfig(self)
         self.loadShortcuts()
 
+        # ── Plotter / cutting-mat settings ──────────────────────────────────
+        CNC.vars["mat_pressure"]      = Utils.getFloat("Plotter", "pressure",      500.0)
+        CNC.vars["mat_speed"]         = Utils.getFloat("Plotter", "speed",         500.0)
+        CNC.vars["mat_knife_offset"]  = Utils.getFloat("Plotter", "knife_offset",  0.5)
+        CNC.vars["mat_width"]         = Utils.getFloat("Plotter", "mat_width",     300.0)
+        CNC.vars["mat_height"]        = Utils.getFloat("Plotter", "mat_height",    300.0)
+        CNC.vars["mat_load_distance"]   = Utils.getFloat("Plotter", "load_distance",  20.0)
+        CNC.vars["mat_auto_dragknife"]  = Utils.getBool("Plotter", "auto_dragknife", False)
+
     # -----------------------------------------------------------------------
     def saveConfig(self):
         # Program
@@ -775,6 +807,16 @@ class Application(Tk, Sender):
         Sender.saveConfig(self)
         self.tools.saveConfig()
         self.canvasFrame.saveConfig()
+
+        # ── Plotter / cutting-mat settings ──────────────────────────────────
+        Utils.addSection("Plotter")
+        Utils.setStr("Plotter", "pressure",      CNC.vars.get("mat_pressure",      500.0))
+        Utils.setStr("Plotter", "speed",         CNC.vars.get("mat_speed",         500.0))
+        Utils.setStr("Plotter", "knife_offset",  CNC.vars.get("mat_knife_offset",  0.5))
+        Utils.setStr("Plotter", "mat_width",     CNC.vars.get("mat_width",         300.0))
+        Utils.setStr("Plotter", "mat_height",    CNC.vars.get("mat_height",        300.0))
+        Utils.setBool("Plotter", "auto_dragknife", CNC.vars.get("mat_auto_dragknife", False))
+        Utils.setStr("Plotter", "load_distance",  CNC.vars.get("mat_load_distance",  20.0))
 
     # -----------------------------------------------------------------------
     def loadHistory(self):
@@ -1346,6 +1388,42 @@ class Application(Tk, Sender):
     def canvasFocus(self, event=None):
         self.canvas.focus_set()
         return "break"
+
+    # ── Cutting-mat helpers (Req D / E / G) ─────────────────────────────────
+
+    # -----------------------------------------------------------------------
+    def loadMat(self, event=None):
+        """
+        Req D – Home X axis, then send $LOAD_MATERIAL=<distance> and zero work coordinates.
+        Uses sendGCode() (not run()) so it never touches the running-job state.
+        """
+        CNC.vars["mat_loaded"] = True
+        dist = CNC.vars.get("mat_load_distance", 50.0)
+        self.sendGCode("$HX")
+        self.sendGCode(f"$LOAD_MATERIAL={dist:.3f}")
+        self.sendGCode("G92 X0 Y0")
+        self.drawAfter()
+        self.matPanel.show()
+        self.setStatus(_(f"Mat loaded – $LOAD_MATERIAL={dist:.3f} sent"))
+
+    # -----------------------------------------------------------------------
+    def unloadMat(self, event=None):
+        """Send $UNLOAD_MATERIAL then release the G92 workspace offset."""
+        CNC.vars["mat_loaded"] = False
+        self.sendGCode("$UNLOAD_MATERIAL")
+        self.sendGCode("G92.1")
+        self.drawAfter()
+        self.setStatus(_("Mat unloaded – $UNLOAD_MATERIAL sent"))
+
+    # -----------------------------------------------------------------------
+    def openPlotterSettings(self, event=None):
+        """Req G – Open the modal plotter-settings dialog."""
+        dlg = CuttingMatSettingsDialog(self, self)
+        if dlg.result:
+            # User clicked Save: refresh editor list + redraw mat immediately
+            self.editor.fill()
+            self.draw()
+            self.canvas.fit2Screen()
 
     # -----------------------------------------------------------------------
     def selectAll(self, event=None):
@@ -2423,6 +2501,11 @@ class Application(Tk, Sender):
             self.draw()
             self.canvas.fit2Screen()
             Page.frames["CAM"].populate()
+            # Snap design to mat origin, then optionally run drag-knife pipeline
+            self.after_idle(lambda: snap_to_mat(self))
+            # Req H – auto drag-knife pipeline on file load
+            if CNC.vars.get("mat_auto_dragknife", False):
+                self.after_idle(lambda: apply_dragknife_auto(self))
 
         if autoloaded:
             self.setStatus(
@@ -2492,6 +2575,9 @@ class Application(Tk, Sender):
             self.editor.fill()
             self.draw()
             self.canvas.fit2Screen()
+            # Req H – auto drag-knife pipeline on file import
+            if CNC.vars.get("mat_auto_dragknife", False):
+                self.after_idle(lambda: apply_dragknife_auto(self))
 
     # -----------------------------------------------------------------------
     def focusIn(self, event):
@@ -2819,6 +2905,9 @@ class Application(Tk, Sender):
             if state == "Run":
                 self.gstate.updateFeed()
             self._posUpdate = False
+            # Req E – update mat sensor panel visibility from 'pins' telemetry
+            if hasattr(self, "matPanel"):
+                self.matPanel.updateSensorState()
 
         # Update status string
         if self._gUpdate:

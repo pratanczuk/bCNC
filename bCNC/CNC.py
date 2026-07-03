@@ -750,6 +750,14 @@ class CNC:
         "controller": "",
         "running": False,
         # "enable6axisopt" : 0,
+        # ── Cutting-mat / foil-plotter parameters (MatManager) ──────────
+        "mat_width":          300.0,   # mm – physical mat X dimension
+        "mat_height":         300.0,   # mm – physical mat Y dimension
+        "mat_pressure":         500.0, # PWM value 0-1000 for M3 S command
+        "mat_speed":          500.0,   # mm/min – default cutting feed
+        "mat_knife_offset":     0.5,   # mm – swivel-axis to blade-tip
+        "mat_auto_dragknife": False,   # auto-apply drag-knife on load
+        "mat_loaded":         False,   # physical mat present flag
     }
 
     drillPolicy = 1  # Expand Canned cycles
@@ -2326,6 +2334,7 @@ class GCode:
         self.undoredo.reset()
         self._lastModified = 0
         self._modified = False
+        self._drawVersion = 0  # monotonic counter; canvas cache key
 
     # ----------------------------------------------------------------------
     # Recalculate enabled path margins
@@ -3235,10 +3244,12 @@ class GCode:
     # ----------------------------------------------------------------------
     def undo(self):
         self.undoredo.undo()
+        self._drawVersion += 1
 
     # ----------------------------------------------------------------------
     def redo(self):
         self.undoredo.redo()
+        self._drawVersion += 1
 
     # ----------------------------------------------------------------------
     def addUndo(self, undoinfo, msg=None):
@@ -3246,6 +3257,7 @@ class GCode:
             return
         self.undoredo.add(undoinfo, msg)
         self._modified = True
+        self._drawVersion += 1
 
     # ----------------------------------------------------------------------
     def canUndo(self):
