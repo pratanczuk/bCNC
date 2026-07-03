@@ -2013,7 +2013,10 @@ class Block(list):
         self.enable = True  # Enabled/Visible in drawing
         self.expand = False  # Expand in editor
         self.color = None  # Custom color for path
+        self.passes = 1    # Number of times to repeat the cut
         self._path = []  # canvas drawing paths
+        self._xyzPaths = []  # cached motion geometry [(xyz, gcode), ...]
+        self._xyzVersion = -1  # GCode._drawVersion when cache was built
         self.sx = self.sy = self.sz = 0  # start  coordinates
         # (entry point first non rapid motion)
         self.ex = self.ey = self.ez = 0  # ending coordinates
@@ -2025,8 +2028,11 @@ class Block(list):
         self.enable = src.enable
         self.expand = src.expand
         self.color = src.color
+        self.passes = src.passes
         self[:] = src[:]
         self._path = []
+        self._xyzPaths = []
+        self._xyzVersion = -1
         self.sx = src.sx
         self.sy = src.sy
         self.sz = src.sz
@@ -2153,11 +2159,12 @@ class Block(list):
             or Unicode.BLACK_RIGHT_POINTING_TRIANGLE
         )
         v = self.enable and Unicode.BALLOT_BOX_WITH_X or Unicode.BALLOT_BOX
+        p = f" \u00d7{self.passes}" if self.passes > 1 else ""
         try:
-            return f"{e} {v} {self.name()} - [{len(self)}]"
+            return f"{e} {v} {self.name()}{p} - [{len(self)}]"
         except UnicodeDecodeError:
             return " ".join([
-                f"{e} {v} {self.name().decode('ascii', 'replace')} -",
+                f"{e} {v} {self.name().decode('ascii', 'replace')}{p} -",
                 f"[{int(len(self))}]"
             ])  # TODO: is this OK?
 
@@ -2169,6 +2176,8 @@ class Block(list):
         header += f"(Block-enable: {int(self.enable)})\n"
         if self.color:
             header += f"(Block-color: {self.color})\n"
+        if self.passes > 1:
+            header += f"(Block-passes: {self.passes})\n"
         return header
 
     def write(self, f):
@@ -2229,6 +2238,12 @@ class Block(list):
                     return
                 elif name == "color":
                     self.color = value
+                    return
+                elif name == "passes":
+                    try:
+                        self.passes = max(1, int(value))
+                    except ValueError:
+                        pass
                     return
                 elif name == "X":  # uncomment
                     list.append(
@@ -2651,12 +2666,19 @@ class GCode:
         # FIXME: UI to set SVG samples_per_unit
         ppi = 96.0  # 96 pixels per inch.
         scale = self.SVGscale(ppi)
-        samples_per_unit = 200.0
+        # 50 points/mm → 0.02 mm chord error; more than adequate for CNC.
+        # Reduce further if import is still slow on very long paths.
+        samples_per_unit = 50.0
         for path in svgcode.get_gcode(scale,
                                       samples_per_unit,
                                       CNC.digits,
                                       ppi=ppi):
-            self.addBlockFromString(path["id"], path["path"])
+            lines = path["path"]   # list of G-code strings from path2gcode
+            if not lines:
+                continue
+            block = Block(path["id"])
+            block.extend(lines)
+            self.blocks.append(block)
 
         if empty:
             self.addBlockFromString("Footer", self.footer)
@@ -3368,6 +3390,20 @@ class GCode:
     def setBlockColorUndo(self, bid, color):
         undoinfo = (self.setBlockColorUndo, bid, self.blocks[bid].color)
         self.blocks[bid].color = color
+        return undoinfo
+
+    # ----------------------------------------------------------------------
+    # Set block repeat passes
+    # ----------------------------------------------------------------------
+    def setBlockPassesUndo(self, bid, passes):
+        undoinfo = (self.setBlockPassesUndo, bid, self.blocks[bid].passes)
+        self.blocks[bid].passes = passes
+        return undoinfo
+
+    def setBlockPassesLines(self, items, passes):
+        undoinfo = []
+        for bid in items:
+            undoinfo.append(self.setBlockPassesUndo(bid, passes))
         return undoinfo
 
     # ----------------------------------------------------------------------
@@ -4997,6 +5033,32 @@ class GCode:
         return self.modify(items, self.mirrorVFunc, None)
 
     # ----------------------------------------------------------------------
+    # Scale position by (sx, sy) around center (x0, y0)
+    # ----------------------------------------------------------------------
+    def scaleFunc(self, new, old, relative, sx, sy, x0, y0):
+        if "X" not in new and "Y" not in new:
+            return False
+        x = getValue("X", new, old)
+        y = getValue("Y", new, old)
+        new["X"] = (x - x0) * sx + x0
+        new["Y"] = (y - y0) * sy + y0
+        if "I" in new or "J" in new:
+            i = getValue("I", new, old)
+            j = getValue("J", new, old)
+            new["I"] = i * sx
+            new["J"] = j * sy
+        return True
+
+    # ----------------------------------------------------------------------
+    # Scale selected items by sx (and optionally sy) around center (x0, y0)
+    # If sy is None, uniform scaling is applied (sy = sx).
+    # ----------------------------------------------------------------------
+    def scaleLines(self, items, sx, sy=None, x0=0.0, y0=0.0):
+        if sy is None:
+            sy = sx
+        return self.modify(items, self.scaleFunc, None, sx, sy, x0, y0)
+
+    # ----------------------------------------------------------------------
     # Round all digits with accuracy
     # ----------------------------------------------------------------------
     def roundFunc(self, new, old, relative):
@@ -5135,7 +5197,9 @@ class GCode:
         for i, block in enumerate(self.blocks):
             if not block.enable:
                 continue
-            for j, line in enumerate(block):
+            block_lines = list(block) * block.passes
+            for j_abs, line in enumerate(block_lines):
+                j = j_abs % max(1, len(block))
                 every -= 1
                 if every <= 0:
                     if stopFunc is not None and stopFunc():

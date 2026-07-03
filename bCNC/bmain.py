@@ -1797,6 +1797,39 @@ class Application(Tk, Sender):
                     pass
             self.executeOnSelection("ROTATE", False, ang, x0, y0)
 
+        # SCA*LE sx [sy [x0 [y0]]]: scale selected blocks
+        # sx/sy are scale factors; x0,y0 is the fixed center (default 0,0)
+        elif rexx.abbrev("SCALE", cmd, 3):
+            try:
+                sx = float(line[1])
+            except Exception:
+                sx = 1.0
+            try:
+                sy = float(line[2])
+            except Exception:
+                sy = sx
+            try:
+                x0 = float(line[3])
+            except Exception:
+                x0 = 0.0
+            try:
+                y0 = float(line[4])
+            except Exception:
+                y0 = 0.0
+            if not self.editor.curselection():
+                self.editor.selectAll()
+            self.executeOnSelection("SCALE", False, sx, sy, x0, y0)
+
+        # PASS*ES n: set number of cutting passes for selected blocks
+        elif rexx.abbrev("PASSES", cmd, 4):
+            try:
+                n = max(1, int(line[1]))
+            except (IndexError, ValueError):
+                n = 1
+            if not self.editor.curselection():
+                self.editor.selectAll()
+            self.executeOnSelection("PASSES", True, n)
+
         # ROU*ND [n]: round all digits to n fractional digits
         elif rexx.abbrev("ROUND", cmd, 3):
             acc = None
@@ -2005,6 +2038,11 @@ class Application(Tk, Sender):
             self.gcode.mirrorHLines(items)
         elif cmd == "MIRRORV":
             self.gcode.mirrorVLines(items)
+        elif cmd == "SCALE":
+            self.gcode.scaleLines(items, *args)
+        elif cmd == "PASSES":
+            n = int(args[0]) if args else 1
+            self.gcode.addUndo(self.gcode.setBlockPassesLines(items, max(1, n)))
         elif cmd == "MOVE":
             self.gcode.moveLines(items, *args)
         elif cmd == "OPTIMIZE":
