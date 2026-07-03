@@ -230,6 +230,15 @@ class _GenericController:
     def displayState(self, state):
         state = state.strip()
 
+        # "error:X" strings are command-level error responses, NOT machine
+        # state changes.  Updating CNC.vars["state"] to "error:X" would make
+        # the next <Idle|...> status poll look like a new state transition and
+        # re-trigger controllerStateChange -> viewState() -> $G -> error: ->
+        # infinite loop.  The error is already logged to the terminal; leave
+        # the displayed machine state as-is.
+        if state.startswith("error:"):
+            return
+
         # Do not show g-code errors, when machine is already in alarm state
         if (CNC.vars["state"].startswith("ALARM:")
                 and state.startswith("error:")):
