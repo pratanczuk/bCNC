@@ -546,6 +546,9 @@ class Sender:
     # ----------------------------------------------------------------------
     def sendGCode(self, cmd):
         if self.serial and not self.running:
+            # Clear a stale _stop flag so the command isn't immediately eaten by
+            # serialIO's emptyQueue() (e.g. after a purgeController soft-reset).
+            self._stop = False
             if isinstance(cmd, tuple):
                 self.queue.put(cmd)
             else:
@@ -647,12 +650,19 @@ class Sender:
     # ----------------------------------------------------------------------
     def initRun(self):
         self._quit = 0
+        self._stop = False  # Clear any stale stop flag from previous run cleanup.
         self._pause = False
+        self.sio_wait = False  # Reset in case it was left True by previous run.
         self._paths = None
         self.running = True
         self.disable()
         self.emptyQueue()
         time.sleep(1)
+        # Flush any GRBL responses that arrived during cleanup (e.g. error:3
+        # replies to $G queries).  If they were processed after running=True
+        # they would set _stop=True and drain the new run's gcode queue.
+        if self.serial:
+            self.serial.flushInput()
 
     # ----------------------------------------------------------------------
     # Called when run is finished
