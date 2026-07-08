@@ -11,7 +11,7 @@
 #   print(path['path'])
 
 import numpy
-from svgelements import SVG, Arc, Close, Line, Move, Path, Shape
+from svgelements import SVG, Arc, Close, Line, Move, Path, Shape, Text
 
 
 class SVGcode:
@@ -74,11 +74,19 @@ class SVGcode:
         ppi: pixels per inch of the file being loaded. 96 is standard.
         """
         gcode = []
+        skipped_text = []   # Text elements cannot be converted without a font renderer
         transform = f"scale({scale:g})" if scale != 1.0 else None
         svg = SVG.parse(self._filepath, reify=False,
                         ppi=ppi, transform=transform)
         for element in svg.elements():
-            if isinstance(element, Shape):
+            if isinstance(element, Text):
+                # svgelements has no font renderer; Text cannot be turned into
+                # glyph outlines.  Collect the text content so the caller can
+                # warn the user.
+                txt = (element.text or "").strip()
+                if txt:
+                    skipped_text.append(txt)
+            elif isinstance(element, Shape):
                 if not isinstance(element, Path):
                     element = Path(element)
                 gcode.append(
@@ -89,4 +97,10 @@ class SVGcode:
                         ),
                     }
                 )
+        if skipped_text:
+            gcode.append({
+                "id": "_text_warning",
+                "path": [],
+                "skipped_text": skipped_text,
+            })
         return gcode

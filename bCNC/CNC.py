@@ -2682,6 +2682,22 @@ class GCode:
                                       samples_per_unit,
                                       CNC.digits,
                                       ppi=ppi):
+            # Warning entry injected when Text elements were found in the SVG
+            if path.get("skipped_text"):
+                names = ", ".join(f'"{t}"' for t in path["skipped_text"])
+                warn = Block("WARNING: SVG text not imported")
+                warn.enable = False
+                warn.append(
+                    f"(SVG contained {len(path['skipped_text'])} text element(s)"
+                    f" that cannot be converted to toolpaths: {names})")
+                warn.append(
+                    "(Text requires a font renderer. To include text, open the"
+                    " SVG in Inkscape, select all text, then use)")
+                warn.append(
+                    "(  Path > Object to Path   to convert glyphs to bezier"
+                    " curves, then re-import.)")
+                self.blocks.append(warn)
+                continue
             lines = path["path"]   # list of G-code strings from path2gcode
             if not lines:
                 continue
