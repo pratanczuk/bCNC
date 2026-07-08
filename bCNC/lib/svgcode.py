@@ -85,6 +85,11 @@ class SVGcode:
             from matplotlib.textpath import TextPath
             from matplotlib.font_manager import FontProperties
             import matplotlib.path as mpath
+            import logging as _logging
+            # Suppress "findfont: Font family not found" chatter.
+            # matplotlib silently falls back to the best available match.
+            _logging.getLogger('matplotlib.font_manager').setLevel(
+                _logging.ERROR)
         except ImportError:
             return None
 
@@ -99,6 +104,24 @@ class SVGcode:
 
         # CSS font-family is a comma-separated priority list
         families = [f.strip().strip("'\"") for f in font_family.split(",")]
+
+        # For heavy/black weights, append system-available bold alternatives so
+        # matplotlib finds the closest match without degenerating to a roman face.
+        _wv = 400
+        if str(weight).isdigit():
+            _wv = int(weight)
+        elif str(weight).lower() in ('black', 'heavy', 'ultrabold',
+                                     'ultra-bold', 'extrabold', 'extra-bold'):
+            _wv = 900
+        elif str(weight).lower() == 'bold':
+            _wv = 700
+        if _wv >= 700:
+            families = families + [
+                'Liberation Sans', 'Carlito',
+                'Nimbus Sans', 'NimbusSans L',
+                'FreeSans', 'Ubuntu',
+                'DejaVu Sans', 'sans-serif',
+            ]
 
         fp = FontProperties(family=families, weight=weight,
                             style=style, size=1.0)
@@ -217,6 +240,15 @@ class SVGcode:
                     skipped_text.append(txt)
             elif isinstance(element, Shape):
                 if not isinstance(element, Path):
+                    # Skip fill-only non-Path shapes (Rect, Circle, etc.) that
+                    # have no visible stroke.  These are decorative elements
+                    # (background rects, icon fills) — converting them produces
+                    # spurious cut paths.  Explicitly drawn <path> elements are
+                    # always kept regardless of stroke.
+                    stroke = getattr(element, 'stroke', None)
+                    if stroke is None or str(stroke).strip().lower() in (
+                            'none', 'transparent'):
+                        continue
                     element = Path(element)
                 gcode.append(
                     {
