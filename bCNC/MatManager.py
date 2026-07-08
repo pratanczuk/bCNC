@@ -361,8 +361,27 @@ def apply_dragknife_auto(app):
     dk_plugin["feed"]     = CNC.vars.get("mat_speed",        500.0)
     dk_plugin["simulate"] = False
 
-    # 3. select all so plugin processes every block
+    # 3. select only blocks that have exactly ONE continuous sub-path.
+    #
+    #    The dragknife plugin calls toPath(bid)[0], so it can only process
+    #    single-contour blocks correctly.  Blocks with 0 paths (comments,
+    #    warning text, empty blocks) or >1 paths (text glyph blocks, where
+    #    each character is a separate G0-separated contour) must be excluded
+    #    from the plugin and preserved verbatim in the final output.
     app.editor.selectAll()
+
+    preserved_blocks = []   # blocks the plugin must NOT touch
+    for bid in range(len(app.gcode.blocks)):
+        block = app.gcode.blocks[bid]
+        if block.name() in ("Header", "Footer"):
+            continue
+        npaths = len(app.gcode.toPath(bid))
+        if npaths != 1:
+            # Deselect this block so the plugin skips it
+            pos = app.editor._blockPos[bid]
+            if pos is not None:
+                app.editor.selection_clear(pos)
+            preserved_blocks.append(block)
 
     # 4. run – the plugin appends new blocks via gcode.insBlocks()
     dk_plugin.execute(app)
@@ -379,8 +398,9 @@ def apply_dragknife_auto(app):
         # plugin produced nothing (e.g. no valid paths) – leave as-is
         return
 
-    # 6. reassemble: Header(s) + drag-knife content + Footer(s) (undo-able)
-    final_blocks = header_blocks + dk_blocks + footer_blocks
+    # 6. reassemble: Header(s) + drag-knife content + preserved blocks
+    #    (multi-path / zero-path blocks that the plugin skipped) + Footer(s)
+    final_blocks = header_blocks + dk_blocks + preserved_blocks + footer_blocks
     app.addUndo(app.gcode.setAllBlocksUndo(final_blocks))
 
     # 7. refresh
