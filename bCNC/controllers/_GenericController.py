@@ -213,13 +213,18 @@ class _GenericController:
         self.master.serial_write(b"!")
         self.master.serial.flush()
         time.sleep(1)
-        # remember and send all G commands
-        G = " ".join([x for x in CNC.vars["G"] if x[0] == "G"])  # remember $G
+        # remember and send all G commands; exclude G92 because it persists
+        # through a soft reset and sending bare "G92" combined with a motion
+        # command (G0) in the same block is rejected by GrblHAL (error:24).
+        G = " ".join([x for x in CNC.vars["G"] if x[0] == "G" and x != "G92"])
         TLO = CNC.vars["TLO"]
         self.softReset(False)  # reset controller
-        self.purgeControllerExtra()
+        # runEnded() must come before purgeControllerExtra() so that
+        # running=False when $X is sent via sendGCode() inside
+        # purgeControllerExtra(); sendGCode() is a no-op when running=True.
         self.master.runEnded()
         self.master.stopProbe()
+        self.purgeControllerExtra()
         if G:
             self.master.sendGCode(G)  # restore $G
         self.master.sendGCode(f"G43.1Z{TLO}")  # restore TLO
