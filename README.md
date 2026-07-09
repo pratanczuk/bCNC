@@ -1,5 +1,35 @@
-bCNC
-====
+bCNC — Foil Cutting Plotter Edition
+====================================
+
+> **This is a fork of [bCNC](https://github.com/vlachoudis/bCNC) by
+> [Vasilis Vlachoudis](https://github.com/vlachoudis), specialised for
+> vinyl / foil cutting plotters.**
+>
+> A huge **thank you** to Vasilis for creating bCNC — a masterpiece of
+> engineering that has empowered thousands of CNC hobbyists and
+> professionals around the world.  His years of work, careful design and
+> open-source spirit made this fork possible.  All credit for the
+> foundation belongs to him. 🙏
+
+---
+
+## ✂️ What makes this fork different?
+
+This fork extends the original bCNC with features specifically designed
+for **drag-knife / foil cutting plotters** running **grblHAL**:
+
+| Feature | Description |
+|---|---|
+| 🗡️ **Automated drag-knife compensation** | Knife offset is computed transparently at send-time — the editor always shows the original unmodified design |
+| 🔄 **Overcut support** | Configurable overcut at path ends for clean corner separation |
+| 🧩 **Cutting-mat management** | Visual mat overlay, load/unload workflow, automatic snap-to-mat-origin on file load |
+| 📐 **Mat boundary check** | Warns before a job starts if the drawing exceeds the mat dimensions |
+| 🔩 **grblHAL improvements** | Better alarm handling, correct G92 restore after reset, reliable post-alarm homing that returns to mat origin (Y=0) |
+| 📱 **Tablet-friendly UI** | Simplified ribbon layout and larger touch targets for tablet / touchscreen use |
+| 📏 **Scaling & basic shapes** | Built-in scaling tool and shape generators (rectangle, circle, line, arc …) for quick layout without a CAD app |
+| 🎛️ **Pressure & speed per-mat** | Per-mat cutting pressure and speed stored in settings |
+
+---
 
 ## Apple/MacOS warning! We are working on new release and it seems to be broken on Mac, but have no way to test.
 ## If you use MacOS, plese contact us [HERE](https://github.com/vlachoudis/bCNC/issues/591) so we can keep Mac support!
