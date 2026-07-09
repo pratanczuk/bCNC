@@ -31,6 +31,14 @@ for **drag-knife / foil cutting plotters** running **grblHAL**:
 
 ---
 
+## 🖥️ Screenshot
+
+*Plotter edition with cutting-mat overlay, grblHAL logo design loaded and ready to cut:*
+
+![bCNC Foil Cutting Plotter Edition](docs/screenshots/plotter-edition-ui.png)
+
+---
+
 ## Apple/MacOS warning! We are working on new release and it seems to be broken on Mac, but have no way to test.
 ## If you use MacOS, plese contact us [HERE](https://github.com/vlachoudis/bCNC/issues/591) so we can keep Mac support!
 
