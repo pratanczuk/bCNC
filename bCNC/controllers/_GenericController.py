@@ -305,6 +305,18 @@ class _GenericController:
             self.master._stop = True
             del cline[:]  # After reset clear the buffer counters
             del sline[:]
+            if self.master.running:
+                # Controller self-reset mid-run (e.g. ALARM:1 hard limit).
+                # End the run cleanly and unlock without firing an additional
+                # soft reset via purgeController(), which would cascade into
+                # more errors (double-reset → $X dropped → state restore fails
+                # with error:24 on GrblHAL).
+                self.master.cleanAfter = False  # prevent jobDone()->purgeController()
+                self.master.runEnded()
+                # sendGCode() clears _stop so these are not eaten by emptyQueue
+                self.master.sendGCode("$X")  # unlock alarm state
+                self.viewState()
+                self.viewParameters()
             CNC.vars["version"] = line.split()[1]
             # Detect controller
             if self.master.controller in ("GRBL0", "GRBL1"):
