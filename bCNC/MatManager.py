@@ -448,7 +448,15 @@ def snap_to_mat(app):
     if abs(dx) < 0.0001 and abs(dy) < 0.0001:
         return
 
-    items = [(bid, None) for bid in range(len(app.gcode.blocks))]
+    # Only translate actual content blocks.
+    # Header and Footer contain absolute positioning commands (return-to-home,
+    # spindle on/off) that must NOT be shifted – otherwise e.g. a "G0 Y0"
+    # return-to-origin in the Footer becomes "G0 Y105.68" after the snap.
+    items = [
+        (bid, None)
+        for bid in range(len(app.gcode.blocks))
+        if app.gcode.blocks[bid].name() not in ("Header", "Footer")
+    ]
     if not items:
         return
 
