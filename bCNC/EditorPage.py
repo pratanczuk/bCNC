@@ -37,7 +37,7 @@ import tkExtra
 import Utils
 from CNCCanvas import ACTION_MOVE, ACTION_ORIGIN
 from CNC import CNC
-from MatManager import apply_dragknife_auto
+from MatManager import apply_dragknife_auto  # kept for manual Execute button
 
 from Helpers import N_
 
@@ -799,9 +799,9 @@ class RouteGroup(CNCRibbon.ButtonGroup):
 # Draw Group - basic shape generators
 # =============================================================================
 def _apply_dk_auto(app):
-    """After creating a shape, trigger drag-knife pipeline if auto-apply is on."""
-    if CNC.vars.get("mat_auto_dragknife", False):
-        app.after_idle(lambda: apply_dragknife_auto(app))
+    """No-op: drag-knife is now applied transparently at send time (run()),
+    so the editor always shows the original unmodified design."""
+    pass
 
 
 def _ask_shape_params(parent, title, fields):

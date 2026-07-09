@@ -79,6 +79,7 @@ from MatManager import (        # Req E / G / H
     CuttingMatSettingsDialog,
     MatStatusPanel,
     apply_dragknife_auto,
+    _compute_dragknife_blocks,
     snap_to_mat,
 )
 from ProbePage import ProbePage
@@ -2501,11 +2502,11 @@ class Application(Tk, Sender):
             self.draw()
             self.canvas.fit2Screen()
             Page.frames["CAM"].populate()
-            # Snap design to mat origin, then optionally run drag-knife pipeline
+            # Snap design to mat origin after load
             self.after_idle(lambda: snap_to_mat(self))
-            # Req H – auto drag-knife pipeline on file load
-            if CNC.vars.get("mat_auto_dragknife", False):
-                self.after_idle(lambda: apply_dragknife_auto(self))
+            # Note: drag-knife compensation is applied transparently at send
+            # time (run()) when mat_auto_dragknife is enabled, so the editor
+            # always shows the original unmodified design.
 
         if autoloaded:
             self.setStatus(
@@ -2575,9 +2576,8 @@ class Application(Tk, Sender):
             self.editor.fill()
             self.draw()
             self.canvas.fit2Screen()
-            # Req H – auto drag-knife pipeline on file import
-            if CNC.vars.get("mat_auto_dragknife", False):
-                self.after_idle(lambda: apply_dragknife_auto(self))
+            # Note: drag-knife compensation is applied at send time (run()),
+            # not on import, so the original design remains editable.
 
     # -----------------------------------------------------------------------
     def focusIn(self, event):
@@ -2747,7 +2747,26 @@ class Application(Tk, Sender):
         if lines is None:
             self.statusbar.setLimits(0, 9999)
             self.statusbar.setProgress(0, 0)
-            self._paths = self.gcode.compile(self.queue, self.checkStop)
+
+            # Pre-send drag-knife: compute compensated blocks without touching
+            # the original buffer so the editor always shows the source design.
+            if CNC.vars.get("mat_auto_dragknife", False):
+                _dk_blocks = _compute_dragknife_blocks(self)
+            else:
+                _dk_blocks = None
+
+            if _dk_blocks is not None:
+                _saved_blocks = self.gcode.blocks
+                self.gcode.blocks = _dk_blocks
+            else:
+                _saved_blocks = None
+
+            try:
+                self._paths = self.gcode.compile(self.queue, self.checkStop)
+            finally:
+                if _saved_blocks is not None:
+                    self.gcode.blocks = _saved_blocks
+
             if self._paths is None:
                 self.emptyQueue()
                 self.purgeController()
@@ -2762,21 +2781,27 @@ class Application(Tk, Sender):
                 return
 
             # reset colors
-            before = time.time()
-            for ij in self._paths:  # Slow loop
-                if not ij:
-                    continue
-                path = self.gcode[ij[0]].path(ij[1])
-                if path:
-                    color = self.canvas.itemcget(path, "fill")
-                    if color != CNCCanvas.ENABLE_COLOR:
-                        self.canvas.itemconfig(
-                            path, width=1, fill=CNCCanvas.ENABLE_COLOR
-                        )
-                    # Force a periodic update since this loop can take time
-                    if time.time() - before > 0.25:
-                        self.update()
-                        before = time.time()
+            # When DK blocks were used, _paths indices refer to _dk_blocks,
+            # not to the restored original gcode.blocks.  The canvas always
+            # shows the original design, so DK indices would cause IndexError
+            # or access the wrong block.  Skip the loop in that case — the
+            # serial thread updates canvas colours incrementally anyway.
+            if _saved_blocks is None:
+                before = time.time()
+                for ij in self._paths:  # Slow loop
+                    if not ij:
+                        continue
+                    path = self.gcode[ij[0]].path(ij[1])
+                    if path:
+                        color = self.canvas.itemcget(path, "fill")
+                        if color != CNCCanvas.ENABLE_COLOR:
+                            self.canvas.itemconfig(
+                                path, width=1, fill=CNCCanvas.ENABLE_COLOR
+                            )
+                        # Force a periodic update since this loop can take time
+                        if time.time() - before > 0.25:
+                            self.update()
+                            before = time.time()
 
             # the buffer of the machine should be empty?
             self._runLines = len(self._paths) + 1  # plus the wait

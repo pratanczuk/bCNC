@@ -100,7 +100,7 @@ class CuttingMatSettingsDialog:
             value=bool(CNC.vars.get("mat_auto_dragknife", False)))
         Checkbutton(
             frm,
-            text="Automatically apply drag-knife\ncompensation on file load",
+            text="Automatically apply drag-knife\ncompensation before sending to machine",
             variable=self._auto_dk,
             anchor=W,
             justify=LEFT,
@@ -411,6 +411,89 @@ def apply_dragknife_auto(app):
     app.drawAfter()
     app.after(500, app.canvas.fit2Screen)
     app.setStatus("Drag-knife compensation applied automatically.")
+
+
+# =============================================================================
+# Req H2 – Compute drag-knife blocks for pre-send injection (non-destructive)
+# =============================================================================
+def _compute_dragknife_blocks(app):
+    """
+    Run the DragKnife plugin on a *temporary copy* of gcode.blocks and return
+    the resulting knife-compensated block list WITHOUT modifying the real buffer.
+
+    Called by run() just before gcode.compile() so that:
+      • The editor always shows the original design.
+      • Scaling / editing after load produces correct compensation at send time.
+
+    Returns the full block list to hand to compile(), or None when the plugin
+    is unavailable or produces no output (caller should compile the original).
+
+    State restored on return: app.gcode.blocks, undo/redo stacks,
+    editor selection.
+    """
+    if not app.gcode.blocks:
+        return None
+
+    try:
+        dk_plugin = app.tools["DragKnife"]
+    except (KeyError, TypeError, AttributeError):
+        return None
+
+    # Configure plugin from mat settings
+    dk_plugin["offset"]   = CNC.vars.get("mat_knife_offset", 0.5)
+    dk_plugin["feed"]     = CNC.vars.get("mat_speed",        500.0)
+    dk_plugin["simulate"] = False
+
+    # ── Save state ────────────────────────────────────────────────────────
+    original_blocks = app.gcode.blocks
+    saved_undo      = list(app.gcode.undoredo.undoList)
+    saved_redo      = list(app.gcode.undoredo.redoList)
+
+    # ── Give the plugin a working copy ───────────────────────────────────
+    app.gcode.blocks = list(original_blocks)
+    orig_ids = {id(b) for b in app.gcode.blocks}
+
+    # Select valid single-contour blocks; deselect the rest
+    app.editor.selectAll()
+    preserved_blocks = []
+    for bid in range(len(app.gcode.blocks)):
+        block = app.gcode.blocks[bid]
+        if block.name() in ("Header", "Footer"):
+            continue
+        npaths = len(app.gcode.toPath(bid))
+        if npaths != 1:
+            pos = app.editor._blockPos[bid]
+            if pos is not None:
+                app.editor.selection_clear(pos)
+            preserved_blocks.append(block)
+
+    # Suppress UI side-effects while the plugin runs
+    orig_refresh = app.refresh
+    app.refresh = lambda: None
+    try:
+        dk_plugin.execute(app)
+    finally:
+        app.refresh = orig_refresh
+
+    # ── Collect results before restoring ─────────────────────────────────
+    working_blocks = app.gcode.blocks
+
+    # ── Restore original state fully ─────────────────────────────────────
+    app.gcode.blocks = original_blocks
+    app.gcode.undoredo.undoList[:] = saved_undo
+    app.gcode.undoredo.redoList[:] = saved_redo
+    app.editor.selectClear()
+
+    # ── Assemble final block list ─────────────────────────────────────────
+    orig_ordered  = [b for b in working_blocks if id(b) in orig_ids]
+    header_blocks = [b for b in orig_ordered if b.name() == "Header"]
+    footer_blocks = [b for b in orig_ordered if b.name() == "Footer"]
+    dk_blocks     = [b for b in working_blocks if id(b) not in orig_ids]
+
+    if not dk_blocks:
+        return None
+
+    return header_blocks + dk_blocks + preserved_blocks + footer_blocks
 
 
 # =============================================================================
