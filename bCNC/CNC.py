@@ -2318,8 +2318,8 @@ class GCode:
     # ----------------------------------------------------------------------
     def __init__(self):
         self.cnc = CNC()
-        self.header = ""
-        self.footer = ""
+        self.header = "M3 S220 F1500"
+        self.footer = "G4 P0.1"
         self.undoredo = undo.UndoRedo()
         self.probe = Probe()
         self.orient = Orient()

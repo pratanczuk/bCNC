@@ -651,8 +651,8 @@ class Config(_Base):
             ("spindlemin", "int", 0, _("Spindle min (RPM)")),
             ("spindlemax", "int", 12000, _("Spindle max (RPM)")),
             ("drozeropad", "int", 0, _("DRO Zero padding")),
-            ("header", "text", "", _("Header gcode")),
-            ("footer", "text", "", _("Footer gcode")),
+            ("header", "text", "M3 S220 F1500", _("Header gcode")),
+            ("footer", "text", "G4 P0.1", _("Footer gcode")),
             ("init", "text", "", _("Connection init string")),
         ]
 
