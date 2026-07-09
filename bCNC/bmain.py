@@ -2679,6 +2679,50 @@ class Application(Tk, Sender):
             )
             return
 
+        # ── Mat size check ────────────────────────────────────────────────
+        mat_w = CNC.vars.get("mat_width", 0.0)
+        mat_h = CNC.vars.get("mat_height", 0.0)
+        if mat_w > 0 and mat_h > 0:
+            xmin = CNC.vars.get("xmin", 1e9)
+            xmax = CNC.vars.get("xmax", -1e9)
+            ymin = CNC.vars.get("ymin", 1e9)
+            ymax = CNC.vars.get("ymax", -1e9)
+            if xmin <= xmax and ymin <= ymax:
+                out = []
+                if xmax > mat_w:
+                    out.append(
+                        _("  X max: {:.2f} mm  (mat width: {:.2f} mm)").format(xmax, mat_w)
+                    )
+                if ymax > mat_h:
+                    out.append(
+                        _("  Y max: {:.2f} mm  (mat height: {:.2f} mm)").format(ymax, mat_h)
+                    )
+                if xmin < 0:
+                    out.append(
+                        _("  X min: {:.2f} mm  (mat starts at 0)").format(xmin)
+                    )
+                if ymin < 0:
+                    out.append(
+                        _("  Y min: {:.2f} mm  (mat starts at 0)").format(ymin)
+                    )
+                if out:
+                    msg = (
+                        _("Drawing extends outside the cutting mat boundaries:\n\n")
+                        + "\n".join(out)
+                        + "\n\n"
+                        + _(
+                            "Drawing size: {:.2f} x {:.2f} mm\n"
+                            "Mat size:     {:.2f} x {:.2f} mm\n\n"
+                            "Continue anyway?"
+                        ).format(xmax - xmin, ymax - ymin, mat_w, mat_h)
+                    )
+                    if not messagebox.askyesno(
+                        _("Drawing exceeds mat size"),
+                        msg,
+                        parent=self,
+                    ):
+                        return
+
         self.editor.selectClear()
         self.selectionChange()
         CNC.vars["errline"] = ""
