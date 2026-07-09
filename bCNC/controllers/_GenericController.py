@@ -107,6 +107,12 @@ class _GenericController:
     def home(self, event=None):
         self.master._alarm = False
         self.master.sendGCode("$H")
+        # After machine homing, return to mat origin (Y=0 in work coords).
+        # grblHAL preserves G92 through $H, so the work-coordinate origin
+        # set by loadMat (G92 X0 Y0) is still valid and G0 X0 Y0 will
+        # bring the tool back to the beginning of the mat.
+        if CNC.vars.get("mat_loaded"):
+            self.master.sendGCode("G90G0X0Y0")
 
     def viewStatusReport(self):
         self.master.serial_write(b"?")
