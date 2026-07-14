@@ -136,6 +136,40 @@ class FileGroup(CNCRibbon.ButtonGroup):
         b = Ribbon.LabelButton(
             self.frame,
             self,
+            "<<LibreCAD>>",
+            image=Utils.icons["pencil"],
+            text=_("LibreCAD"),
+            compound=TOP,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=row, column=col, rowspan=3, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(
+            b, _("Create a DXF drawing in LibreCAD and import it when closed")
+        )
+        self.addWidget(b)
+
+        # ---
+        col, row = 4, 0
+        b = Ribbon.LabelButton(
+            self.frame,
+            self,
+            "<<Inkscape>>",
+            image=Utils.icons["inkscape"],
+            text=_("Inkscape"),
+            compound=TOP,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=row, column=col, rowspan=3, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(
+            b, _("Create an SVG drawing in Inkscape and import it when closed")
+        )
+        self.addWidget(b)
+
+        # ---
+        col, row = 5, 0
+        b = Ribbon.LabelButton(
+            self.frame,
+            self,
             "<<Save>>",
             image=Utils.icons["save32"],
             command=app.save,
@@ -145,7 +179,7 @@ class FileGroup(CNCRibbon.ButtonGroup):
         tkExtra.Balloon.set(b, _("Save gcode/dxf file [Ctrl-S]"))
         self.addWidget(b)
 
-        col, row = 3, 2
+        col, row = 5, 2
         b = Ribbon.LabelButton(
             self.frame,
             self,

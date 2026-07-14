@@ -240,14 +240,17 @@ class SVGcode:
                     skipped_text.append(txt)
             elif isinstance(element, Shape):
                 if not isinstance(element, Path):
-                    # Skip fill-only non-Path shapes (Rect, Circle, etc.) that
-                    # have no visible stroke.  These are decorative elements
-                    # (background rects, icon fills) — converting them produces
-                    # spurious cut paths.  Explicitly drawn <path> elements are
-                    # always kept regardless of stroke.
+                    # Inkscape's default shapes (including circles) are filled
+                    # with no stroke.  Their outlines are still useful CNC
+                    # toolpaths, so import shapes with either visible fill or
+                    # stroke. Ignore only fully invisible elements.
                     stroke = getattr(element, 'stroke', None)
-                    if stroke is None or str(stroke).strip().lower() in (
-                            'none', 'transparent'):
+                    fill = getattr(element, 'fill', None)
+                    invisible = (None, 'none', 'transparent')
+                    if (stroke is None or str(stroke).strip().lower()
+                            in invisible) and (
+                            fill is None or str(fill).strip().lower()
+                            in invisible):
                         continue
                     element = Path(element)
                 gcode.append(

@@ -15,6 +15,7 @@ import tkinter.font as tkfont
 
 import tkExtra
 from CNC import CNC, Block
+from path_boolean import boolean_paths
 
 BLOCK_COLOR = "LightYellow"
 COMMENT_COLOR = "Blue"
@@ -718,6 +719,63 @@ class CNCListbox(Listbox):
             self.fill()
         self.deleteBlock()
         self.winfo_toplevel().event_generate("<<Modified>>")
+
+    # ----------------------------------------------------------------------
+    # Boolean operations on two selected closed paths
+    # ----------------------------------------------------------------------
+    def _booleanPaths(self, operation, label):
+        selected = self.getSelectedBlocks()
+        if len(selected) != 2:
+            self.winfo_toplevel().event_generate(
+                "<<Status>>", data=_("Select exactly two closed graphic blocks")
+            )
+            return
+
+        paths_a = self.gcode.toPath(selected[0])
+        paths_b = self.gcode.toPath(selected[1])
+        if len(paths_a) != 1 or len(paths_b) != 1:
+            self.winfo_toplevel().event_generate(
+                "<<Status>>", data=_("Each selected block must contain one path")
+            )
+            return
+
+        try:
+            contours = boolean_paths(paths_a[0], paths_b[0], operation)
+        except ValueError as error:
+            self.winfo_toplevel().event_generate(
+                "<<Status>>", data=_(str(error))
+            )
+            return
+
+        if not contours:
+            self.winfo_toplevel().event_generate(
+                "<<Status>>", data=_("The operation produced no graphics")
+            )
+            return
+
+        block = Block(label)
+        block.extend(self.gcode.fromPath(contours))
+        position = max(selected) + 1
+        self.gcode.addUndo(
+            self.gcode.insBlocksUndo(position, [block]), label
+        )
+        self.fill()
+        self.winfo_toplevel().event_generate("<<Modified>>")
+        self.winfo_toplevel().event_generate(
+            "<<Status>>", data=_("Generated: {}".format(label))
+        )
+
+    def intersectPaths(self, event=None):
+        self._booleanPaths("intersection", _("Intersection"))
+
+    def unionPaths(self, event=None):
+        self._booleanPaths("union", _("Union"))
+
+    def differencePaths(self, event=None):
+        self._booleanPaths("difference", _("Difference A - B"))
+
+    def symmetricDifferencePaths(self, event=None):
+        self._booleanPaths("symmetric_difference", _("Symmetric Difference"))
 
     # ----------------------------------------------------------------------
     # change color of a block

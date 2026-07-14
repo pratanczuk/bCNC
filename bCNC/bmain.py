@@ -5,8 +5,11 @@
 # Date: 24-Aug-2014
 
 import os
+import shlex
 import socket
+import subprocess
 import sys
+import tempfile
 import time
 import traceback
 import webbrowser
@@ -81,6 +84,7 @@ from MatManager import (        # Req E / G / H
     apply_dragknife_auto,
     _compute_dragknife_blocks,
     snap_to_mat,
+    snap_blocks_to_mat,
 )
 from ProbePage import ProbePage
 from Sender import NOT_CONNECTED, STATECOLOR, STATECOLORDEF, Sender
@@ -149,6 +153,46 @@ geometry = None
 # Main Application window
 # =============================================================================
 class Application(Tk, Sender):
+    def showTextInsertion(self, event=None):
+        """Open text insertion without making its libraries startup-critical."""
+        try:
+            from TextGenerator import show_text_insertion
+        except ImportError as error:
+            messagebox.showerror(
+                _("Insert Text"),
+                                _("Text insertion requires fontTools.\n"
+                  "Install the project requirements, then restart bCNC.\n\n{}")
+                .format(error),
+                parent=self,
+            )
+            return "break"
+        show_text_insertion(self)
+        return "break"
+
+    def showImageTrace(self, event=None):
+        """Open bitmap tracing with an interactive vector preview."""
+        try:
+            self.tools["ImageTrace"]
+        except KeyError:
+            messagebox.showerror(
+                _("Image Trace"),
+                _("The Image Trace plugin is unavailable. Restart bCNC after "
+                  "installing the project requirements."),
+                parent=self,
+            )
+            return "break"
+        try:
+            from ImageTraceDialog import show_image_trace
+            show_image_trace(self)
+        except ImportError as error:
+            messagebox.showerror(
+                _("Image Trace"),
+                _("Image tracing requires Pillow, NumPy, and OpenCV.\n\n{}")
+                .format(error),
+                parent=self,
+            )
+        return "break"
+
     def __init__(self, **kw):
         Tk.__init__(self, **kw)
         Sender.__init__(self)
@@ -349,6 +393,8 @@ class Application(Tk, Sender):
         self.bind("<<New>>", self.newFile)
         self.bind("<<Open>>", self.loadDialog)
         self.bind("<<Import>>", lambda x, s=self: s.importFile())
+        self.bind("<<LibreCAD>>", lambda x, s=self: s.openLibreCAD())
+        self.bind("<<Inkscape>>", lambda x, s=self: s.openInkscape())
         self.bind("<<Save>>", self.saveAll)
         self.bind("<<SaveAs>>", self.saveDialog)
         self.bind("<<Reload>>", self.reload)
@@ -412,6 +458,15 @@ class Application(Tk, Sender):
         self.bind("<<Comment>>", self.editor.commentRow)
         self.bind("<<Join>>", self.editor.joinBlocks)
         self.bind("<<Split>>", self.editor.splitBlocks)
+        self.bind("<<InsertText>>", self.showTextInsertion)
+        self.bind("<<ImageTrace>>", self.showImageTrace)
+        self.bind("<<Intersection>>", self.editor.intersectPaths)
+        self.bind("<<Union>>", self.editor.unionPaths)
+        self.bind("<<Difference>>", self.editor.differencePaths)
+        self.bind(
+            "<<SymmetricDifference>>",
+            self.editor.symmetricDifferencePaths,
+        )
 
         # Canvas X-bindings
         self.bind("<<ViewChange>>", self.viewChange)
@@ -2542,7 +2597,7 @@ class Application(Tk, Sender):
         self.load(self.gcode.filename)
 
     # -----------------------------------------------------------------------
-    def importFile(self, filename=None):
+    def importFile(self, filename=None, skip_header_footer=False):
         if filename is None:
             filename = bFileDialog.askopenfilename(
                 master=self,
@@ -2566,11 +2621,39 @@ class Application(Tk, Sender):
                 gcode.importSVG(filename)
             else:
                 gcode.load(filename)
+
+            # Imported bCNC files and generated DXF/SVG files can carry their
+            # own Header/Footer wrapper.  When merging into an existing job,
+            # retain the active job's single wrapper pair and insert only the
+            # imported drawing blocks.
+            active_has_wrapper = any(
+                block.name() in ("Header", "Footer")
+                for block in self.gcode.blocks
+            )
+            if skip_header_footer or active_has_wrapper:
+                gcode.blocks[:] = [
+                    block for block in gcode.blocks
+                    if block.name() not in ("Header", "Footer")
+                ]
+
+            if skip_header_footer:
+                self.gcode.headerFooter()
+
             sel = self.editor.getSelectedBlocks()
             if not sel:
-                pos = None
+                footer = next(
+                    (
+                        bid for bid, block in enumerate(self.gcode.blocks)
+                        if block.name() == "Footer"
+                    ),
+                    None,
+                )
+                pos = footer
             else:
                 pos = sel[-1]
+            first = (len(self.gcode.blocks) if pos is None
+                     or pos >= len(self.gcode.blocks) else pos)
+            inserted = list(range(first, first + len(gcode.blocks)))
             self.addUndo(self.gcode.insBlocksUndo(pos, gcode.blocks))
             del gcode
             self.editor.fill()
@@ -2578,6 +2661,145 @@ class Application(Tk, Sender):
             self.canvas.fit2Screen()
             # Note: drag-knife compensation is applied at send time (run()),
             # not on import, so the original design remains editable.
+            return inserted
+
+    # -----------------------------------------------------------------------
+    def openLibreCAD(self, event=None):
+        """Create a DXF drawing in LibreCAD and import it when it exits."""
+        return self.openExternalEditor(
+            _("LibreCAD"),
+            "librecad",
+            ".dxf",
+            "0\nSECTION\n2\nHEADER\n0\nENDSEC\n"
+            "0\nSECTION\n2\nENTITIES\n0\nENDSEC\n0\nEOF\n",
+        )
+
+    # -----------------------------------------------------------------------
+    def openInkscape(self, event=None):
+        """Create an SVG drawing in Inkscape and import it when it exits."""
+        return self.openExternalEditor(
+            _("Inkscape"),
+            "inkscape",
+            ".svg",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n"
+            "</svg>\n",
+        )
+
+    # -----------------------------------------------------------------------
+    def openExternalEditor(self, editor_name, config_key, suffix, contents):
+        """Edit a temporary drawing and import it after its editor exits."""
+        filename = None
+        try:
+            fd, filename = tempfile.mkstemp(prefix="bCNC-", suffix=suffix)
+            with os.fdopen(fd, "w", encoding="utf-8") as drawing:
+                drawing.write(contents)
+            command = Utils.getStr(
+                "Editors",
+                config_key,
+                Utils.getStr("File", config_key, config_key),
+            )
+            arguments = shlex.split(command, posix=os.name != "nt")
+            if not arguments:
+                raise ValueError(_("No editor command is configured."))
+            environment = os.environ.copy()
+            # bCNC can be launched from Snap-packaged VS Code. Its GTK paths
+            # make system-installed Inkscape load incompatible Snap libraries.
+            for variable in (
+                    "GTK_PATH",
+                    "GTK_EXE_PREFIX",
+                    "GDK_PIXBUF_MODULE_FILE",
+                    "GDK_PIXBUF_MODULEDIR",
+            ):
+                environment.pop(variable, None)
+            process = subprocess.Popen(arguments + [filename], env=environment)
+            stat = os.stat(filename)
+        except (OSError, ValueError) as error:
+            if filename:
+                try:
+                    os.unlink(filename)
+                except OSError:
+                    pass
+            messagebox.showerror(
+                editor_name,
+                _("Unable to start {}:\n{}").format(editor_name, error),
+                parent=self,
+            )
+            return "break"
+
+        self.setStatus(
+            _("Edit the drawing in {}, save it, then close the editor.").format(
+                editor_name
+            )
+        )
+        self.after(
+            250,
+            self._importExternalDrawing,
+            process,
+            filename,
+            stat.st_mtime_ns,
+            stat.st_size,
+            editor_name,
+        )
+        return "break"
+
+    # -----------------------------------------------------------------------
+    def _importExternalDrawing(
+            self, process, filename, mtime_ns, size, editor_name):
+        """Import a temporary drawing only when it was saved by the user."""
+        exit_code = process.poll()
+        if exit_code is None:
+            self.after(
+                250,
+                self._importExternalDrawing,
+                process,
+                filename,
+                mtime_ns,
+                size,
+                editor_name,
+            )
+            return
+
+        if exit_code:
+            try:
+                os.unlink(filename)
+            except OSError:
+                pass
+            messagebox.showerror(
+                editor_name,
+                _("{} exited with error code {}.").format(
+                    editor_name, exit_code
+                ),
+                parent=self,
+            )
+            return
+
+        try:
+            stat = os.stat(filename)
+        except OSError:
+            self.setStatus(_("{} drawing was not saved.").format(editor_name))
+            return
+
+        if stat.st_mtime_ns == mtime_ns and stat.st_size == size:
+            os.unlink(filename)
+            self.setStatus(_("{} drawing was not changed.").format(editor_name))
+            return
+
+        try:
+            inserted = self.importFile(filename, skip_header_footer=True)
+            self.after_idle(snap_blocks_to_mat, self, inserted)
+            self.setStatus(_("{} drawing imported.").format(editor_name))
+        except Exception as error:
+            messagebox.showerror(
+                _("{} import").format(editor_name),
+                _("Unable to import {} drawing:\n{}").format(editor_name, error),
+                parent=self,
+            )
+        finally:
+            try:
+                os.unlink(filename)
+            except OSError:
+                pass
 
     # -----------------------------------------------------------------------
     def focusIn(self, event):

@@ -223,7 +223,10 @@ class CNCCanvas(Canvas):
 
         self._x = self._y = 0
         self._xp = self._yp = 0
-        self.action = ACTION_SELECT
+        # Start in the graphical move tool.  This is also reflected in the
+        # Editor ribbon radiobutton through actionVar.
+        self.action = ACTION_MOVE
+        self.actionVar.set(ACTION_MOVE)
         self._mouseAction = None
         self._inDraw = False  # semaphore for parsing
         self._gantry1 = None

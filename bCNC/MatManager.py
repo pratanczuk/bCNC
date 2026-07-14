@@ -17,10 +17,11 @@ from tkinter import (
     X, Y, BOTH, YES, NO,
     W, E, N, S, NSEW, EW,
     Frame, Label, Button, Entry, Checkbutton, Toplevel,
-    BooleanVar, DoubleVar,
+    BooleanVar, DoubleVar, StringVar,
 )
 
 from CNC import CNC
+import Utils
 
 # ── Default mat dimensions (mm) ──────────────────────────────────────────────
 MAT_WIDTH_DEFAULT  = 300.0
@@ -68,10 +69,10 @@ class CuttingMatSettingsDialog:
         frm = Frame(top, padx=14, pady=10)
         frm.pack(fill=BOTH, expand=YES)
 
-        def _row(r, text, var):
+        def _row(r, text, var, width=12):
             Label(frm, text=text, anchor=W).grid(
                 row=r, column=0, sticky=W, **pad)
-            Entry(frm, textvariable=var, width=12).grid(
+            Entry(frm, textvariable=var, width=width).grid(
                 row=r, column=1, **pad)
 
         self._pressure     = DoubleVar(value=CNC.vars.get("mat_pressure",     500.0))
@@ -106,6 +107,21 @@ class CuttingMatSettingsDialog:
             justify=LEFT,
         ).grid(row=8, column=0, columnspan=2, sticky=W, **pad)
 
+        Frame(frm, height=2, bd=1, relief="sunken").grid(
+            row=9, column=0, columnspan=2, sticky=EW, padx=8, pady=6)
+
+        # ── External vector editors ───────────────────────────────────────
+        self._librecad = StringVar(
+            value=Utils.getStr(
+                "Editors", "librecad", Utils.getStr("File", "librecad", "librecad")
+            )
+        )
+        self._inkscape = StringVar(
+            value=Utils.getStr("Editors", "inkscape", "inkscape")
+        )
+        _row(10, "LibreCAD command:", self._librecad, width=32)
+        _row(11, "Inkscape command:", self._inkscape, width=32)
+
         # ── dialog buttons ───────────────────────────────────────────────
         bf = Frame(top, padx=10, pady=8)
         bf.pack(fill=X)
@@ -137,6 +153,9 @@ class CuttingMatSettingsDialog:
             CNC.vars["mat_auto_dragknife"]= bool(self._auto_dk.get())
         except (ValueError, tk.TclError):
             pass
+        Utils.addSection("Editors")
+        Utils.setStr("Editors", "librecad", self._librecad.get().strip())
+        Utils.setStr("Editors", "inkscape", self._inkscape.get().strip())
         # Write M3 S<pressure> into every Header block line that contains M3
         self._apply_pressure_to_header()
         self.result = True
@@ -560,5 +579,46 @@ def snap_to_mat(app):
 
     app.setStatus(
         f"Design snapped to mat origin "
+        f"(shifted X{dx:+.3f} Y{dy:+.3f} mm)."
+    )
+
+
+# =============================================================================
+# Snap newly inserted blocks to the mat origin without moving existing work
+# =============================================================================
+def snap_blocks_to_mat(app, block_ids):
+    """Translate selected blocks so their bounding box starts at (0, 0)."""
+    minx = miny = float("inf")
+    found_path = False
+
+    for bid in block_ids:
+        if bid < 0 or bid >= len(app.gcode.blocks):
+            continue
+        for path in app.gcode.toPath(bid):
+            x1, y1, x2, y2 = path.bbox()
+            minx = min(minx, x1)
+            miny = min(miny, y1)
+            found_path = True
+
+    if not found_path:
+        return
+
+    dx = -minx
+    dy = -miny
+    if abs(dx) < 0.0001 and abs(dy) < 0.0001:
+        return
+
+    items = [(bid, None) for bid in block_ids
+             if 0 <= bid < len(app.gcode.blocks)
+             and app.gcode.blocks[bid].name() not in ("Header", "Footer")]
+    if not items:
+        return
+
+    app.gcode.moveLines(items, dx, dy)
+    app.editor.fill()
+    app.drawAfter()
+    app.after(500, app.canvas.fit2Screen)
+    app.setStatus(
+        f"Imported drawing snapped to mat origin "
         f"(shifted X{dx:+.3f} Y{dy:+.3f} mm)."
     )

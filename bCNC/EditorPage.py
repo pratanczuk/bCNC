@@ -57,21 +57,6 @@ class ClipboardGroup(CNCRibbon.ButtonGroup):
         b = Ribbon.LabelButton(
             self.frame,
             self,
-            "<<Paste>>",
-            image=Utils.icons["paste32"],
-            text=_("Paste"),
-            compound=TOP,
-            takefocus=FALSE,
-            background=Ribbon._BACKGROUND,
-        )
-        b.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky=NSEW)
-        tkExtra.Balloon.set(b, _("Paste [Ctrl-V]"))
-        self.addWidget(b)
-
-        # ---
-        b = Ribbon.LabelButton(
-            self.frame,
-            self,
             "<<Cut>>",
             image=Utils.icons["cut"],
             text=_("Cut"),
@@ -126,7 +111,7 @@ class SelectGroup(CNCRibbon.ButtonGroup):
         self.addWidget(b)
 
         # ---
-        col += 1
+        row += 1
         b = Ribbon.LabelButton(
             self.frame,
             app,
@@ -219,6 +204,21 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
                 ),
                 (_("Import"), "load", lambda a=app: a.insertCommand("IMPORT", True)),
                 (
+                    _("LibreCAD drawing"),
+                    "pencil",
+                    lambda a=app: a.event_generate("<<LibreCAD>>"),
+                ),
+                (
+                    _("Inkscape drawing"),
+                    "inkscape",
+                    lambda a=app: a.event_generate("<<Inkscape>>"),
+                ),
+                (
+                    _("Trace bitmap"),
+                    "heightmap",
+                    lambda a=app: a.event_generate("<<ImageTrace>>"),
+                ),
+                (
                     _("Postprocess Inkscape g-code"),
                     "inkscape",
                     lambda a=app: a.insertCommand("INKSCAPE all", True),
@@ -228,23 +228,7 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
         )
         self.grid3rows()
 
-        # ---
-        col, row = 0, 0
-        b = Ribbon.LabelButton(
-            self.frame,
-            self.app,
-            "<<Add>>",
-            image=Utils.icons["add"],
-            anchor=W,
-            background=Ribbon._BACKGROUND,
-        )
-        b.grid(row=row, column=col, padx=0, pady=0, sticky=NSEW)
-        tkExtra.Balloon.set(
-            b, _("Insert a new block or line of code [Ins or Ctrl-Enter]")
-        )
-        self.addWidget(b)
-
-        menulist = [
+        add_menu = [
             (
                 _("Line"),
                 "add",
@@ -258,20 +242,18 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
         ]
         b = Ribbon.MenuButton(
             self.frame,
-            menulist,
+            add_menu,
             text=_("Add"),
-            image=Utils.icons["triangle_down"],
-            compound=RIGHT,
+            image=Utils.icons["add"],
+            compound=LEFT,
             anchor=W,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col + 1, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=0, column=0, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(
             b, _("Insert a new block or line of code [Ins or Ctrl-Enter]")
         )
 
-        # ---
-        row += 1
         b = Ribbon.LabelButton(
             self.frame,
             app,
@@ -282,12 +264,10 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
             anchor=W,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, columnspan=2, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=1, column=0, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(b, _("Clone selected lines or blocks [Ctrl-D]"))
         self.addWidget(b)
 
-        # ---
-        row += 1
         b = Ribbon.LabelButton(
             self.frame,
             app,
@@ -298,28 +278,11 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
             anchor=W,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, columnspan=2, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=2, column=0, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(b, _("Delete selected lines or blocks [Del]"))
         self.addWidget(b)
 
-        # ---
-        col, row = 2, 0
-        b = Ribbon.LabelButton(
-            self.frame,
-            self.app,
-            "<<EnableToggle>>",
-            image=Utils.icons["toggle"],
-            anchor=W,
-            background=Ribbon._BACKGROUND,
-        )
-        b.grid(row=row, column=col, padx=0, pady=0, sticky=NSEW)
-        tkExtra.Balloon.set(
-            b,
-            _("Toggle enable/disable block of g-code [Ctrl-L]")
-        )
-        self.addWidget(b)
-
-        menulist = [
+        active_menu = [
             (
                 _("Enable"),
                 "enable",
@@ -333,18 +296,16 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
         ]
         b = Ribbon.MenuButton(
             self.frame,
-            menulist,
+            active_menu,
             text=_("Active"),
-            image=Utils.icons["triangle_down"],
-            compound=RIGHT,
+            image=Utils.icons["toggle"],
+            compound=LEFT,
             anchor=W,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col + 1, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=0, column=1, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(b, _("Enable or disable blocks of gcode"))
 
-        # ---
-        row += 1
         b = Ribbon.LabelButton(
             self.frame,
             self.app,
@@ -355,15 +316,13 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
             anchor=W,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, columnspan=2, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=1, column=1, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(
             b,
             _("Toggle expand/collapse blocks of gcode [Ctrl-E]")
         )
         self.addWidget(b)
 
-        # ---
-        row += 1
         b = Ribbon.LabelButton(
             self.frame,
             self.app,
@@ -374,12 +333,10 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
             anchor=W,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, columnspan=2, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=2, column=1, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(b, _("(Un)Comment selected lines"))
         self.addWidget(b)
-        # ---
-        col += 2
-        row = 0
+
         b = Ribbon.LabelButton(
             self.frame,
             self.app,
@@ -390,11 +347,10 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
             anchor=W,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, columnspan=2, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=0, column=2, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(b, _("Join selected blocks"))
         self.addWidget(b)
-        # ---
-        row += 1
+
         b = Ribbon.LabelButton(
             self.frame,
             self.app,
@@ -405,40 +361,157 @@ class EditGroup(CNCRibbon.ButtonMenuGroup):
             anchor=W,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, columnspan=2, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=1, column=2, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(b, _("Split selected blocks"))
         self.addWidget(b)
 
-        # --- Passes ---
-        col += 2
-        row = 0
         b = Ribbon.LabelButton(
             self.frame,
-            image=Utils.icons["redo"],
-            text=_("Passes"),
-            compound=TOP,
+            self.app,
+            "<<InsertText>>",
+            image=Utils.icons["text"],
+            text=_("Text"),
+            compound=LEFT,
             anchor=W,
-            command=self._passesDialog,
             background=Ribbon._BACKGROUND,
         )
-        b.grid(row=row, column=col, rowspan=3, padx=0, pady=0, sticky=NSEW)
+        b.grid(row=2, column=2, padx=0, pady=0, sticky=NSEW)
         tkExtra.Balloon.set(
-            b, _("Set how many times the selected blocks will be re-cut"))
+            b, _("Insert welded vector text from a TTF or OTF font")
+        )
         self.addWidget(b)
 
-    # ------------------------------------------------------------------
-    def _passesDialog(self):
-        vals = _ask_shape_params(self.app, _("Repeat Cuts"), [
-            (_("Number of passes (1 = no repeat)"), 2),
-        ])
-        if vals is None:
-            return
-        try:
-            n = max(1, int(float(vals[0])))
-        except (ValueError, IndexError):
-            return
-        self.app.insertCommand(f"PASSES {n}", True)
+        b = Ribbon.LabelButton(
+            self.frame,
+            self.app,
+            "<<LibreCAD>>",
+            image=Utils.icons["pencil"],
+            text=_("LibreCAD"),
+            compound=LEFT,
+            anchor=W,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=0, column=3, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(
+            b, _("Create a DXF drawing in LibreCAD and import it when closed")
+        )
+        self.addWidget(b)
 
+        b = Ribbon.LabelButton(
+            self.frame,
+            self.app,
+            "<<Inkscape>>",
+            image=Utils.icons["inkscape"],
+            text=_("Inkscape"),
+            compound=LEFT,
+            anchor=W,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=1, column=3, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(
+            b, _("Create an SVG drawing in Inkscape and import it when closed")
+        )
+        self.addWidget(b)
+
+        b = Ribbon.LabelButton(
+            self.frame,
+            image=Utils.icons["color"],
+            text=_("Color"),
+            compound=LEFT,
+            anchor=W,
+            command=lambda a=self.app: a.event_generate("<<ChangeColor>>"),
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=0, column=4, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(b, _("Change the drawing color"))
+        self.addWidget(b)
+
+        b = Ribbon.LabelButton(
+            self.frame,
+            image=Utils.icons["load"],
+            text=_("Import"),
+            compound=LEFT,
+            anchor=W,
+            command=lambda a=self.app: a.insertCommand("IMPORT", True),
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=1, column=4, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(b, _("Import g-code"))
+        self.addWidget(b)
+
+        b = Ribbon.LabelButton(
+            self.frame,
+            self.app,
+            "<<ImageTrace>>",
+            image=Utils.icons["heightmap"],
+            text=_("Bitmap"),
+            compound=LEFT,
+            anchor=W,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=2, column=4, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(
+            b, _("Load a bitmap and trace contours, centerlines, or a cut outline")
+        )
+        self.addWidget(b)
+
+        b = Ribbon.LabelButton(
+            self.frame,
+            self.app,
+            "<<Intersection>>",
+            image=Utils.icons["intersection"],
+            text=_("Intersection"),
+            compound=LEFT,
+            anchor=W,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=0, column=5, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(b, _("Keep graphics present in both selections"))
+        self.addWidget(b)
+
+        b = Ribbon.LabelButton(
+            self.frame,
+            self.app,
+            "<<Union>>",
+            image=Utils.icons["union"],
+            text=_("Union"),
+            compound=LEFT,
+            anchor=W,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=1, column=5, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(b, _("Combine both selected graphics"))
+        self.addWidget(b)
+
+        b = Ribbon.LabelButton(
+            self.frame,
+            self.app,
+            "<<Difference>>",
+            image=Utils.icons["diff"],
+            text=_("Difference"),
+            compound=LEFT,
+            anchor=W,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=0, column=6, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(b, _("Subtract the second selection from the first"))
+        self.addWidget(b)
+
+        b = Ribbon.LabelButton(
+            self.frame,
+            self.app,
+            "<<SymmetricDifference>>",
+            image=Utils.icons["xor"],
+            text=_("Sym. Difference"),
+            compound=LEFT,
+            anchor=W,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=1, column=6, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(
+            b, _("Keep graphics present in either selection, but not both")
+        )
+        self.addWidget(b)
 
 # =============================================================================
 # Move Group
@@ -793,6 +866,36 @@ class RouteGroup(CNCRibbon.ButtonGroup):
             b, _("Change cut direction to CCW for selected gcode blocks")
         )
         self.addWidget(b)
+
+        # ---
+        row += 1
+        b = Ribbon.LabelButton(
+            self.frame,
+            image=Utils.icons["redo"],
+            text=_("Passes"),
+            compound=LEFT,
+            anchor=W,
+            command=self._passesDialog,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=row, column=col, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(
+            b, _("Set how many times the selected blocks will be re-cut")
+        )
+        self.addWidget(b)
+
+    # ------------------------------------------------------------------
+    def _passesDialog(self):
+        vals = _ask_shape_params(self.app, _("Repeat Cuts"), [
+            (_("Number of passes (1 = no repeat)"), 2),
+        ])
+        if vals is None:
+            return
+        try:
+            n = max(1, int(float(vals[0])))
+        except (ValueError, IndexError):
+            return
+        self.app.insertCommand(f"PASSES {n}", True)
 
 
 # =============================================================================

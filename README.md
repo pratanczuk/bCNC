@@ -28,6 +28,7 @@ for **drag-knife / foil cutting plotters** running **grblHAL**:
 | 📱 **Tablet-friendly UI** | Simplified ribbon layout and larger touch targets for tablet / touchscreen use |
 | 📏 **Scaling & basic shapes** | Built-in scaling tool and shape generators (rectangle, circle, line, arc …) for quick layout without a CAD app |
 | 🎛️ **Pressure & speed per-mat** | Per-mat cutting pressure and speed stored in settings |
+| 🖼️ **Live bitmap tracing** | Preview and generate vector contours, multi-threshold layers, Zhang–Suen centerlines, or a single Print Then Cut outline from bitmap artwork |
 
 ---
 
@@ -149,6 +150,35 @@ The default configuration is stored on bCNC.ini in the
 installation directory.
 
 *PLEASE DO NOT CHANGE THIS FILE, IT'S GOING TO BE OVERWRITTEN ON EACH UPGRADE OF BCNC*
+
+## External vector editors
+
+The **LibreCAD** and **Inkscape** buttons open a new temporary DXF or SVG
+drawing without showing a file dialog. Save the drawing and close the editor to
+import its geometry into the current bCNC job. Configure the editor commands in
+the Plotter Settings dialog; both editors are optional external dependencies.
+
+## Bitmap tracing and Print Then Cut
+
+Select **Editor → Bitmap** to open the **Trace Bitmap** window. Choose a PNG,
+JPEG, BMP, GIF, TIFF, or WebP image and adjust the settings while the dialog
+shows the source image with the generated vector paths overlaid in real time.
+
+The tool supports four trace modes:
+
+- **Contours** — closed vectors around dark artwork.
+- **Multi-threshold** — nested vectors from several luminance levels, useful
+  for layered artwork.
+- **Centerline** — single-stroke vectors generated with Zhang–Suen
+  skeletonization, with optional short-branch removal.
+- **Print then cut** — one external closed loop around the isolated image,
+  with an optional outward bleed for sticker cutting.
+
+Use the automatic edge-background removal for artwork on a consistent
+background. Tune its tolerance, threshold, minimum area, and smoothing until
+the preview matches the intended cut. Click **Generate G-code** to insert the
+traced paths into the current job; the generated outline can then use the
+existing drag-knife compensation workflow.
 
 # Features:
 - simple and intuitive interface for small screens

@@ -35,10 +35,12 @@ setup(
         "numpy>=1.12",
         "svgelements>=1,<2",
         "shxparser>=0.0.2",
+        "fonttools>=4.0",
+        "shapely>=2.0",
         "Pillow>=4.0",
         # Note there are no PyPI OpenCV packages for ARM
         # (Raspberry PI, Orange PI, etc...)
-        "opencv-python==4.5.5.64 ; "
+        "opencv-python>=4.10 ; "
         + "(\"arm\" not in platform_machine) and "
         + "(\"aarch64\" not in platform_machine)",
 	"tkinter-gl>=1.0"
