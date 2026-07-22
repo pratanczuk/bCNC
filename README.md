@@ -130,6 +130,9 @@ That is solely for caching purposes and you should delete it before redistributi
 If you are going to report bugs in .exe version of bCNC,
 please check first if that bug occurs even when running directly in python (without .exe build).
 
+Automated Windows 11 and Ubuntu installer builds, including tagged GitHub Release
+publishing, are documented in [packaging/README.md](packaging/README.md).
+
 # IMPORTANT! Motion controller configuration
 - We strongly recommend you to use 32b microcontroller with FluidNC https://github.com/bdring/FluidNC http://wiki.fluidnc.com firmware for the new machine builds.
 - In case you are using grblHAL https://github.com/grblHAL (Original GRBL firmware is still supported, but it is currently reaching the end-of-life due to limitations of 8b microcontrollers)

@@ -1,0 +1,113 @@
+name: Build installers
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows 11 x64 installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install application and build tools
+        run: python -m pip install --upgrade pip pyinstaller .
+      - name: Build bundled application
+        run: pyinstaller --noconfirm --clean packaging/windows/bcnc.spec
+      - name: Smoke-test bundled application
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath "dist\bCNC\bCNC.exe" -ArgumentList "--help" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { exit $process.ExitCode }
+      - name: Read package version
+        id: version
+        shell: bash
+        run: echo "value=$(python setup.py --version | tail -n 1)" >> "$GITHUB_OUTPUT"
+      - name: Build setup executable
+        shell: pwsh
+        run: >-
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          "/DAppVersion=${{ steps.version.outputs.value }}"
+          "packaging\windows\bcnc.iss"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bcnc-windows-x64
+          path: release/*.exe
+          if-no-files-found: error
+
+  ubuntu:
+    name: Ubuntu ${{ matrix.version }} amd64 installer
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["22.04", "24.04"]
+    runs-on: ubuntu-${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes python3-pip
+      - name: Build Debian package
+        run: packaging/linux/build-deb.sh release "${{ matrix.version }}"
+      - name: Validate Debian package
+        run: |
+          package=$(find release -maxdepth 1 -name '*.deb' -print -quit)
+          package_root=$(mktemp -d)
+          dpkg-deb --info "$package"
+          dpkg-deb --extract "$package" "$package_root"
+          cd /tmp
+          PYTHONPATH="$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
+            "import bCNC, cv2, numpy, serial, shapely, shxparser, svgelements, tkinter_gl"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bcnc-ubuntu-${{ matrix.version }}-amd64
+          path: release/*.deb
+          if-no-files-found: error
+
+  ubuntu-armv7:
+    name: Ubuntu 22.04 ARMv7 32-bit installer
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Enable ARM emulation
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm
+      - name: Build and smoke-test ARMv7 Debian package
+        run: packaging/linux/build-armv7.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bcnc-ubuntu-22.04-armv7
+          path: release/*-ubuntu-22.04-armv7.deb
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, ubuntu, ubuntu-armv7]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+          gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
