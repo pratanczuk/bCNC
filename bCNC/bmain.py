@@ -362,6 +362,10 @@ class Application(Tk, Sender):
                 side = RIGHT
             else:
                 side = LEFT
+            # Probe functionality is still initialized because it is used by
+            # autolevel and tool-change code, but its top-level tab is hidden.
+            if name == "Probe":
+                continue
             self.ribbon.addPage(self.pages[name], side)
 
         # Restore last page

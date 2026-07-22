@@ -4,6 +4,9 @@
 # Date: 18-Jun-2015
 
 import math
+import os
+
+from PIL import Image, ImageTk
 
 from tkinter import (
     FALSE,
@@ -127,7 +130,7 @@ class SelectGroup(CNCRibbon.ButtonGroup):
         self.addWidget(b)
 
         # ---
-        col, row = 0, 1
+        col, row = 1, 0
         b = Ribbon.LabelButton(
             self.frame,
             app,
@@ -143,7 +146,7 @@ class SelectGroup(CNCRibbon.ButtonGroup):
         self.addWidget(b)
 
         # ---
-        col += 1
+        col, row = 1, 1
         b = Ribbon.LabelButton(
             self.frame,
             app,
@@ -165,7 +168,7 @@ class SelectGroup(CNCRibbon.ButtonGroup):
             _("Filter"),
             "DarkGray",
             background=tkExtra.GLOBAL_CONTROL_BACKGROUND,
-            width=16,
+            width=9,
         )
         self.filterString.grid(
             row=row, column=col, columnspan=2, padx=0, pady=0, sticky=NSEW
@@ -1272,22 +1275,123 @@ class EditorPage(CNCRibbon.Page):
     __doc__ = _("GCode editor")
     _name_ = N_("Editor")
     _icon_ = "edit"
+    _compact_icons = {}
+    _ICON_SCALE = 1.35
+    _ICON_SUPERSAMPLE = 4
 
     # ----------------------------------------------------------------------
     # Add a widget in the widgets list to enable disable during the run
     # ----------------------------------------------------------------------
     def register(self):
-        self._register(
-            (
-                ClipboardGroup,
-                SelectGroup,
-                EditGroup,
-                OrderGroup,
-                MoveGroup,
-                TransformGroup,
-                RouteGroup,
-                DrawGroup,
-                InfoGroup,
-            ),
-            (EditorFrame,),
+        groups = (
+            ClipboardGroup,
+            SelectGroup,
+            EditGroup,
+            OrderGroup,
+            MoveGroup,
+            TransformGroup,
+            RouteGroup,
+            DrawGroup,
+            InfoGroup,
         )
+        self._register(groups, (EditorFrame,))
+
+        # Keep the editor ribbon compact enough for small touch screens.  The
+        # full button descriptions remain available in their tooltips.
+        if not self._compact_icons:
+            self._compact_icons = {
+                str(image): self._resize_icon(name, image)
+                for name, image in Utils.icons.items()
+            }
+        for group in groups:
+            ribbon_group = CNCRibbon.Page.groups[group.__name__[:-5]]
+            self._compact_buttons(ribbon_group.frame)
+            self._normalize_button_grid(ribbon_group.frame)
+
+    # ----------------------------------------------------------------------
+    def _compact_buttons(self, widget):
+        for child in widget.winfo_children():
+            try:
+                image_name = child.cget("image")
+                if image_name:
+                    child.configure(
+                        image=self._compact_icons.get(image_name, image_name),
+                        text="",
+                        anchor="center",
+                        padx=2,
+                        pady=1,
+                    )
+            except Exception:
+                # Frames, labels and entry widgets do not expose both options.
+                pass
+            self._compact_buttons(child)
+
+    # ----------------------------------------------------------------------
+    @staticmethod
+    def _resize_icon(icon_name, image):
+        """Regenerate a higher-resolution icon with balanced final size."""
+        source = EditorPage._load_best_icon_source(icon_name, image)
+        target = (
+            max(1, round(source.width * EditorPage._ICON_SCALE)),
+            max(1, round(source.height * EditorPage._ICON_SCALE)),
+        )
+        resampling = getattr(Image, "Resampling", Image)
+
+        # Rebuild tiny GIF icons via supersampling to reduce jagged/pixelated
+        # edges when rendered larger in the compact Editor ribbon.
+        supersampled = source.resize(
+            (
+                max(1, source.width * EditorPage._ICON_SUPERSAMPLE),
+                max(1, source.height * EditorPage._ICON_SUPERSAMPLE),
+            ),
+            resampling.NEAREST,
+        )
+        rebuilt = supersampled.resize(target, resampling.LANCZOS)
+        return ImageTk.PhotoImage(rebuilt)
+
+    # ----------------------------------------------------------------------
+    @staticmethod
+    def _load_best_icon_source(icon_name, image):
+        """Load icon from disk so regeneration starts from source pixels."""
+        source_path = os.path.join(Utils.prgpath, "icons", f"{icon_name}.gif")
+        if os.path.exists(source_path):
+            try:
+                return Image.open(source_path).convert("RGBA")
+            except OSError:
+                pass
+        return ImageTk.getimage(image).convert("RGBA")
+
+    # ----------------------------------------------------------------------
+    @staticmethod
+    def _normalize_button_grid(frame):
+        """Give every icon a regular, centered cell in its existing layout."""
+        column_sizes = {}
+        row_sizes = {}
+
+        for child in frame.grid_slaves():
+            try:
+                image_name = child.cget("image")
+                if not image_name:
+                    continue
+
+                info = child.grid_info()
+                column = int(info["column"])
+                row = int(info["row"])
+                columnspan = int(info.get("columnspan", 1))
+                rowspan = int(info.get("rowspan", 1))
+                image_width = int(child.tk.call("image", "width", image_name))
+                image_height = int(child.tk.call("image", "height", image_name))
+
+                cell_width = math.ceil((image_width + 6) / columnspan)
+                cell_height = math.ceil((image_height + 4) / rowspan)
+                for index in range(column, column + columnspan):
+                    column_sizes[index] = max(column_sizes.get(index, 0), cell_width)
+                for index in range(row, row + rowspan):
+                    row_sizes[index] = max(row_sizes.get(index, 0), cell_height)
+            except Exception:
+                pass
+
+        for column, size in column_sizes.items():
+            frame.grid_columnconfigure(column, minsize=size, uniform="icons")
+        for row, size in row_sizes.items():
+            frame.grid_rowconfigure(row, minsize=size, uniform="icons")
