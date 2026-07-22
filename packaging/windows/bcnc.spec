@@ -1,13 +1,25 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import sys
+
 from PyInstaller.utils.hooks import collect_all
 
 
+repo_root = os.path.abspath(os.path.join(SPECPATH, "..", ".."))
+module_paths = [
+    repo_root,
+    os.path.join(repo_root, "bCNC"),
+    os.path.join(repo_root, "bCNC", "lib"),
+    os.path.join(repo_root, "bCNC", "plugins"),
+    os.path.join(repo_root, "bCNC", "controllers"),
+]
+sys.path[:0] = module_paths
 datas, binaries, hiddenimports = collect_all("bCNC")
 
 analysis = Analysis(
-    ["bCNC/__main__.py"],
-    pathex=["."],
+    [os.path.join(repo_root, "bCNC", "__main__.py")],
+    pathex=module_paths,
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports + ["tkinter", "tkinter.filedialog", "tkinter.messagebox"],
@@ -30,7 +42,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
-    icon="bCNC/bCNC.ico",
+    icon=os.path.join(repo_root, "bCNC", "bCNC.ico"),
 )
 
 collection = COLLECT(
