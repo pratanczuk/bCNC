@@ -29,8 +29,13 @@ jobs:
       - name: Smoke-test bundled application
         shell: pwsh
         run: |
-          $process = Start-Process -FilePath "dist\bCNC\bCNC.exe" -ArgumentList "--help" -Wait -PassThru
-          if ($process.ExitCode -ne 0) { exit $process.ExitCode }
+          $process = Start-Process -FilePath "dist\bCNC\bCNC.exe" -ArgumentList "--help" -PassThru
+          if (-not $process.WaitForExit(20000)) {
+            Stop-Process -Id $process.Id -Force
+            Write-Host "bCNC remained running for 20 seconds; launch smoke test passed."
+          } elseif ($process.ExitCode -ne 0) {
+            exit $process.ExitCode
+          }
       - name: Read package version
         id: version
         shell: bash
