@@ -74,6 +74,7 @@ def main():
                 "serial=",
                 "baud=",
                 "run",
+                "package-smoke-test",
             ],
         )
     except getopt.GetoptError:
@@ -82,6 +83,7 @@ def main():
     recent = None
     run = False
     fullscreen = False
+    package_smoke_test = False
     for opt, val in optlist:
         if opt in ("-h", "-?", "--help"):
             usage(0)
@@ -154,6 +156,22 @@ def main():
 
         elif opt == "--run":
             run = True
+
+        elif opt == "--package-smoke-test":
+            package_smoke_test = True
+
+    if package_smoke_test:
+        required_paths = (
+            Utils.iniSystem,
+            os.path.join(Utils.prgpath, "bCNC.png"),
+            os.path.join(Utils.prgpath, "icons"),
+        )
+        missing_paths = [path for path in required_paths if not os.path.exists(path)]
+        if missing_paths:
+            sys.exit("Missing bundled resources: " + ", ".join(missing_paths))
+        if not Utils.config.has_section("Error"):
+            sys.exit(f"Missing [Error] section in bundled config: {Utils.iniSystem}")
+        sys.exit(0)
 
     application = bmain.Application(className=f"  {Utils.__prg__}  ")
 

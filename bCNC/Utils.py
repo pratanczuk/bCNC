@@ -76,7 +76,11 @@ prgpath = os.path.abspath(os.path.dirname(__file__))
 if getattr(sys, "frozen", False):
     # When being bundled by pyinstaller, paths are different
     print("Running as pyinstaller bundle!", sys.argv[0])
-    prgpath = os.path.abspath(os.path.dirname(sys.argv[0]))
+    bundle_root = getattr(
+        sys, "_MEIPASS", os.path.abspath(os.path.dirname(sys.executable))
+    )
+    package_root = os.path.join(bundle_root, __prg__)
+    prgpath = package_root if os.path.isdir(package_root) else bundle_root
 iniSystem = os.path.join(prgpath, f"{__prg__}.ini")
 iniUser = os.path.expanduser(f"~/.{__prg__}")
 hisFile = os.path.expanduser(f"~/.{__prg__}.history")

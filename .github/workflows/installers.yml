@@ -29,10 +29,10 @@ jobs:
       - name: Smoke-test bundled application
         shell: pwsh
         run: |
-          $process = Start-Process -FilePath "dist\bCNC\bCNC.exe" -ArgumentList "--help" -PassThru
+          $process = Start-Process -FilePath "dist\bCNC\bCNC.exe" -ArgumentList "--package-smoke-test" -PassThru
           if (-not $process.WaitForExit(20000)) {
             Stop-Process -Id $process.Id -Force
-            Write-Error "bCNC did not complete its --help smoke test within 20 seconds."
+            Write-Error "bCNC did not complete its package smoke test within 20 seconds."
             exit 1
           } elseif ($process.ExitCode -ne 0) {
             exit $process.ExitCode
