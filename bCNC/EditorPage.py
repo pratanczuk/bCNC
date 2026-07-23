@@ -1117,16 +1117,23 @@ class DrawGroup(CNCRibbon.ButtonGroup):
         if vals is None:
             return
         try:
-            p = self.app.tools["SimpleRectangle"]
-            p["xstart"] = float(vals[0])
-            p["ystart"] = float(vals[1])
-            p["xend"]   = float(vals[2])
-            p["yend"]   = float(vals[3])
-            p["radius"] = float(vals[4])
-            p["cw"]     = int(float(vals[5])) != 0
-            p.execute(self.app)
+            from simpleRectangle import SimpleRectangle
+
+            blocks = SimpleRectangle(_("Rectangle")).calc(
+                float(vals[0]),
+                float(vals[1]),
+                float(vals[2]),
+                float(vals[3]),
+                float(vals[4]),
+                int(float(vals[5])) != 0,
+            )
+            active = self.app.activeBlock()
+            self.app.gcode.insBlocks(1 if active == 0 else active, blocks,
+                                     _("Create Rectangle"))
+            self.app.refresh()
+            self.app.setStatus(_("Generated: Rectangle"))
             _apply_dk_auto(self.app)
-        except (ValueError, KeyError):
+        except ValueError:
             pass
 
     # ------------------------------------------------------------------
@@ -1139,15 +1146,22 @@ class DrawGroup(CNCRibbon.ButtonGroup):
         if vals is None:
             return
         try:
-            p = self.app.tools["SimpleArc"]
-            p["xcenter"]    = float(vals[0])
-            p["ycenter"]    = float(vals[1])
-            p["radius"]     = float(vals[2])
-            p["startangle"] = 0.0
-            p["endangle"]   = 360.0
-            p.execute(self.app)
+            from simpleArc import SimpleArc
+
+            blocks = SimpleArc(_("Circle")).calc(
+                float(vals[0]),
+                float(vals[1]),
+                float(vals[2]),
+                0.0,
+                360.0,
+            )
+            active = self.app.activeBlock()
+            self.app.gcode.insBlocks(1 if active == 0 else active, blocks,
+                                     _("Create Circle"))
+            self.app.refresh()
+            self.app.setStatus(_("Generated: Circle"))
             _apply_dk_auto(self.app)
-        except (ValueError, KeyError):
+        except ValueError:
             pass
 
     # ------------------------------------------------------------------

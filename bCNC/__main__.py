@@ -171,6 +171,12 @@ def main():
             sys.exit("Missing bundled resources: " + ", ".join(missing_paths))
         if not Utils.config.has_section("Error"):
             sys.exit(f"Missing [Error] section in bundled config: {Utils.iniSystem}")
+        from simpleArc import SimpleArc
+        from simpleRectangle import SimpleRectangle
+        if not SimpleArc("smoke").calc(0, 0, 10, 0, 360):
+            sys.exit("Bundled circle generator failed")
+        if not SimpleRectangle("smoke").calc(0, 0, 10, 10, 0, True):
+            sys.exit("Bundled rectangle generator failed")
         sys.exit(0)
 
     application = bmain.Application(className=f"  {Utils.__prg__}  ")
