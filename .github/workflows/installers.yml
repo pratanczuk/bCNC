@@ -75,9 +75,12 @@ jobs:
           dpkg-deb --info "$package"
           dpkg-deb --extract "$package" "$package_root"
           cd /tmp
-          PYTHONPATH="$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
+          package_python=$(/usr/bin/python3 -c \
+            'import sys; print(f"/usr/bin/python{sys.version_info.major}.{sys.version_info.minor}")')
+          grep -F "exec $package_python -m bCNC" "$package_root/usr/bin/bCNC"
+          PYTHONPATH="$package_root/opt/bcnc/lib" "$package_python" -c \
             "import bCNC, cv2, numpy, ply, scipy, serial, shapely, shxparser, stl, svgelements, tkinter_gl"
-          PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib:$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
+          PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib:$package_root/opt/bcnc/lib" "$package_python" -c \
             "import meshcut, stl; assert meshcut.USE_SCIPY"
       - uses: actions/upload-artifact@v7
         with:

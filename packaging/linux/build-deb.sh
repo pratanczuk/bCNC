@@ -8,7 +8,9 @@ version=${BCNC_VERSION:-$(sed -n 's/^[[:space:]]*version="\([^"]*\)".*/\1/p' "$r
 architecture=$(dpkg --print-architecture)
 artifact_architecture=${BCNC_ARTIFACT_ARCH:-$architecture}
 python_bin=${PYTHON_BIN:-/usr/bin/python3}
-runtime_dependencies="python3 (>= 3.8), python3-tk, libgl1, libglib2.0-0"
+python_version=$("$python_bin" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+packaged_python="/usr/bin/python${python_version}"
+runtime_dependencies="python${python_version}, python3-tk, libgl1, libglib2.0-0"
 
 if [[ ! $version =~ ^[0-9]+([.][0-9]+)*([+~-][0-9A-Za-z.+~-]+)?$ ]]; then
     echo "Invalid Debian package version: $version" >&2
@@ -48,7 +50,9 @@ else
 fi
 
 rm -rf -- "$package_root/opt/bcnc/lib/bin"
-install -m 0755 "$repo_dir/packaging/linux/bcnc" "$package_root/usr/bin/bCNC"
+sed "s|@PYTHON_EXECUTABLE@|$packaged_python|" \
+    "$repo_dir/packaging/linux/bcnc" >"$package_root/usr/bin/bCNC"
+chmod 0755 "$package_root/usr/bin/bCNC"
 install -m 0644 "$repo_dir/bCNC/bCNC.desktop" "$package_root/usr/share/applications/bCNC.desktop"
 install -m 0644 "$repo_dir/bCNC/bCNC.png" "$package_root/usr/share/icons/hicolor/204x204/apps/bCNC.png"
 install -m 0644 "$repo_dir/LICENSE.md" "$package_root/usr/share/doc/bcnc/copyright"

@@ -1,3 +1,3 @@
 #!/bin/sh
 export PYTHONPATH=/opt/bcnc/lib${PYTHONPATH:+:$PYTHONPATH}
-exec /usr/bin/python3 -m bCNC "$@"
+exec @PYTHON_EXECUTABLE@ -m bCNC "$@"
