@@ -76,7 +76,9 @@ jobs:
           dpkg-deb --extract "$package" "$package_root"
           cd /tmp
           PYTHONPATH="$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
-            "import bCNC, cv2, numpy, serial, shapely, shxparser, svgelements, tkinter_gl"
+            "import bCNC, cv2, numpy, scipy, serial, shapely, shxparser, svgelements, tkinter_gl"
+          PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib" /usr/bin/python3 -c \
+            "import meshcut; assert meshcut.USE_SCIPY"
       - uses: actions/upload-artifact@v7
         with:
           name: bcnc-ubuntu-${{ matrix.version }}-amd64

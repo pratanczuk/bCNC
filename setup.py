@@ -33,6 +33,7 @@ setup(
         "pyserial ; sys_platform != 'win32'",
         "pyserial<=3.0.1 ; sys_platform == 'win32'",
         "numpy>=1.12",
+        "scipy>=1.10",
         "svgelements>=1,<2",
         "shxparser>=0.0.2",
         "fonttools>=4.0",

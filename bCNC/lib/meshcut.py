@@ -10,7 +10,9 @@ import numpy.linalg as la
 try:
     import scipy.spatial.distance as spdist
     USE_SCIPY = True
-except ImportError:
+except Exception:
+    # SciPy is an optional accelerator. Fall back to NumPy if it is absent or
+    # if a system SciPy was compiled against an incompatible NumPy ABI.
     USE_SCIPY = False
 
 # ---- Geometry datastructures

@@ -23,6 +23,7 @@ docker run --rm \
             python3-numpy \
             python3-pil \
             python3-pip \
+            python3-scipy \
             python3-serial \
             python3-shapely \
             python3-tk
@@ -36,5 +37,7 @@ docker run --rm \
         cd /tmp
         PYTHONPATH="$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
             "import bCNC, numpy, serial, shapely, shxparser, svgelements, tkinter_gl"
+        PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib" /usr/bin/python3 -c \
+            "import meshcut; assert meshcut.USE_SCIPY"
         chown "$HOST_UID:$HOST_GID" "$package"
     '
