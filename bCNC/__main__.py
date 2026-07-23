@@ -4,6 +4,11 @@ import os
 import sys
 import getopt
 
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w", encoding="utf-8")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w", encoding="utf-8")
+
 PRGPATH = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(PRGPATH)
 sys.path.append(os.path.join(PRGPATH, "lib"))

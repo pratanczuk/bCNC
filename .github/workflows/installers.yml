@@ -32,7 +32,8 @@ jobs:
           $process = Start-Process -FilePath "dist\bCNC\bCNC.exe" -ArgumentList "--help" -PassThru
           if (-not $process.WaitForExit(20000)) {
             Stop-Process -Id $process.Id -Force
-            Write-Host "bCNC remained running for 20 seconds; launch smoke test passed."
+            Write-Error "bCNC did not complete its --help smoke test within 20 seconds."
+            exit 1
           } elseif ($process.ExitCode -ne 0) {
             exit $process.ExitCode
           }
