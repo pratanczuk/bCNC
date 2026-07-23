@@ -77,7 +77,7 @@ jobs:
           cd /tmp
           PYTHONPATH="$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
             "import bCNC, cv2, numpy, scipy, serial, shapely, shxparser, svgelements, tkinter_gl"
-          PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib" /usr/bin/python3 -c \
+          PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib:$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
             "import meshcut; assert meshcut.USE_SCIPY"
       - uses: actions/upload-artifact@v7
         with:
