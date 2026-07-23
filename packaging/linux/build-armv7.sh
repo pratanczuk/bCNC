@@ -21,6 +21,7 @@ docker run --rm \
             libglib2.0-0 \
             python3-fonttools \
             python3-numpy \
+            python3-opencv \
             python3-pil \
             python3-pip \
             python3-ply \

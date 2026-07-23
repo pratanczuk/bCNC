@@ -31,6 +31,8 @@ mkdir -p \
     "$release_dir"
 
 if [[ ${BCNC_SYSTEM_NATIVE_DEPS:-0} == 1 ]]; then
+    packaged_python="/usr/bin/python3"
+    runtime_dependencies="python3 (>= 3.8), python3-tk, libgl1, libglib2.0-0"
     "$python_bin" -m pip install \
         --disable-pip-version-check \
         --no-compile \
@@ -40,7 +42,7 @@ if [[ ${BCNC_SYSTEM_NATIVE_DEPS:-0} == 1 ]]; then
         "svgelements>=1,<2" \
         "shxparser>=0.0.2" \
         "tkinter-gl>=1.0"
-    runtime_dependencies+=", python3-numpy, python3-scipy, python3-stl, python3-ply, python3-serial, python3-pil, python3-fonttools, python3-shapely"
+    runtime_dependencies+=", python3-numpy, python3-scipy, python3-stl, python3-ply, python3-serial, python3-pil, python3-fonttools, python3-shapely, python3-opencv"
 else
     "$python_bin" -m pip install \
         --disable-pip-version-check \

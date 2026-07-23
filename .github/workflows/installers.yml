@@ -66,8 +66,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes python3-pip python3-tk
+          if [[ "${{ matrix.version }}" == "22.04" ]]; then
+            sudo apt-get install --yes \
+              python3-fonttools python3-numpy python3-opencv python3-pil \
+              python3-ply python3-scipy python3-serial python3-shapely python3-stl
+          fi
       - name: Build Debian package
-        run: packaging/linux/build-deb.sh release "${{ matrix.version }}"
+        run: |
+          if [[ "${{ matrix.version }}" == "22.04" ]]; then
+            BCNC_SYSTEM_NATIVE_DEPS=1 packaging/linux/build-deb.sh release "${{ matrix.version }}"
+          else
+            packaging/linux/build-deb.sh release "${{ matrix.version }}"
+          fi
       - name: Validate Debian package
         run: |
           package=$(find release -maxdepth 1 -name '*.deb' -print -quit)
@@ -75,8 +85,12 @@ jobs:
           dpkg-deb --info "$package"
           dpkg-deb --extract "$package" "$package_root"
           cd /tmp
-          package_python=$(/usr/bin/python3 -c \
-            'import sys; print(f"/usr/bin/python{sys.version_info.major}.{sys.version_info.minor}")')
+          if [[ "${{ matrix.version }}" == "22.04" ]]; then
+            package_python=/usr/bin/python3
+          else
+            package_python=$(/usr/bin/python3 -c \
+              'import sys; print(f"/usr/bin/python{sys.version_info.major}.{sys.version_info.minor}")')
+          fi
           grep -F "exec $package_python -m bCNC" "$package_root/usr/bin/bCNC"
           PYTHONPATH="$package_root/opt/bcnc/lib" "$package_python" -c \
             "import bCNC, cv2, numpy, ply, scipy, serial, shapely, shxparser, stl, svgelements, tkinter_gl"
