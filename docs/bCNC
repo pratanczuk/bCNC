@@ -1,0 +1,661 @@
+[bCNC]
+ribbon = File Control Probe CAM Editor Terminal>
+width = 1558
+height = 749
+sash = 358
+windowstate = normal
+lastcheck = 1786023266
+
+[Connection]
+port = /dev/ttyUSB0
+openserial = 1
+errorreport = True
+
+[Control]
+step = 10.0
+
+[abcControl]
+
+[Events]
+
+[Canvas]
+probe = 0
+
+[Camera]
+aligncam_d = 0.0
+aligncam_dx = 0.0
+aligncam_dy = 0.0
+aligncam_z = 
+aligncam_rotation = 0.0
+aligncam_xcenter = 0.0
+aligncam_ycenter = 0.0
+
+[Warning]
+
+[Error]
+
+[Probe]
+tlo = 0.000
+toolchangex = 0.0
+toolchangey = 0.0
+toolchangez = 0.0
+toolprobex = 0.0
+toolprobey = 0.0
+toolprobez = 0.0
+tooldistance = 0.0
+toolheight = 0.0
+toolmz = 0.0
+autogoto = 0
+
+[File]
+dir = /data
+file = test.dxf
+recent.0 = /data/test.dxf
+
+[Editors]
+
+[Buttons]
+
+[CNC]
+acceleration_x = 15.0
+acceleration_y = 15.0
+acceleration_z = 50.0
+feedmax_x = 1000.0
+feedmax_y = 1000.0
+feedmax_z = 200.0
+travel_x = 210.0
+travel_y = 300.0
+travel_z = 100.0
+spindlemax = 800
+header = $H
+	$G
+	M3 S220 F1500
+init = 
+
+[Font]
+tkdefaultfont = sans-serif,10,normal
+tkfixedfont = monospace,10,normal
+tkmenufont = sans-serif,10,normal
+tktextfont = sans-serif,10,normal
+
+[Color]
+
+[Shortcut]
+
+[Box]
+internal.0 = 1
+cover.0 = 1
+
+[Stock]
+comment.0 = 
+thickness.0 = 5.0
+
+[Cut]
+surface.0 = 
+depth.0 = 
+stepz.0 = 
+feed.0 = 
+feedz.0 = 
+strategy.0 = helical+bottom
+ramp.0 = 10
+cutfromtop.0 = False
+spring.0 = False
+exitpoint.0 = on path
+islandsleave.0 = True
+islandsselectedonly.0 = True
+islandscompensate.0 = False
+islandscut.0 = True
+
+[Drill]
+center.0 = True
+depth.0 = 
+peck.0 = 
+dwell.0 = 
+distance.0 = 
+number.0 = 
+
+[Profile]
+endmill.0 = 
+direction.0 = outside
+offset.0 = 0.0
+overcut.0 = 1
+pocket.0 = 0
+
+[Pocket]
+endmill.0 = 
+
+[Tabs]
+ntabs.0 = 5
+dtabs.0 = 0.0
+dx.0 = 5.0
+z.0 = -3.0
+
+[EndMill]
+length.0 = 20.0
+comment.0 = 
+stepover.0 = 40.0
+
+[DragKnife]
+offset.0 = 0.25
+angle.0 = 20.0
+swivelz.0 = 0.0
+initdir.0 = X+
+feed.0 = 1500.0
+simulate.0 = False
+simpreci.0 = 0.5
+angle.1 = 20.0
+swivelz.1 = 0.0
+initdir.1 = X+
+feed.1 = 200.0
+simulate.1 = False
+simpreci.1 = 0.5
+angle.2 = 20.0
+swivelz.2 = 0.0
+initdir.2 = X+
+feed.2 = 200.0
+simulate.2 = False
+simpreci.2 = 0.5
+angle.3 = 20.0
+swivelz.3 = 0.0
+initdir.3 = X+
+feed.3 = 200.0
+simulate.3 = False
+simpreci.3 = 0.5
+angle.4 = 20.0
+swivelz.4 = 0.0
+initdir.4 = X+
+feed.4 = 200.0
+simulate.4 = False
+simpreci.4 = 0.5
+overcut.0 = 2.0
+dwell.0 = 0.0
+overcut.1 = 0.0
+dwell.1 = 0.0
+overcut.2 = 0.0
+dwell.2 = 0.0
+overcut.3 = 0.0
+dwell.3 = 0.0
+overcut.4 = 0.0
+dwell.4 = 0.0
+
+[Material]
+current = 10
+comment.0 = 
+comment.1 = 
+comment.2 = 
+comment.3 = 
+comment.4 = 
+comment.5 = 
+comment.6 = 
+comment.7 = 
+comment.8 = 
+comment.9 = 
+comment.10 = 
+comment.11 = 
+comment.12 = 
+
+[Controller]
+grbl_0 = 5.0
+grbl_1 = 255
+grbl_2 = 3
+grbl_3 = 2
+grbl_4 = 0
+grbl_5 = 1
+grbl_6 = 1
+grbl_10 = 511
+grbl_11 = 0.01
+grbl_12 = 0.002
+grbl_13 = 0
+grbl_20 = 0
+grbl_21 = 1
+grbl_22 = 3
+grbl_23 = 1
+grbl_24 = 75.0
+grbl_25 = 1500.0
+grbl_26 = 250
+grbl_27 = 1.0
+grbl_30 = 1000.0
+grbl_31 = 0.0
+grbl_32 = 1
+grbl_100 = 250.0
+grbl_101 = 250.0
+grbl_102 = 100.0
+grbl_110 = 2000.0
+grbl_111 = 2000.0
+grbl_112 = 500.0
+grbl_120 = 2000.0
+grbl_121 = 2000.0
+grbl_122 = 10.0
+grbl_130 = 216.0
+grbl_131 = 2000.0
+grbl_132 = 5.0
+grbl_140 = 200.0
+grbl_141 = 200.0
+grbl_142 = 200.0
+
+[Helical]
+name = 
+sel_blocks = False
+x = 0.0
+y = 0.0
+z = 0.0
+cutdiam = 1.5
+endmill = 
+pitch = 0.1
+depth = 3.0
+mult_feed_z = 1.0
+helicalcut = Helical Cut
+entry = Center
+clearanceentry = 0.0
+noreturntosafez = False
+
+[Hilbert]
+name = 
+size = 50.0
+order = 2
+depth = 0
+
+[Slice Mesh]
+name = 
+file = 
+flat = True
+cam3d = False
+faceup = Z
+scale = 1.0
+zoff = 0.0
+zstep = 0.1
+zmin = -1.0
+zmax = 1.0
+
+[SimpleDrill]
+x = 0.0
+y = 0.0
+depth = 
+peck = 
+dwell = 0.0
+drillfeed = 
+safezforg0 = -1.0
+
+[Jigsaw]
+name = 
+width = 1000.0
+height = 800.0
+piece_count = 100
+random_seed = 1
+threshold = 1.2
+tap_shape = basic
+
+[SimpleRotate]
+xcenter = 10.0
+ycenter = 10.0
+alpha = 90.0
+nbrepeat = 2
+keep = True
+
+[Linearize]
+name = 
+maxseg = 1.0
+splitlines = 1
+
+[Spirograph]
+name = 
+radiusexternal = 50.0
+radiusinternal = 33.0
+radiusoffset = 13.0
+depth = 0.0
+
+[Tile]
+name = 
+nx = 3
+ny = 3
+dx = 50.0
+dy = 50.0
+
+[SimpleArc]
+xcenter = 0.0
+ycenter = 0.0
+radius = 10.0
+startangle = 0.0
+endangle = 360.0
+
+[Trochoid_Path]
+name = 
+trochcutdiam = 6.0
+direction = inside
+offset = 0.0
+endmill = 
+adaptative = 1
+overcut = 0
+targetdepth = -1.0
+depthincrement = 1.0
+tabsnumber = 1.0
+tabswidth = 1.0
+tabsheight = 1.0
+
+[Zig-Zag]
+name = 
+nlines = 34
+linelen = 33.0
+startendlen = 5.0
+step = 1.0
+cornerres = 5
+depth = -0.1
+
+[Trochoidal 3D]
+name = 
+diam = 
+endmill = 
+ae = 0.3
+typesplice = Warpedarc
+direction = inside
+offset = 0.0
+adaptative = 1
+overcut = 0
+targetdepth = -1.0
+depthincrement = 1.0
+cw = True
+rpm = 12000
+feed = 1200
+zfeed = 
+splicesteps = 12
+
+[Gear]
+name = 
+n = 10
+phi = 17.0
+pc = 5.0
+
+[Scaling]
+name = 
+xscale = 
+yscale = 
+zscale = 
+centered = 0
+feed = 1200
+zfeed = 
+rpm = 12000
+
+[Function]
+name = Function
+form = x**2
+res = 0.005
+ranx = 10.0
+rany = 10.0
+centx = 5.0
+centy = 0.0
+dimx = 100.0
+dimy = 100.0
+spacx = 1.0
+spacy = 1.0
+lin = 1.0
+draw = True
+
+[Spiral]
+name = 
+xstart = 0.0
+ystart = 0.0
+zstart = 30.0
+alignaxis = Y
+rotaxis = A
+stockleng = 20.0
+reducedepth = -1.0
+passdepth = 1.0
+stepover = 1.0
+zapproach = 35.0
+spiraltype = Spiral
+cutboth = True
+liftpass = False
+
+[Heightmap]
+name = 
+depth = -1.0
+maxsize = 100.0
+scan = Rows
+scandir = Alternating
+cuttop = False
+cutborder = False
+invert = False
+singlepass = False
+file = 
+
+[SimpleTranslate]
+xinc = 10.0
+yinc = 10.0
+nbrepeat = 2
+keep = True
+
+[Intersection]
+name = 
+
+[Pyrograph]
+name = 
+toolsize = 0.5
+depth = 0.0
+maxsize = 100.0
+feedmin = 250
+feedmax = 5000
+direction = Horizontal
+drawborder = False
+file = 
+
+[Flatten]
+name = 
+xstart = 0.0
+ystart = 0.0
+flatwidth = 30.0
+flatheight = 20.0
+flatdepth = 0.0
+borderpass = True
+cutdirection = Climb
+pockettype = Raster
+
+[Halftone]
+name = 
+file = 
+channel = Luminance
+invert = 
+drawsize = 250.0
+cellsize = 5.0
+diametermax = 4.0
+diametermin = 0.2
+angle = 0.0
+drawborder = False
+depth = 0.0
+conical = False
+
+[Offset]
+name = 
+endmill = 
+recursivedepth = Single profile
+customrecursivedepth = 2
+profiledir = inside
+cutdir = False
+additionalcut = 0.0
+overcuts = False
+ignoreislands = Regard all islands except tabs
+allowg1 = True
+
+[Center]
+name = 
+
+[Marker for manual drilling]
+name = 
+mark size = 10.0
+posx = 0.0
+posy = 0.0
+burn time = 4.0
+burn power = 1000.0
+mark power = 400.0
+mark type = Cross
+draw ring = True
+
+[ClosePath]
+
+[FlatPath]
+
+[Driller]
+name = 
+holesdistance = 10.0
+targetdepth = 0.0
+peck = 0.0
+dwell = 0.0
+useanchor = False
+file = 
+usecustom = False
+rfeed = 
+spinmin = 
+spinmax = 
+
+[ArcFit]
+name = 
+preci = 0.5
+linpreci = 0.001
+numseg = 3
+
+[Sketch]
+name = 
+grundgy = Medium
+depth = 0.0
+maxsize = 250.0
+squiggletotal = 300
+squigglelength = 400.0
+fading = 4
+max_light = 256
+drawborder = False
+casual = True
+repetition = False
+file = 
+channel = Luminance
+
+[Difference]
+name = 
+
+[Random]
+name = 
+randx = 5.0
+randy = 5.0
+
+[SimpleRectangle]
+xstart = 0.0
+xend = 20.0
+ystart = 0.0
+yend = 20.0
+radius = 0.0
+cw = True
+
+[Midi2CNC]
+name = 
+ppu_x = 200.0
+ppu_y = 200.0
+ppu_z = 200.0
+max_x = 50
+max_y = 50
+max_z = 20
+axisused = XYZ
+file = 
+
+[SimpleLine]
+xstart = 10.0
+xend = 20.0
+ystart = 10.0
+yend = 20.0
+
+[Trochoidal]
+name = 
+cw = True
+circ = False
+evenspacing = True
+entry = False
+rdoc = 0.2
+dia = 3.0
+feed = 2000.0
+
+[Bowl]
+name = 
+d = 30.0
+res = 10.0
+pocket = 1
+
+[Text]
+name = 
+text = Write this!
+depth = 0.0
+fontsize = 10.0
+fontfile = 
+closed = True
+imagetoascii = 
+charswidth = 80
+
+[involuteGear]
+name = 
+z = 10
+m = 1.0
+external = True
+usedefault = True
+phi = 20.0
+addcoeff = 1.0
+dedcoeff = 1.25
+filletcoeff = 0.38
+shiftcoeff = 0.0
+
+[stl3DSlicer]
+name = 
+file = 
+endmill = 
+marginxlow = 10.0
+marginxhigh = 10.0
+marginylow = 10.0
+marginyhihgh = 10.0
+marginzhigh = 1.0
+marginzlow = 0.0
+xoff = True
+yoff = True
+zoff = True
+direction = x
+scale = 1.0
+zstep = 3.0
+toolstep = -1.0
+finishfeed = 100.0
+additionaloffsetradius = 0.0
+operations = 1-Rough Slice rough removal(cylindrical nose)
+
+[LaserCut]
+name = 
+feed = 500
+power = 500
+mode = Auto
+blockcount = 1
+zstart = 0.0
+zdownstep = 0.0
+backupblock = True
+
+[Plotter]
+pressure = 350.0
+speed = 1500.0
+knife_offset = 0.25
+mat_width = 225.0
+mat_height = 300.0
+auto_dragknife = 1
+load_distance = 20.0
+
+[TextInsertion]
+font = /usr/share/fonts/truetype/noto/NotoSerifDevanagari-Black.ttf
+height = 10.0
+depth = 0.0
+
+[ImageTrace]
+name = 
+file = /data/test.png
+mode = Centerline
+threshold = 14
+thresholds = 13
+invert = False
+removebackground = True
+backgroundtolerance = 15
+minarea = 16
+simplify = 1.0
+spurlength = 4
+maxsize = 100.0
+bleed = 0.0
+depth = 0.0
+
