@@ -7,7 +7,7 @@ windowstate = normal
 lastcheck = 1786023266
 
 [Connection]
-port = /dev/ttyUSB0
+port = socket://plotter.local:8888
 openserial = 1
 errorreport = True
 
