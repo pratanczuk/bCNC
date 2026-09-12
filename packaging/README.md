@@ -9,7 +9,7 @@ The automated workflow builds these self-contained release artifacts:
   32-bit (`armhf`)
 
 Every push to `master`, pull request, or manual workflow run stores the installers
-as workflow artifacts. Pushing a tag such as `v0.9.16` also creates or updates the
+as workflow artifacts. Pushing a tag such as `v0.9.17` also creates or updates the
 matching GitHub Release and attaches all installers.
 
 ## Local Ubuntu build
@@ -37,7 +37,7 @@ packaging/linux/build-armv7.sh
 Install or upgrade it with:
 
 ```sh
-sudo apt install ./release/bCNC-0.9.16-ubuntu-24.04-amd64.deb
+sudo apt install ./release/bCNC-0.9.17-ubuntu-24.04-amd64.deb
 ```
 
 ## Local Windows build
@@ -48,7 +48,7 @@ On 64-bit Windows with Python 3.12 and Inno Setup 6 installed:
 py -m pip install --upgrade pip pyinstaller .
 pyinstaller --noconfirm --clean packaging/windows/bcnc.spec
 & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
-  "/DAppVersion=0.9.16" "packaging\windows\bcnc.iss"
+  "/DAppVersion=0.9.17" "packaging\windows\bcnc.iss"
 ```
 
 The installer is written to `release/`. It installs per-user, so administrator

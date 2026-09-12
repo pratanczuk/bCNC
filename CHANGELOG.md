@@ -2,6 +2,13 @@
 
 There are too much commits, so i've created this brief overview of new features in bCNC.
 
+## 0.9.17
+- Added path smoothing with configurable simplification and Chaikin passes.
+- Added LibreCAD and Inkscape editing workflows.
+- Added automated Windows, Ubuntu, and ARMv7 installer builds.
+- Added a remote ARMv7 tablet installer helper.
+- Improved packaged application startup and dependency handling.
+
 ## 0.9.16
 - Breaking changes:
   - Python3.8 is the lowest supported version. Starting bCNC with any prior version will fail. [#1719](https://github.com/vlachoudis/bCNC/issues/1719)

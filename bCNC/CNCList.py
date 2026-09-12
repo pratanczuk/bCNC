@@ -721,6 +721,55 @@ class CNCListbox(Listbox):
         self.winfo_toplevel().event_generate("<<Modified>>")
 
     # ----------------------------------------------------------------------
+    # Replace selected blocks (or all blocks) with smoothed versions.
+    # tolerance: Douglas-Peucker deviation limit (mm)
+    # iterations: Chaikin subdivision passes
+    # ----------------------------------------------------------------------
+    def smoothBlocks(self, tolerance=0.1, iterations=3, event=None):
+        from smooth import smooth_path
+
+        selected = self.getSelectedBlocks()
+        if not selected:
+            # fall back to every non-header/footer block
+            selected = [
+                bid
+                for bid, block in enumerate(self.gcode.blocks)
+                if block.name() not in ("Header", "Footer")
+            ]
+        if not selected:
+            self.winfo_toplevel().event_generate(
+                "<<Status>>", data=_("No blocks to smooth")
+            )
+            return
+
+        undoinfo = []
+        count = 0
+        for bid in reversed(selected):
+            paths = self.gcode.toPath(bid)
+            if not paths:
+                continue
+            smoothed = [smooth_path(p, tolerance, iterations) for p in paths]
+            old = self.gcode.blocks[bid]
+            new_block = self.gcode.fromPath(
+                smoothed[0] if len(smoothed) == 1 else smoothed
+            )
+            new_block._name = old.name()
+            new_block.color = old.color
+            new_block.enable = old.enable
+            undoinfo.append(self.gcode.delBlockUndo(bid))
+            undoinfo.append(self.gcode.addBlockUndo(bid, new_block))
+            count += 1
+
+        if undoinfo:
+            self.gcode.addUndo(undoinfo, _("Smooth Path"))
+            self.fill()
+            self.winfo_toplevel().event_generate("<<Modified>>")
+
+        self.winfo_toplevel().event_generate(
+            "<<Status>>", data=_("Smoothed {:d} block(s)").format(count)
+        )
+
+    # ----------------------------------------------------------------------
     # Boolean operations on two selected closed paths
     # ----------------------------------------------------------------------
     def _booleanPaths(self, operation, label):

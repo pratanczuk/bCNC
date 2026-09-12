@@ -462,6 +462,7 @@ class Application(Tk, Sender):
         self.bind("<<Comment>>", self.editor.commentRow)
         self.bind("<<Join>>", self.editor.joinBlocks)
         self.bind("<<Split>>", self.editor.splitBlocks)
+        self.bind("<<SmoothPath>>", self.editor.smoothBlocks)
         self.bind("<<InsertText>>", self.showTextInsertion)
         self.bind("<<ImageTrace>>", self.showImageTrace)
         self.bind("<<Intersection>>", self.editor.intersectPaths)

@@ -27,6 +27,7 @@ for **drag-knife / foil cutting plotters** running **grblHAL**:
 | 🔩 **grblHAL improvements** | Better alarm handling, correct G92 restore after reset, reliable post-alarm homing that returns to mat origin (Y=0) |
 | 📱 **Tablet-friendly UI** | Simplified ribbon layout and larger touch targets for tablet / touchscreen use |
 | 📏 **Scaling & basic shapes** | Built-in scaling tool and shape generators (rectangle, circle, line, arc …) for quick layout without a CAD app |
+| ✏️ **LibreCAD & Inkscape integration** | Open DXF or SVG drawings in external editors for extended 2D drawing capabilities, then save and close to import the geometry back into bCNC |
 | 🎛️ **Pressure & speed per-mat** | Per-mat cutting pressure and speed stored in settings |
 | 🖼️ **Live bitmap tracing** | Preview and generate vector contours, multi-threshold layers, Zhang–Suen centerlines, or a single Print Then Cut outline from bitmap artwork |
 

@@ -1262,6 +1262,50 @@ class InfoGroup(CNCRibbon.ButtonGroup):
 
 
 # =============================================================================
+# Smooth Group
+# =============================================================================
+class SmoothGroup(CNCRibbon.ButtonGroup):
+    def __init__(self, master, app):
+        CNCRibbon.ButtonGroup.__init__(self, master, N_("Smooth"), app)
+        self.grid2rows()
+
+        b = Ribbon.LabelButton(
+            self.frame,
+            image=Utils.icons["arcfit"],
+            text=_("Smooth"),
+            compound=LEFT,
+            anchor=W,
+            command=self._smooth_dialog,
+            background=Ribbon._BACKGROUND,
+        )
+        b.grid(row=0, column=0, rowspan=2, padx=0, pady=0, sticky=NSEW)
+        tkExtra.Balloon.set(
+            b,
+            _(
+                "Smooth selected blocks with Douglas-Peucker + Chaikin.\n"
+                "Reduces micro-segments into continuous curves.\n"
+                "Operates on all blocks when nothing is selected."
+            ),
+        )
+        self.addWidget(b)
+
+    # ------------------------------------------------------------------
+    def _smooth_dialog(self):
+        vals = _ask_shape_params(self.app, _("Smooth Path"), [
+            (_("Tolerance (mm) — simplification threshold"), 0.10),
+            (_("Iterations — Chaikin subdivision passes (0–5)"), 3),
+        ])
+        if vals is None:
+            return
+        try:
+            tol = float(vals[0])
+            iters = max(0, min(5, int(float(vals[1]))))
+        except (ValueError, IndexError):
+            return
+        self.app.editor.smoothBlocks(tol, iters)
+
+
+# =============================================================================
 # Main Frame of Editor
 # =============================================================================
 class EditorFrame(CNCRibbon.PageFrame):
@@ -1306,6 +1350,7 @@ class EditorPage(CNCRibbon.Page):
             TransformGroup,
             RouteGroup,
             DrawGroup,
+            SmoothGroup,
             InfoGroup,
         )
         self._register(groups, (EditorFrame,))
