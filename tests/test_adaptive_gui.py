@@ -141,6 +141,9 @@ class AdaptiveGUITest(unittest.TestCase):
 
     def test_job_actions_stay_visible_without_competing_navigation_on_phone(self):
         self.app.geometry('390x844')
+        # Keep the simulated job incomplete while the real serial monitor polls.
+        self.app.sender._gcount = 0
+        self.app.sender._runLines = 100
         self.app.sender.running = True
         self.w.update_state()
         self.app.update()
@@ -213,6 +216,70 @@ class AdaptiveGUITest(unittest.TestCase):
         self.w.toggle_grid()
         self.assertEqual(self.app.canvasFrame.draw_grid.get(), before)
         self.w.resize_workspace(SimpleNamespace(widget=self.w.sidebar))
+
+    def test_vector_import_adds_artwork_and_undo_preserves_original(self):
+        import tempfile
+        from pathlib import Path
+        fixtures = {
+            'svg': '<svg xmlns="http://www.w3.org/2000/svg" width="20mm" height="20mm" viewBox="0 0 20 20"><path d="M1 1 L10 1 L10 10 Z"/></svg>',
+            'dxf': '\n'.join(('0', 'SECTION', '2', 'ENTITIES', '0', 'LINE', '8', '0',
+                              '10', '1', '20', '1', '11', '10', '21', '10', '0', 'ENDSEC', '0', 'EOF', '')),
+        }
+        for extension, content in fixtures.items():
+            with self.subTest(extension=extension), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / ('artwork.' + extension)
+                path.write_text(content)
+                original = list(self.app.gcode.blocks)
+                geometry = [list(block) for block in original]
+                with patch('PlotterWorkflow.filedialog.askopenfilename', return_value=str(path)), \
+                        patch.object(self.app, 'load') as replace:
+                    self.w.import_artwork()
+                replace.assert_not_called()
+                self.assertGreater(len(self.app.gcode.blocks), len(original))
+                for block, lines in zip(original, geometry):
+                    self.assertTrue(any(block is current for current in self.app.gcode.blocks))
+                    self.assertEqual(list(block), lines)
+                self.assertTrue(self.w.selection())
+                self.app.undo()
+                self.assertEqual([list(block) for block in self.app.gcode.blocks], geometry)
+
+    def test_rounded_button_retains_native_activation_and_disabled_state(self):
+        from PlotterUI import RoundedButton
+        command = Mock()
+        dialog = tk.Toplevel(self.app, bg='white')
+        button = RoundedButton(dialog, text='Action', command=command)
+        button.pack()
+        self.app.update()
+        self.assertTrue(self.app.tk.call(str(button._background_image), 'transparency', 'get', 0, 0))
+        button.invoke()
+        command.assert_called_once()
+        button.configure(state='disabled')
+        button.invoke()
+        command.assert_called_once()
+        button.configure(state='normal', background='#176b5b')
+        button.event_generate('<Enter>')
+        button.event_generate('<Leave>')
+        button.event_generate('<FocusIn>')
+        self.assertTrue(button._focus)
+        button.event_generate('<FocusOut>')
+        self.assertFalse(button._focus)
+        dialog.destroy()
+
+    def test_automatic_loading_default_and_detection_hint(self):
+        import configparser
+        import Utils
+        defaults = configparser.ConfigParser()
+        defaults.read(Utils.iniSystem)
+        self.assertEqual(defaults.get('Plotter', 'load_mode'), 'auto')
+        previous = Utils.getStr('Plotter', 'load_mode', 'auto')
+        try:
+            Utils.setStr('Plotter', 'load_mode', 'auto')
+            self.app.sender.serial = None
+            self.w.update_state()
+            self.assertIn('Automatic is selected', self.w.loading_hint['text'])
+            self.assertIn('Connect a compatible', self.w.loading_hint['text'])
+        finally:
+            Utils.setStr('Plotter', 'load_mode', previous)
 
     def test_all_editing_tools_remain_reachable(self):
         from PlotterAdaptive import EDIT_TOOLS

@@ -31,7 +31,7 @@ Coverage is collected for **all `bCNC` application Python modules**. The enforce
 
 No coverage exclusions were added to reach the target; the UI report has zero excluded lines. Tests construct real Tk widgets under Xvfb, edit real document geometry, exercise undo/error paths and verify commands through mocked/loopback transports. The new tests add compact-layout, explicit-selection, machine-control and lifecycle checks. Existing regression assertions changed only where navigation, scrolling or explicit-selection behavior intentionally changed.
 
-Validation on 15 September 2026: **265 tests passed**; workflow/dialog UI line coverage **91.65%** (3,216 / 3,509 lines); new modules `PlotterAdaptive`, `PlotterUI` and `PlotterMachineUI` **100%**; complete application line coverage **71.63%**. Syntax compilation and `git diff --check` also passed.
+Validation on 15 September 2026: **268 tests passed**; workflow/dialog UI line coverage **91.93%** (3,293 / 3,582 lines); `PlotterAdaptive` and `PlotterMachineUI` **100%**, `PlotterUI` **98.91%**; complete application line coverage **74.13%**. Syntax compilation and `git diff --check` also passed.
 
 Run from the repository root:
 
@@ -66,3 +66,11 @@ Other captures: [Prepare](../screenshots/adaptive-prepare-desktop.png), [Cut](..
 ## Panel visibility correction
 
 Hide panel now collapses the inspector at desktop, tablet and compact widths, gives its space to the canvas, and preserves the hidden state across layout breakpoints. Show panel restores it. The former Selection tab is named Properties: it edits the selected artwork; the toolbar Select control selects artwork on the mat. Real-widget regressions cover both controls.
+
+## Rounded controls and additive import
+
+All workflow and dialog action buttons use a shared antialiased 10 px corner radius while retaining Tk button activation, disabled states, hover feedback and keyboard focus. Desktop, tablet and compact screenshots have been refreshed.
+
+Import adds SVG, DXF and cut-file artwork to the current document, selects the imported objects, and retains an undo operation. Existing artwork and project wrappers remain intact. Opening a project still opens that project.
+
+The bundled mat-loading default is Automatic (`load_mode = auto`). A saved Manual preference is respected. Prepare now explains when Automatic is awaiting a compatible FilmCut controller or has fallen back to manual positioning because no loader was detected.

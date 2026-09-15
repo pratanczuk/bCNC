@@ -36,7 +36,7 @@ setup(
         "svgelements>=1,<2",
         "fonttools>=4.0",
         "shapely>=2.0",
-        "Pillow>=4.0",
+        "Pillow>=9.1",
         # Note there are no PyPI OpenCV packages for ARM
         # (Raspberry PI, Orange PI, etc...)
         "opencv-python>=4.10 ; "

@@ -12,6 +12,7 @@ from PlotterJob import bounds_fit, cut_settings_valid, design_bounds, readiness,
 
 
 from PlotterTheme import BG, PANEL, INK, MUTED, ACCENT, SOFT
+from PlotterUI import RoundedButton
 
 
 class PlotterWorkflow:
@@ -168,7 +169,7 @@ class PlotterWorkflow:
 
 
     def button(self, parent, text, command, primary=False, edit=False, machine=False):
-        b = tk.Button(parent, text=text, command=command, relief=tk.FLAT, bd=0,
+        b = RoundedButton(parent, text=text, command=command, relief=tk.FLAT, bd=0,
                       bg=ACCENT if primary else BG, fg="white" if primary else INK,
                       activebackground=SOFT, activeforeground=INK,
                       font=("DejaVu Sans", 11), padx=8, pady=8, cursor="hand2",
@@ -431,7 +432,11 @@ class PlotterWorkflow:
             filetypes=[("Vector artwork", "*.svg *.dxf"), ("Cut files", "*.ngc *.nc *.gcode"),
                        ("SVG", "*.svg"), ("DXF", "*.dxf")])
         if path:
-            self.app.load(path)
+            inserted = self.app.importFile(path, skip_header_footer=True)
+            self.app.editor.select([(i, None) for i in inserted], clear=True)
+            self.app.selectionChange()
+            self.import_filename = os.path.basename(path)
+            self.update_state()
             self._cut_started = False
             self.app.after(300, self.fit_mat)
 
@@ -843,7 +848,11 @@ class PlotterWorkflow:
         self.cut_mat_hint.config(text=hint if connected else 'Connect the plotter to load the mat.')
         self.mat_stop.config(state=tk.NORMAL if mat_active else tk.DISABLED)
         self.load_button.config(text="Load mat" if automatic else "Set origin here")
-        self.loading_hint.config(text=a.mat_handling.message if mat_active else "The blade lifts and the carriage homes automatically before mat movement." if automatic else
+        automatic_requested = Utils.getStr('Plotter', 'load_mode', 'auto') != 'manual'
+        fallback_hint = ('Automatic is selected. Connect a compatible FilmCut plotter to detect its loader.'
+                         if not connected else
+                         'Automatic is selected, but this plotter has no detected automatic loader. Use manual positioning.')
+        self.loading_hint.config(text=a.mat_handling.message if mat_active else "The blade lifts and the carriage homes automatically before mat movement." if automatic else fallback_hint if automatic_requested else
             "Align the mat, then set its origin at the blade. For unloading, lift the blade and remove the mat manually.")
         self.objects.config(state=tk.DISABLED if busy else tk.NORMAL)
         self.connect_button.config(text="Disconnect" if connected else "Connect")

@@ -1,7 +1,8 @@
 """Shared, adaptive Tk presentation primitives. No machine commands live here."""
 from dataclasses import dataclass
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, font as tkfont
+from PIL import Image, ImageDraw, ImageTk
 
 from PlotterTheme import BG, PANEL, INK, MUTED, ACCENT, SOFT
 
@@ -154,3 +155,89 @@ class ScrollFrame(tk.Frame):
 
     def viewport_size(self, event):
         self.canvas.itemconfigure(self.window, width=event.width)
+
+
+class RoundedButton(tk.Button):
+    """Native keyboard/button behavior with a rounded, antialiased surface."""
+    def __init__(self, parent, **options):
+        self._surface = {}
+        self._hover = self._focus = False
+        self._image_key = None
+        self._geometry_key = None
+        self._ready = False
+        for key in ('bg', 'activebackground', 'padx', 'pady', 'highlightcolor'):
+            self._surface[key] = options.pop(key, dict(bg=BG, activebackground=SOFT,
+                padx=12, pady=10, highlightcolor=FOCUS)[key])
+        options.update(bg=parent.cget('bg'), activebackground=parent.cget('bg'),
+                       padx=0, pady=0, highlightthickness=0, borderwidth=0,
+                       compound='center', relief='flat', takefocus=True)
+        super().__init__(parent, **options)
+        self._ready = True
+        for event, callback in (('<Configure>', self._resize),
+                                ('<Enter>', lambda e: self._interaction(hover=True)),
+                                ('<Leave>', lambda e: self._interaction(hover=False)),
+                                ('<FocusIn>', lambda e: self._interaction(focus=True)),
+                                ('<FocusOut>', lambda e: self._interaction(focus=False))):
+            self.bind(event, callback, add='+')
+        self.bind('<Return>', lambda e: self.invoke())
+        self.configure()
+
+    def configure(self, cnf=None, **options):
+        if not self._ready:
+            return super().configure(cnf, **options)
+        if isinstance(cnf, str):
+            return super().configure(cnf)
+        options = dict(cnf or {}, **options)
+        if 'background' in options:
+            options['bg'] = options.pop('background')
+        for key in tuple(options):
+            if key in self._surface:
+                self._surface[key] = options.pop(key)
+        # The image owns padding and outline; keep the native rectangular frame invisible.
+        for key in ('highlightthickness', 'highlightbackground', 'bd', 'borderwidth', 'relief'):
+            options.pop(key, None)
+        result = super().configure(**options)
+        geometry_key = (super().cget('text'), super().cget('font'),
+                        self._surface['padx'], self._surface['pady'])
+        if geometry_key != self._geometry_key:
+            self._geometry_key = geometry_key
+            font = tkfont.Font(self, font=geometry_key[1])
+            lines = str(geometry_key[0]).split('\n')
+            self._width = max(font.measure(line) for line in lines) + 2 * int(self._surface['padx'])
+            self._height = font.metrics('linespace') * len(lines) + 2 * int(self._surface['pady'])
+            super().configure(width=self._width, height=self._height)
+        self._paint(self.winfo_width() if self.winfo_width() > 1 else self._width,
+                    self.winfo_height() if self.winfo_height() > 1 else self._height)
+        return result
+
+    config = configure
+
+    def cget(self, key):
+        return self._surface[key] if key in self._surface else super().cget(key)
+
+    __getitem__ = cget
+
+    def _interaction(self, hover=None, focus=None):
+        if hover is not None:
+            self._hover = hover
+        if focus is not None:
+            self._focus = focus
+        self._paint(self.winfo_width(), self.winfo_height())
+
+    def _resize(self, event):
+        self._paint(event.width, event.height)
+
+    def _paint(self, width, height):
+        width, height = max(1, width), max(1, height)
+        disabled = super().cget('state') == 'disabled'
+        fill = self._surface['activebackground' if self._hover and not disabled else 'bg']
+        outline = self._surface['highlightcolor'] if self._focus else fill
+        key = (width, height, fill, outline)
+        if key == self._image_key:
+            return
+        self._image_key = key
+        image = Image.new('RGBA', (width * 2, height * 2))
+        ImageDraw.Draw(image).rounded_rectangle((1, 1, width * 2 - 1, height * 2 - 1),
+            radius=min(20, height - 1), fill=fill, outline=outline, width=4)
+        self._background_image = ImageTk.PhotoImage(image.resize((width, height), Image.Resampling.LANCZOS), master=self)
+        super().configure(image=self._background_image)
