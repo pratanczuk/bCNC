@@ -3,6 +3,9 @@ import math
 import os
 from functools import lru_cache
 import tkinter as tk
+from PlotterUI import Field
+from PlotterPages import WorkspacePage
+from PlotterUI import ChoiceButton
 from tkinter import filedialog, ttk
 
 import Utils
@@ -77,7 +80,7 @@ def path_bounds(paths):
     return min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes)
 
 
-class DesignDialog(tk.Toplevel):
+class DesignDialog(WorkspacePage):
     def __init__(self, workflow, title):
         super().__init__(workflow.app)
         self.workflow, self.app = workflow, workflow.app
@@ -89,7 +92,7 @@ class DesignDialog(tk.Toplevel):
         self.pending = None
         self.paths = []
         self.message = tk.StringVar(self)
-        top = tk.Frame(self, bg=PANEL, padx=24, pady=18)
+        top = tk.Frame(self, bg=PANEL, padx=24, pady=12)
         top.pack(fill='x')
         heading = workflow.label(top, title, size=20, bold=True)
         heading.config(wraplength=800)
@@ -101,7 +104,8 @@ class DesignDialog(tk.Toplevel):
         bottom.pack(side='bottom', fill='x')
         self.insert_button = workflow.button(bottom, 'Add to mat', self.insert, primary=True)
         self.insert_button.pack(side='right')
-        workflow.button(bottom, 'Cancel', self.destroy).pack(side='right', padx=8)
+        self.cancel_button = workflow.button(bottom, 'Cancel', self.destroy)
+        self.cancel_button.pack(side='right', padx=8)
         self.preview_error_detail = ''
         self.preview_error_title = 'Internal application error'
         self.error_button = workflow.button(bottom, 'Show details', self.show_error_details)
@@ -136,19 +140,26 @@ class DesignDialog(tk.Toplevel):
         workflow.label(right, 'CUT OUTLINE PREVIEW', muted=True).pack(anchor='w', pady=(0, 10))
         self.preview = tk.Canvas(right, bg=BG, highlightthickness=0)
         self.preview.pack(fill='both', expand=True)
-        tk.Label(right, textvariable=self.message, bg=PANEL, fg=MUTED, wraplength=480,
-                 justify='left', anchor='w', height=3).pack(fill='x', pady=8)
+        feedback_parent = self.controls
+        feedback = tk.Label(feedback_parent, textvariable=self.message, bg=PANEL, fg=MUTED, wraplength=480,
+                 justify='left', anchor='w')
+        def show_feedback(*args):
+            if self.message.get():
+                first = next((c for c in feedback_parent.winfo_children() if c is not feedback and c.winfo_manager()), None)
+                feedback.pack(fill='x', pady=4, before=first)
+            else: feedback.pack_forget()
+        self.message.trace_add('write', show_feedback)
         self.preview.bind('<Configure>', lambda event: self.draw_preview())
         from PlotterUI import SplitPanel
-        self.adaptive_split = SplitPanel(body, right, controls_shell, threshold=720, first_height=160)
+        self.adaptive_split = SplitPanel(body, right, controls_shell, threshold=840, first_height=220)
         self.bind('<Escape>', lambda event: self.destroy())
         self.grab_set()
 
     def field(self, title, value):
         self.workflow.label(self.controls, title, bold=True).pack(anchor='w', pady=(12, 6))
         variable = tk.StringVar(self, value)
-        tk.Entry(self.controls, textvariable=variable, font=('DejaVu Sans', 12),
-                 bg=BG, fg=INK, relief='flat').pack(fill='x', ipady=8)
+        Field(self.controls, textvariable=variable, font=('DejaVu Sans', 12),
+                 bg=BG, fg=INK, relief='flat').pack(fill='x')
         variable.trace_add('write', self.schedule)
         return variable
 
@@ -186,7 +197,8 @@ class DesignDialog(tk.Toplevel):
             heading, guidance, _, _ = friendly_error(self.preview_error_title, self.preview_error_detail)
             message = f'{heading}. {guidance}'
         self.message.set(message)
-        self.error_button.pack(side='left')
+        if not isinstance(error, ValueError):
+            self.error_button.pack(side='top', fill='x', before=self.insert_button, pady=(0, 8))
 
     def show_error_details(self):
         from PlotterErrorDialog import show_modal_error
@@ -197,8 +209,9 @@ class DesignDialog(tk.Toplevel):
         if not self.paths:
             return
         x0, y0, x1, y1 = path_bounds(self.paths)
-        w, h = max(100, self.preview.winfo_width()), max(100, self.preview.winfo_height())
-        scale = min((w-48)/max(x1-x0, .001), (h-48)/max(y1-y0, .001))
+        w, h = max(1, self.preview.winfo_width()), max(1, self.preview.winfo_height())
+        margin = min(24, w/5, h/5)
+        scale = min((w-2*margin)/max(x1-x0, .001), (h-2*margin)/max(y1-y0, .001))
         ox, oy = (w-(x1-x0)*scale)/2, (h-(y1-y0)*scale)/2
         for path in self.paths:
             path = path.linearize(.5)
@@ -262,7 +275,7 @@ class ShapeDialog(DesignDialog):
         super().__init__(workflow, 'Add a shape')
         self.kind = tk.StringVar(self, 'Rectangle')
         for label in ('Rectangle', 'Circle', 'Ellipse', 'Triangle', 'Star'):
-            tk.Radiobutton(self.controls, text=label, value=label, variable=self.kind,
+            ChoiceButton(self.controls, text=label, value=label, variable=self.kind,
                 indicatoron=False, bg=BG, selectcolor='#dfeee8', fg=INK, relief='flat',
                 font=('DejaVu Sans', 12), pady=8, command=self.schedule).pack(fill='x', pady=3)
         self.width = self.field('Width / circle diameter · mm', '40')
@@ -286,7 +299,7 @@ class TextDialog(DesignDialog):
         font_controls = tk.Frame(tabs, bg=PANEL)
         layout_controls = tk.Frame(tabs, bg=PANEL)
         tabs.add(font_controls, text='Text & font')
-        tabs.add(layout_controls, text='Spacing & curve')
+        tabs.add(layout_controls, text='Spacing')
         self.controls = layout_controls
         self.letter_spacing = self.field('Letter spacing · mm', '0')
         self.line_spacing = self.field('Line spacing · multiplier', '1.2')
@@ -446,132 +459,10 @@ class TextDialog(DesignDialog):
         return success
 
 
-class ArrangeDialog(tk.Toplevel):
-    """Direct, undoable operations on an explicit selection."""
-    def __init__(self, workflow):
-        super().__init__(workflow.app)
-        self.workflow = workflow
-        self.app = workflow.app
-        self.ids = workflow.selection()
-        self.title('Size & arrange · Foil Studio')
-        self.configure(bg=PANEL, padx=24, pady=24)
-        self.transient(self.app)
-        self.resizable(False, False)
-        tk.Label(self, text='Size & arrange', bg=PANEL, fg=INK,
-                 font=('DejaVu Sans', 20, 'bold'), anchor='w').pack(fill='x')
-        tk.Label(self, text=f'{len(self.ids)} objects · each action can be undone', bg=PANEL,
-                 fg=MUTED, font=('DejaVu Sans', 11), anchor='w').pack(fill='x', pady=(8, 20))
-        self.message = tk.StringVar(self)
-        self.form = tk.Frame(self, bg=PANEL)
-        self.form.pack(fill='x')
-        self.form.columnconfigure(0, minsize=180)
-        self.form.columnconfigure(1, minsize=120)
-        self.form.columnconfigure(2, minsize=190)
-        self.form_row = 0
-        self.width = self.row('Width · mm', '40', 'Resize', self.resize)
-        self.angle = self.row('Rotation · degrees', '90', 'Rotate', self.rotate)
-        self.x = self.row('Left edge · mm', '10')
-        self.y = self.row('Bottom edge · mm', '10', 'Place', self.move)
-        workflow.label(self, 'ALIGN & FLIP', size=10, muted=True).pack(anchor='w', pady=(20, 4))
-        workflow.button_grid(self, [('Flip horizontal', lambda: self.flip(False)),
-                                   ('Flip vertical', lambda: self.flip(True))])
-        workflow.button(self, 'Center on mat', self.center).pack(fill='x', pady=4)
-        tk.Label(self, textvariable=self.message, bg=PANEL, fg=MUTED, wraplength=490,
-                 justify='left', anchor='w', height=3).pack(fill='x', pady=(12, 16))
-        footer = tk.Frame(self, bg=PANEL)
-        footer.pack(fill='x')
-        workflow.button(footer, 'Done', self.destroy, primary=True).pack(side='right')
-        workflow.button(footer, 'Undo', self.undo).pack(side='left')
-        self.bind('<Escape>', lambda event: self.destroy())
-        self.refresh()
-        self.grab_set()
-
-    def row(self, title, initial, action=None, command=None):
-        row = self.form_row
-        self.form_row += 1
-        tk.Label(self.form, text=title, bg=PANEL, fg=INK, anchor='w',
-                 font=('DejaVu Sans', 11)).grid(row=row, column=0, sticky='w', pady=6)
-        var = tk.StringVar(self, initial)
-        tk.Entry(self.form, textvariable=var, width=10, bg=BG, fg=INK,
-                 font=('DejaVu Sans', 12), relief='flat').grid(row=row, column=1, sticky='ew', ipady=8, padx=(0, 12), pady=6)
-        if action:
-            self.workflow.button(self.form, action, lambda: self.perform(command)).grid(row=row, column=2, sticky='ew', pady=6)
-        return var
-
-    def bounds(self):
-        from PlotterJob import design_bounds
-        return design_bounds([self.app.gcode.blocks[i] for i in self.ids])
-
-    def refresh(self):
-        bounds = self.bounds()
-        if bounds:
-            x0, y0, x1, y1 = bounds
-            self.width.set(f'{x1-x0:g}')
-            self.x.set(f'{x0:g}')
-            self.y.set(f'{y0:g}')
-            self.message.set(f'Selection: {x1-x0:.1f} × {y1-y0:.1f} mm. Proportions stay locked when resizing.')
-        else:
-            self.message.set('Select artwork to arrange.')
-
-    def perform(self, command):
-        if self.app.sender.running or not self.bounds():
-            return
-        try:
-            self.app.editor.select([(i, None) for i in self.ids], clear=True)
-            history = self.app.gcode.undoredo.undoList
-            start = len(history)
-            try:
-                command()
-            finally:
-                if len(history) > start + 1:
-                    changes = history[start:]
-                    del history[start:]
-                    self.app.gcode.addUndo(changes, 'Arrange objects')
-            self.app.draw()
-            self.workflow.update_state()
-            self.refresh()
-        except ValueError as error:
-            self.message.set(str(error))
-
-    def resize(self):
-        x0, y0, x1, y1 = self.bounds()
-        if x1 == x0:
-            raise ValueError('This selection has no width.')
-        factor = positive(self.width.get(), 'Width') / (x1-x0)
-        self.workflow.transform('SCALE', factor, factor, x0, y0)
-
-    def number(self, var):
-        try:
-            value = float(var.get())
-            if not math.isfinite(value):
-                raise ValueError()
-            return value
-        except ValueError:
-            raise ValueError('Enter a finite number for position or rotation.') from None
-
-    def rotate(self):
-        x0, y0, x1, y1 = self.bounds()
-        self.workflow.transform('ROTATE', self.number(self.angle), (x0+x1)/2, (y0+y1)/2)
-
-    def move(self):
-        x0, y0, _, _ = self.bounds()
-        self.workflow.transform('MOVE', self.number(self.x)-x0, self.number(self.y)-y0, 0)
-
-    def center(self):
-        self.perform(self.workflow.center)
-
-    def flip(self, vertical):
-        # Existing mirror operations preserve arc direction correctly.
-        def action():
-            x0, y0, x1, y1 = self.bounds()
-            self.workflow.transform('MIRRORV' if vertical else 'MIRRORH')
-            self.workflow.transform('MOVE', 0 if vertical else x0+x1, y0+y1 if vertical else 0, 0)
-        self.perform(action)
-
-    def undo(self):
-        if not self.app.sender.running:
-            self.app.undo()
-            self.refresh()
+class ArrangeDialog:
+    def __new__(cls, workflow):
+        from PlotterStudio import ArrangeDialog as Page
+        return Page(workflow)
 
 
 class CombineDialog(DesignDialog):
@@ -591,7 +482,7 @@ class CombineDialog(DesignDialog):
             'Combine outlines': 'One object; keep all paths and overlaps.',
         }
         for title in OPERATIONS:
-            tk.Radiobutton(self.controls, text=title, value=title, variable=self.operation,
+            ChoiceButton(self.controls, text=title, value=title, variable=self.operation,
                 indicatoron=False, bg=BG, selectcolor='#dfeee8', fg=INK, relief='flat',
                 font=('DejaVu Sans', 12), pady=8, command=self.schedule).pack(fill='x', pady=3)
         self.explanation = tk.StringVar(self)
@@ -602,7 +493,7 @@ class CombineDialog(DesignDialog):
         tk.Label(self.controls, textvariable=self.order, bg=PANEL, fg=INK,
                  wraplength=285, justify='left').pack(fill='x', pady=8)
         workflow.button(self.controls, 'Reverse object order', self.reverse).pack(fill='x')
-        self.insert_button.config(text='Apply to selected objects')
+        self.insert_button.config(text='Apply changes')
         self.schedule()
 
     def reverse(self):
@@ -676,7 +567,7 @@ class OutlineDialog(DesignDialog):
         self.original = [(i, self.app.gcode.blocks[i], list(self.app.gcode.blocks[i])) for i in self.ids]
         self.mode = tk.StringVar(self, 'Offset outline')
         for name in ('Offset outline', 'Weeding border'):
-            tk.Radiobutton(self.controls, text=name, value=name, variable=self.mode,
+            ChoiceButton(self.controls, text=name, value=name, variable=self.mode,
                 bg=PANEL, fg=INK, font=('DejaVu Sans', 12), command=self.schedule).pack(anchor='w', pady=8)
         self.distance = self.field('Distance / margin (mm)', '2')
         self.rounded = tk.BooleanVar(self, True)

@@ -189,20 +189,27 @@ class PlotterWorkflow:
     def button_grid(self, parent, actions, edit=False):
         row = tk.Frame(parent, bg=PANEL)
         row.pack(fill=tk.X, pady=3)
-        for column, (title, action) in enumerate(actions):
-            row.columnconfigure(column, weight=1, uniform="actions")
-            self.button(row, title, action, edit=edit).grid(
-                row=0, column=column, sticky="ew", padx=(0 if column == 0 else 4, 4 if column == 0 else 0))
+        buttons = [self.button(row, title, action, edit=edit) for title, action in actions]
+        def arrange(event):
+            if event.widget is not row: return
+            columns = len(buttons) if sum(button.winfo_reqwidth()+8 for button in buttons) <= event.width else 1
+            for column in range(len(buttons)):
+                row.columnconfigure(column, weight=1 if column < columns else 0, uniform="actions" if column < columns else '')
+            for index, button in enumerate(buttons):
+                button.grid(row=index // columns, column=index % columns, sticky='ew', padx=2, pady=2)
+        row.bind('<Configure>', arrange)
         return row
 
 
     def build_prepare(self, p):
-        self.heading(p, "Prepare your cut", "Choose your material and load the mat.")
+        self.heading(p, "Prepare", "Review three steps before cutting.")
+        self.label(p, "1 · Plotter", size=16, bold=True).pack(fill=tk.X, pady=(8, 12))
         row = tk.Frame(p, bg=PANEL)
         row.pack(fill=tk.X)
         self.connect_button = self.button(row, "Connect", self.connect)
         self.connect_button.pack(side=tk.LEFT, expand=True, fill=tk.X)
         self.button(row, "Connection…", self.connection_settings).pack(side=tk.RIGHT, padx=(6, 0))
+        self.label(p, "2 · Layer setups", size=16, bold=True).pack(fill=tk.X, pady=(24, 12))
         self.label(p, "Material preset").pack(fill=tk.X, pady=(16, 4))
         row = tk.Frame(p, bg=PANEL)
         row.pack(fill=tk.X)
@@ -220,8 +227,7 @@ class PlotterWorkflow:
         row.pack(fill=tk.X)
         self.button(row, "Pressure…", lambda: self.settings("Material"), edit=True).pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.button(row, "Drag knife…", lambda: self.settings("Blade"), edit=True).pack(side=tk.RIGHT, padx=(6, 0))
-        self.button(p, "New pressure & corner test", self.new_calibration, edit=True).pack(fill=tk.X, pady=(6, 0))
-        self.button(p, "First-cut guide…", lambda: self.design_dialog("FirstCutDialog"), edit=True).pack(fill=tk.X, pady=3)
+
         self.label(p, 'Tool pass').pack(fill=tk.X, pady=(12,4))
         self.pass_choice = ttk.Combobox(p, textvariable=self.tool_pass, state='readonly', style='Foil.TCombobox', values=['All included layers'])
         self.pass_choice.pack(fill=tk.X)
@@ -229,7 +235,7 @@ class PlotterWorkflow:
         self.pass_choice.bind('<<ComboboxSelected>>', lambda e: self.update_state())
         self.pass_hint = self.label(p, 'Assign tools to layers in Layers & objects.', muted=True)
         self.pass_hint.pack(fill=tk.X, pady=6)
-        self.label(p, "Mat loading").pack(fill=tk.X, pady=(16, 4))
+        self.label(p, "3 · Mat & origin", size=16, bold=True).pack(fill=tk.X, pady=(24, 12))
         self.button(p, "Mat dimensions…", lambda: self.settings("Mat"), edit=True).pack(fill=tk.X, pady=(0, 6))
         self.loading_mode = ttk.Combobox(p, state="readonly", style="Foil.TCombobox", font=("DejaVu Sans", 11),
             values=("Automatic (detect plotter)", "Manual positioning"))
@@ -398,6 +404,8 @@ class PlotterWorkflow:
         import CNCCanvas
         CNCCanvas.CANVAS_COLOR = BG
         CNCCanvas.ENABLE_COLOR = ACCENT
+        CNCCanvas.SELECT_COLOR = ACCENT
+        CNCCanvas.SELECT2_COLOR = ACCENT
         a.canvas.config(background=BG)
         a.canvasFrame.draw_rapid.set(False)
         a.canvasFrame.draw_axes.set(False)
@@ -485,7 +493,7 @@ class PlotterWorkflow:
             return
         import PlotterDesign
         existing = getattr(self, '_design_dialog', None)
-        if existing is not None and existing.winfo_exists():
+        if existing is not None and existing.winfo_exists() and getattr(existing, '_tool_kind', kind) == kind:
             existing.lift()
             return existing
         if kind in ('LayoutDialog','ContourDialog','WeedDialog','LayersDialog','CutPreviewDialog','ProjectsDialog','FirstCutDialog'):
@@ -496,6 +504,7 @@ class PlotterWorkflow:
             self._design_dialog = TraceDialog(self)
         else:
             self._design_dialog = getattr(PlotterDesign, kind)(self)
+        self._design_dialog._tool_kind = kind
         return self._design_dialog
 
     def new_design(self):

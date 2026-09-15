@@ -16,7 +16,7 @@ class LayoutPolicyTest(unittest.TestCase):
         for width in (320, 390, 600, 759, 760, 840, 1024, 1440):
             for height in (540, 600, 844, 1080):
                 layout = layout_for(width, height)
-                self.assertEqual(layout.compact, width < 760)
+                self.assertEqual(layout.compact, width < 840)
                 self.assertLessEqual(layout.panel_height, height // 2)
                 self.assertGreaterEqual(layout.panel_width, 280)
 
@@ -34,6 +34,8 @@ class AdaptiveGUITest(unittest.TestCase):
     add_square_fixture = baseline.WorkflowGUITest.add_square_fixture
 
     def setUp(self):
+        for page in list(getattr(self.app, 'workspace_pages', []))[::-1]:
+            page.destroy()
         baseline.WorkflowGUITest.setUp(self)
         self.w = self.app.workflow
         self.app.geometry('1024x768')
@@ -197,7 +199,7 @@ class AdaptiveGUITest(unittest.TestCase):
                 self.w.inspector_button.invoke()
                 self.app.update()
                 self.assertFalse(self.w.sidebar.winfo_ismapped())
-                self.assertEqual(self.w.inspector_button['text'], 'Show panel')
+                self.assertEqual(self.w.inspector_button['text'], 'Panel' if self.app.winfo_width() < 600 else 'Show panel')
                 axis = 1 if width < 760 else 0
                 hidden_size = (self.app.canvasFrame.winfo_width(),
                                self.app.canvasFrame.winfo_height())
@@ -209,7 +211,7 @@ class AdaptiveGUITest(unittest.TestCase):
                 self.w.inspector_button.invoke()
                 self.app.update()
                 self.assertTrue(self.w.sidebar.winfo_ismapped())
-                self.assertEqual(self.w.inspector_button['text'], 'Hide panel')
+                self.assertEqual(self.w.inspector_button['text'], 'Hide' if self.app.winfo_width() < 600 else 'Hide panel')
         before = self.app.canvasFrame.draw_grid.get()
         self.w.toggle_grid()
         self.assertNotEqual(self.app.canvasFrame.draw_grid.get(), before)
@@ -299,7 +301,8 @@ class AdaptiveGUITest(unittest.TestCase):
     def test_menu_routes_are_available_without_machine_motion(self):
         with patch('tkinter.Menu.tk_popup'), patch.object(self.app.sender, 'sendGCode') as send:
             menu = self.w.open_menu()
-            labels = [menu.entrycget(i, 'label') for i in range(menu.index('end') + 1)]
+            from PlotterUI import descendants
+            labels = [child.cget('text') for child in descendants(menu) if isinstance(child, tk.Button)]
             self.assertIn('Projects & recovery', labels)
             self.assertIn('Materials & tools', labels)
             self.assertIn('Settings', labels)
@@ -386,7 +389,7 @@ class AdaptiveGUITest(unittest.TestCase):
 
     def test_first_cut_guide_never_starts_motion_and_resumes_at_next_step(self):
         from PlotterStudio import FirstCutDialog
-        commands = ('connection_settings', 'settings', 'new_calibration', 'show_step')
+        commands = ('connection_settings', 'settings', 'show_step', 'new_calibration')
         with patch.object(self.app.plotter, 'start') as start:
             for step in range(5):
                 self.w.guide_step = step
@@ -521,7 +524,7 @@ class AdaptiveGUITest(unittest.TestCase):
         self.assertEqual(buttons['Show details']['text'], 'Hide details')
         buttons['Show details'].invoke()
         self.assertEqual(buttons['Show details']['text'], 'Show details')
-        buttons['Back to editing'].invoke()
+        buttons['Return to workspace'].invoke()
         self.assertFalse(dialog.winfo_exists())
 
 

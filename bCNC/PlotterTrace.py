@@ -1,6 +1,7 @@
 """Foil Studio bitmap tracing with staged controls and outline preview."""
 import os
 import tkinter as tk
+from PlotterUI import Field
 from tkinter import filedialog, ttk
 
 from PlotterDesign import DesignDialog, positive
@@ -94,7 +95,7 @@ class TraceDialog(DesignDialog):
         self.workflow.label(row, label, size=10).pack(side='left')
         var = tk.StringVar(self, default)
         self.settings[key] = var
-        tk.Entry(row, textvariable=var, width=6, font=('DejaVu Sans', 12),
+        Field(row, textvariable=var, width=6, font=('DejaVu Sans', 12),
                  bg=BG, fg=INK, relief='flat').pack(side='right', ipady=7)
         var.trace_add('write', self.schedule)
         return row
@@ -178,7 +179,7 @@ class TraceDialog(DesignDialog):
             return super().draw_preview()
         from PIL import Image, ImageTk
         image = self.source.copy()
-        image.thumbnail((max(100, self.preview.winfo_width()-32), max(100, self.preview.winfo_height()-32)), Image.Resampling.LANCZOS)
+        image.thumbnail((max(1, self.preview.winfo_width()-16), max(1, self.preview.winfo_height()-16)), Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(image)
         self.preview.delete('all')
         self.preview.create_image(self.preview.winfo_width()/2, self.preview.winfo_height()/2, image=self.photo)

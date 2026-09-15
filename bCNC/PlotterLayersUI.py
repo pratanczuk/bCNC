@@ -1,5 +1,7 @@
 """Persistent layer/object manager backed by the headless layer service."""
 import tkinter as tk
+from PlotterUI import Field
+from PlotterPages import WorkspacePage
 from tkinter import ttk
 from PlotterTheme import PANEL, BG, INK, MUTED, ACCENT
 from PlotterLayers import LayerManager, catalog, signature, layer_name, DEFAULT
@@ -8,7 +10,7 @@ PALETTE = {'Teal':'#166c5e', 'Red':'#b23b3b', 'Blue':'#345bb1',
            'Gold':'#b47a12', 'Purple':'#7045a0', 'Charcoal':'#333333'}
 
 
-class LayersDialog(tk.Toplevel):
+class LayersDialog(WorkspacePage):
     def __init__(self, workflow):
         super().__init__(workflow.app)
         self.workflow, self.app = workflow, workflow.app
@@ -61,9 +63,9 @@ class LayersDialog(tk.Toplevel):
         tools = tk.Frame(left, bg=PANEL); tools.pack(fill='x', pady=(0,8))
         workflow.button(tools, '+ Add layer', self.add_layer, primary=True).pack(side='right', padx=(8,0))
         search = ttk.Entry(tools, textvariable=self.search, font=('DejaVu Sans',11))
-        search.pack(side='left', fill='x', expand=True, ipady=8)
+        search.pack(side='left', fill='x', expand=True)
         search.insert(0, '')
-        workflow.label(left, 'Search layers or objects · Ctrl/Shift selects several', size=10, muted=True).pack(anchor='w')
+        workflow.label(left, 'Search layers or objects', size=10, muted=True).pack(anchor='w')
         holder = tk.Frame(left, bg=PANEL); holder.pack(fill='both', expand=True, pady=6)
         holder.columnconfigure(0, weight=1); holder.rowconfigure(0, weight=1)
         style = ttk.Style(self)
@@ -80,8 +82,9 @@ class LayersDialog(tk.Toplevel):
         workflow.button_grid(left, [('Select all objects', self.select_all), ('Select attached group', self.select_group)])
         hint = workflow.label(left, 'Drag objects onto a layer, or before another object. Moving and duplicating includes attached group members.', size=10, muted=True)
         hint.config(wraplength=530); hint.pack(fill='x', pady=8)
-        self.controls = ttk.Notebook(body)
-        self.controls.grid(row=0, column=1, sticky='nsew')
+        self.detail_shell = tk.Frame(body, bg=PANEL)
+        self.controls = ttk.Notebook(self.detail_shell)
+        self.controls.pack(fill='both', expand=True)
         layer_page = self.scroll_page('Layer')
         object_page = self.scroll_page('Objects')
         self.entry(layer_page, 'Layer name', self.layer)
@@ -124,9 +127,11 @@ class LayersDialog(tk.Toplevel):
         self.bind('<Escape>', lambda e: self.destroy())
         self.search.trace_add('write', lambda *args: self.refresh(self.ids))
         self.refresh(self.ids)
-        from PlotterUI import SplitPanel
-        self.adaptive_split = SplitPanel(body, list_shell, self.controls, threshold=760, first_height=220)
+        from PlotterUI import ListDetail
+        self.adaptive_split = ListDetail(body, list_shell, self.detail_shell)
         body.bind('<Configure>', self.adapt_columns, add='+')
+        self.tree.bind('<ButtonRelease-1>', lambda event: self.adaptive_split.show_detail() if self.tree.selection() else None, add='+')
+        self.tree.bind('<Return>', lambda event: self.adaptive_split.show_detail(), add='+')
         self.grab_set()
 
     def adapt_columns(self, event):
@@ -209,6 +214,10 @@ class LayersDialog(tk.Toplevel):
     def selected(self, event=None):
         if self.refreshing: return
         rows = self.tree.selection()
+        if event is not None and rows == getattr(self, '_last_rows', None): return
+        self._last_rows = rows
+        if event is not None and hasattr(self, 'adaptive_split'):
+            self.adaptive_split.show_detail()
         self.ids = [int(row.split(':')[1]) for row in rows if row.startswith('object:')]
         layer_rows = [row for row in rows if row in self.layer_rows]
         if layer_rows:

@@ -1,5 +1,6 @@
 """Advanced settings and deliberate machine actions for the foil workspace."""
 import tkinter as tk
+from PlotterUI import Field
 from tkinter import ttk
 
 import Utils
@@ -21,7 +22,7 @@ class AdvancedPanel:
         self.notebook = ttk.Notebook(parent, style='Foil.TNotebook')
         self.notebook.pack(fill='both', expand=True)
         self.pages = {}
-        for title in ('Job G-code', 'Configuration', 'Machine control', 'System'):
+        for title in ('Job G-code', 'Configuration', 'Controller', 'Machine control', 'System'):
             page = tk.Frame(self.notebook, bg=PANEL, padx=8, pady=8)
             self.notebook.add(page, text=title)
             self.pages[title] = page
@@ -70,22 +71,20 @@ class AdvancedPanel:
         page = self.pages['Configuration']
         self.label(page, 'Application configuration · millimeters', bold=True)
         self.label(page, 'These values affect preview and planning. Controller settings below are read from the connected machine.', muted=True)
-        sub = ttk.Notebook(page, style="Foil.TNotebook")
-        sub.pack(fill='both', expand=True)
-        local = tk.Frame(sub, bg=PANEL); firmware = tk.Frame(sub, bg=PANEL)
-        sub.add(local, text='Application'); sub.add(firmware, text='Controller')
+        local = page
+        firmware = self.pages['Controller']
         fields = self.scroll_frame(local)
         config = self.app.configuration.read()
         for key, (title, default, low, high) in CONFIG_FIELDS.items():
             row = tk.Frame(fields, bg=PANEL); row.pack(fill='x', pady=4)
-            self.dialog.text(row, title).pack(side='left')
+            self.dialog.text(row, title).pack(anchor='w')
             self.values[key] = tk.StringVar(value=str(config[key] if config[key] is not None else default))
-            tk.Entry(row, textvariable=self.values[key], width=12, bg=BG, fg=INK,
-                     relief='flat', font=('DejaVu Sans', 11)).pack(side='right', ipady=6)
+            Field(row, textvariable=self.values[key], width=12, bg=BG, fg=INK,
+                     relief='flat', font=('DejaVu Sans', 11)).pack(fill='x')
         self.startup = tk.StringVar(value=config['startup'] or 'G90')
         for title, variable in [('Job startup commands', self.startup)]:
             self.label(fields, title)
-            tk.Entry(fields, textvariable=variable, bg=BG, fg=INK, font=('DejaVu Sans Mono', 11)).pack(fill='x', ipady=6)
+            Field(fields, textvariable=variable, bg=BG, fg=INK, font=('DejaVu Sans Mono', 11)).pack(fill='x')
         self.label(fields, 'Use Advanced → Job G-code to edit the full header and footer.', muted=True)
         self.button(firmware, 'Read controller settings', self.read_firmware).pack(anchor='w', pady=6)
         self.firmware = ttk.Treeview(firmware, columns=('name', 'value'), show='headings', height=5)
@@ -97,8 +96,8 @@ class AdvancedPanel:
         self.firmware.bind('<<TreeviewSelect>>', lambda event: self.action(self.select_firmware))
         row = tk.Frame(firmware, bg=PANEL); row.pack(fill='x', pady=6)
         self.firmware_value = tk.StringVar()
-        tk.Entry(row, textvariable=self.firmware_value, width=14, bg=BG, font=('DejaVu Sans', 11)).pack(side='left', ipady=6)
-        self.button(row, 'Send selected setting', self.write_firmware).pack(side='right')
+        Field(row, textvariable=self.firmware_value, width=14, bg=BG, font=('DejaVu Sans', 11)).pack(fill='x')
+        self.button(row, 'Send selected setting', self.write_firmware).pack(fill='x', pady=8)
         self.firmware_labels = {key: title for key, typ, default, title, *rest in self.app.tools['Controller'].variables}
         self.label(firmware, 'Sends one selected value immediately. Read again to verify it; Apply settings saves application preferences only.', muted=True)
 
@@ -114,7 +113,7 @@ class AdvancedPanel:
         self.dialog.text(row, 'Step (mm)').pack(side='left')
         ttk.Combobox(row, textvariable=self.step, values=('0.1', '1', '5', '10'), state='readonly', width=5).pack(side='left', padx=8)
         self.dialog.text(row, 'Speed (mm/min)').pack(side='left')
-        tk.Entry(row, textvariable=self.feed, width=7, bg=BG, font=('DejaVu Sans', 11)).pack(side='left', padx=8)
+        Field(row, textvariable=self.feed, width=7, bg=BG, font=('DejaVu Sans', 11)).pack(side='left', padx=8)
         pad = tk.Frame(page, bg=PANEL); pad.pack(pady=0)
         for label, axis, sign, row, col in [('Y +', 'Y', 1, 0, 1), ('X −', 'X', -1, 1, 0), ('X +', 'X', 1, 1, 2), ('Y −', 'Y', -1, 2, 1), ('Z +', 'Z', 1, 0, 3), ('Z −', 'Z', -1, 2, 3)]:
             self.button(pad, label, lambda a=axis, s=sign: self.jog(a, s)).grid(row=row, column=col, padx=5, pady=3, sticky='ew')
@@ -159,6 +158,7 @@ class AdvancedPanel:
         selected = self.firmware.selection()
         if selected:
             self.firmware_value.set(str(self.machine.select_setting(selected[0])))
+            self.dialog.error.set('Current controller value: ' + self.firmware_value.get() + '. Enter the new value, then Send selected setting.')
 
     def write_firmware(self):
         self.machine.write_setting(self.firmware_value.get())
@@ -169,11 +169,11 @@ class AdvancedPanel:
         self.label(page, 'System preferences & support', bold=True)
         self.language = tk.StringVar(value=Utils.LANGUAGES.get(Utils.language, Utils.LANGUAGES.get('', '<system>')))
         row = tk.Frame(page, bg=PANEL); row.pack(fill='x', pady=6)
-        self.dialog.text(row, 'Language · restart to apply').pack(side='left')
-        ttk.Combobox(row, textvariable=self.language, values=sorted(Utils.LANGUAGES.values()), state='readonly', width=18).pack(side='right')
+        self.dialog.text(row, 'Language · restart to apply').pack(anchor='w')
+        ttk.Combobox(row, textvariable=self.language, values=sorted(Utils.LANGUAGES.values()), state='readonly', width=18).pack(fill='x')
         row = tk.Frame(page, bg=PANEL); row.pack(fill='x', pady=6)
         self.source = tk.StringVar(value='Connection log')
-        ttk.Combobox(row, textvariable=self.source, values=('Connection log', 'User configuration', 'System defaults'), state='readonly', width=24).pack(side='left')
+        ttk.Combobox(row, textvariable=self.source, values=('Connection log', 'User configuration', 'System defaults'), state='readonly', width=24).pack(fill='x', pady=8)
         self.button(row, 'Show', self.show_system).pack(side='left', padx=6)
         self.button(row, 'Copy', self.copy_system).pack(side='right')
         self.system_text = tk.Text(page, height=10, wrap='word', bg=BG, fg=INK, font=('DejaVu Sans Mono', 10), relief='flat')

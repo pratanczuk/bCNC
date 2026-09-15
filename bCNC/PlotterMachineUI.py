@@ -1,12 +1,14 @@
 """Dedicated machine workspace. Every action uses the shared machine service."""
 import tkinter as tk
+from PlotterUI import Field
+from PlotterPages import WorkspacePage
 from tkinter import ttk
 
 from PlotterTheme import PANEL, INK, MUTED
 from PlotterUI import ScrollFrame, DANGER, fit_dialog
 
 
-class MachineWindow(tk.Toplevel):
+class MachineWindow(WorkspacePage):
     def __init__(self, workflow):
         super().__init__(workflow.app)
         self.workflow, self.app = workflow, workflow.app
@@ -33,7 +35,17 @@ class MachineWindow(tk.Toplevel):
         workflow.button(bottom, 'Close', self.destroy).pack(side='right')
         content = ScrollFrame(self)
         content.pack(fill='both', expand=True, padx=16)
-        body = content.body
+        columns = content.body
+        left = tk.Frame(columns, bg=PANEL)
+        right = tk.Frame(columns, bg=PANEL)
+        def reflow(event):
+            compact = event.width < 840
+            columns.columnconfigure(0, weight=1)
+            columns.columnconfigure(1, weight=0 if compact else 1)
+            left.grid(row=0, column=0, sticky='nsew', padx=8)
+            right.grid(row=1 if compact else 0, column=0 if compact else 1, sticky='nsew', padx=8)
+        columns.bind('<Configure>', reflow)
+        body = left
         tk.Label(body, textvariable=self.position, bg=PANEL, fg=INK,
                  font=('DejaVu Sans Mono', 12), justify='left').pack(fill='x', pady=12)
         workflow.label(body, 'One tap moves one step. Keep the blade clear.', muted=True).pack(fill='x')
@@ -48,11 +60,20 @@ class MachineWindow(tk.Toplevel):
             button = workflow.button(pad, key, lambda a=axis, s=sign: self.jog(a, s))
             button.grid(row=row, column=col, padx=4, pady=4, sticky='ew')
             self.buttons[key] = button
+        center_stop = workflow.button(pad, 'Stop', lambda: self.action(self.machine.stop_motion))
+        center_stop.configure(bg=DANGER, fg='white', minimum_height=56)
+        center_stop.grid(row=1, column=1, padx=4, pady=4)
+        self.buttons['pad_stop'] = center_stop
+        stop.configure(bg=DANGER, fg='white', minimum_height=56)
+        body = right
+        workflow.label(body, 'Mat positioning', size=16, bold=True).pack(anchor='w', pady=12)
         actions = [('Home machine', self.machine.home), ('Set XY origin', self.machine.origin),
                    ('Release blade', lambda: self.machine.send('M5')),
                    ('Z +', lambda: self.jog('Z', 1)), ('Z −', lambda: self.jog('Z', -1)),
                    ('Reset controller', self.machine.reset), ('Unlock after inspection', self.machine.unlock)]
         for label, command in actions:
+            if label == 'Reset controller':
+                workflow.label(body, 'Recovery controls', size=16, bold=True).pack(anchor='w', pady=(24, 8))
             button = workflow.button(body, label, lambda c=command: self.action(c))
             button.pack(fill='x', pady=4)
             self.buttons[label] = button
@@ -84,7 +105,7 @@ class MachineWindow(tk.Toplevel):
         from PlotterPolicy import can_unlock
         for name, button in self.buttons.items():
             enabled = state.ready
-            if name == 'stop':
+            if name in ('stop', 'pad_stop'):
                 enabled = state.connected
             elif name == 'Reset controller':
                 enabled = state.connected and not state.running

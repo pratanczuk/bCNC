@@ -132,6 +132,8 @@ geometry = None
 # =============================================================================
 class Application(Tk):
     def destroy(self):
+        if hasattr(self, 'workflow'):
+            self.workflow.adaptive_ready = False
         # Tcl timers otherwise outlive their Python callbacks when a window is
         # closed and a new application is opened in the same process.
         for timer in self.tk.call('after', 'info'):
@@ -757,12 +759,8 @@ class Application(Tk):
     # -----------------------------------------------------------------------
     def fileModified(self):
         if self.gcode.isModified():
-            ans = messagebox.askquestion(
-                _("File modified"),
-                _("Gcode was modified do you want to save it first?"),
-                type=messagebox.YESNOCANCEL,
-                parent=self,
-            )
+            from PlotterPages import ask_save_changes
+            ans = ask_save_changes(self)
             if ans == messagebox.CANCEL:
                 return True
             if ans == messagebox.YES or ans is True:
@@ -1083,7 +1081,7 @@ class Application(Tk):
     def reportPlotterError(self, title, detail):
         if hasattr(self, "workflow"):
             self.workflow.report_error(title, detail)
-            parent = self.grab_current()
+            parent = (getattr(self, 'workspace_pages', []) or [self.grab_current()])[-1]
             if parent is not None and parent is not self:
                 from PlotterErrorDialog import show_modal_error
                 current = getattr(self, '_error_dialog', None)

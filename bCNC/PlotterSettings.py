@@ -1,6 +1,8 @@
 """Staged, task-oriented settings for the foil-cutting workspace."""
 
 import tkinter as tk
+from PlotterUI import Field
+from PlotterPages import WorkspacePage
 import json
 import math
 from tkinter import ttk, simpledialog
@@ -12,7 +14,7 @@ from PlotterJob import SETTING_FIELDS, validate_settings, validate_blade_profile
 from PlotterTheme import PANEL, BG, INK, MUTED, ACCENT, SOFT
 
 
-class PlotterSettingsDialog(tk.Toplevel):
+class PlotterSettingsDialog(WorkspacePage):
     def __init__(self, workflow, page="Material"):
         super().__init__(workflow.app)
         self.workflow = workflow
@@ -35,7 +37,7 @@ class PlotterSettingsDialog(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.cancel)
         self.bind("<Escape>", lambda event: self.cancel())
 
-        title = tk.Frame(self, bg=PANEL, padx=24, pady=20)
+        title = tk.Frame(self, bg=PANEL, padx=24, pady=10)
         title.pack(fill=tk.X)
         self.text(title, "Settings", size=20, bold=True).pack(anchor="w")
         self.text(title, "Job setup and application preferences.", muted=True).pack(fill='x', pady=(8, 0))
@@ -51,15 +53,25 @@ class PlotterSettingsDialog(tk.Toplevel):
             self.tabs[name] = tab
             self.pages[name] = tk.Frame(content, bg=PANEL)
         self.category = tk.StringVar(self)
-        self.categories = {'Pressure & speed': ('Material', None), 'Drag knife': ('Blade', None),
+        self.categories = {'Appearance': ('Appearance', None), 'Pressure & speed': ('Material', None), 'Drag knife': ('Blade', None),
                            'Mat setup': ('Mat', None), 'Job commands': ('Advanced', 'Job G-code'),
                            'Planning defaults': ('Advanced', 'Configuration'),
-                           'Machine control': ('Advanced', 'Machine control'),
+                           'Controller settings': ('Advanced', 'Controller'),
                            'Language & support': ('Advanced', 'System')}
+        self.pages['Appearance'] = tk.Frame(content, bg=PANEL)
         picker = ttk.Combobox(nav, textvariable=self.category, values=list(self.categories),
                               state='readonly', style='Foil.TCombobox')
         picker.pack(fill='x')
         picker.bind('<<ComboboxSelected>>', self.choose_category)
+
+        self.appearance = tk.StringVar(self, Utils.getStr('Plotter', 'appearance', 'System'))
+        self.density = tk.StringVar(self, Utils.getStr('Plotter', 'density', 'Comfortable'))
+        for title, variable, choices in [('Appearance', self.appearance, ('System','Light','Dark')),
+                                          ('Control density', self.density, ('Comfortable','Compact for mouse'))]:
+            self.text(self.pages['Appearance'], title, bold=True).pack(anchor='w', pady=8)
+            ttk.Combobox(self.pages['Appearance'], textvariable=variable, values=choices,
+                         state='readonly', style='Foil.TCombobox').pack(fill='x')
+        self.text(self.pages['Appearance'], 'Touch layouts retain 48 px controls. Machine job actions stay at least 56 px.', muted=True).pack(fill='x', pady=16)
 
         p = self.pages["Material"]
         self.text(p, "Set blade exposure mechanically, then test pressure on your material.", muted=True).pack(anchor="w", pady=(0, 14))
@@ -79,9 +91,9 @@ class PlotterSettingsDialog(tk.Toplevel):
         self.blade_choice = ttk.Combobox(row, state="readonly", style="Foil.TCombobox",
             font=("DejaVu Sans", 11), values=["Current blade"] + sorted(self.blade_profiles))
         self.blade_choice.set("Current blade")
-        self.blade_choice.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.blade_choice.pack(fill=tk.X)
         self.blade_choice.bind("<<ComboboxSelected>>", self.choose_blade)
-        workflow.button(row, "Save preset…", self.save_blade).pack(side=tk.RIGHT, padx=(8, 0))
+        workflow.button(row, 'Save preset…', self.save_blade).pack(anchor='e', pady=8)
         tk.Checkbutton(p, text="Compensate for the swivelling blade", variable=self.compensation,
                        bg=PANEL, fg=INK, activebackground=PANEL, selectcolor=PANEL,
                        font=("DejaVu Sans", 12), pady=8).pack(anchor="w")
@@ -94,6 +106,19 @@ class PlotterSettingsDialog(tk.Toplevel):
         self.field(p, "mat_height", "Mat height", "mm")
         self.field(p, "mat_load_distance", "Automatic loading distance", "mm", "Used only by the grblHAL automatic loader.")
         self.text(p, "Changing mat dimensions or loading distance requires you to confirm the mat position again.", muted=True).pack(fill=tk.X, pady=8)
+
+        self.text(p, 'Mat origin · lower-left corner', bold=True).pack(anchor='w', pady=(16, 8))
+        diagram = tk.Canvas(p, height=130, bg=PANEL, highlightthickness=0)
+        diagram.pack(fill='x')
+        diagram.create_rectangle(40, 10, 180, 105, outline=ACCENT, width=2)
+        diagram.create_oval(35, 100, 45, 110, fill=ACCENT, outline=ACCENT)
+        diagram.create_text(70, 118, text='X →', fill=INK)
+        diagram.create_text(22, 70, text='Y ↑', fill=INK)
+        self.loading_preference = tk.StringVar(self, Utils.getStr('Plotter', 'load_mode', 'auto'))
+        self.text(p, 'Loading method', bold=True).pack(anchor='w', pady=8)
+        from PlotterUI import ChoiceButton
+        for label, value in [('Automatic (detect loader)', 'auto'), ('Manual positioning', 'manual')]:
+            ChoiceButton(p, text=label, variable=self.loading_preference, value=value).pack(fill='x', pady=4)
 
         from PlotterAdvanced import AdvancedPanel
         self.advanced = AdvancedPanel(self, self.pages['Advanced'])
@@ -127,13 +152,18 @@ class PlotterSettingsDialog(tk.Toplevel):
                        bg=PANEL, fg=INK, activebackground=PANEL, selectcolor=PANEL,
                        font=('DejaVu Sans', 11)).pack(anchor='w', pady=10)
 
-        bottom = tk.Frame(self, bg=PANEL, padx=24, pady=16)
+        bottom = tk.Frame(self, bg=PANEL, padx=24, pady=8)
         bottom.pack(side=tk.BOTTOM, fill=tk.X, before=self.scroller)
-        tk.Label(bottom, textvariable=self.error, bg=PANEL, fg="#a52a2a", font=("DejaVu Sans", 11),
-                 wraplength=555, anchor="w", justify=tk.LEFT, height=2).pack(fill=tk.X, pady=(0, 8))
+        feedback = tk.Label(bottom, textvariable=self.error, bg=PANEL, fg="#a52a2a", font=("DejaVu Sans", 11),
+                 wraplength=555, anchor="w", justify=tk.LEFT)
+        def show_feedback(*args):
+            if self.error.get(): feedback.pack(side="top", fill="x", before=self.library_button, pady=(0,8))
+            else: feedback.pack_forget()
+        self.error.trace_add("write", show_feedback)
         self.library_button = workflow.button(bottom, "Materials & tools…", self.open_library)
         self.library_button.pack(side=tk.TOP, fill=tk.X, pady=(0, 8))
-        workflow.button(bottom, "Apply settings", self.apply, primary=True).pack(side=tk.RIGHT)
+        self.apply_button = workflow.button(bottom, 'Apply settings', self.apply, primary=True)
+        self.apply_button.pack(side=tk.RIGHT)
         workflow.button(bottom, "Cancel", self.cancel).pack(side=tk.RIGHT, padx=10)
         self.show_page(page)
         self.update_idletasks()
@@ -150,6 +180,10 @@ class PlotterSettingsDialog(tk.Toplevel):
             self.advanced.notebook.select(self.advanced.pages[section])
         self.category.set(next(name for name, target in self.categories.items() if target == (page, section)))
         self.scroller.canvas.yview_moveto(0)
+        if section == 'Controller':
+            self.apply_button.pack_forget()
+        else:
+            self.apply_button.pack(side=tk.RIGHT)
 
     def open_library(self):
         before = dict(self.workflow.blade_profiles)
@@ -181,7 +215,7 @@ class PlotterSettingsDialog(tk.Toplevel):
         row.pack(fill=tk.X, pady=(6, 8))
         self.text(row, title, bold=True).pack(side=tk.TOP, anchor='w', fill='x', pady=(0, 4))
         self.text(row, units, muted=True).pack(side=tk.RIGHT, padx=(10, 0))
-        entry = tk.Entry(row, textvariable=self.values[key], width=11, font=("DejaVu Sans", 13),
+        entry = Field(row, textvariable=self.values[key], width=11, font=("DejaVu Sans", 13),
                          bg=BG, fg=INK, relief=tk.FLAT, highlightthickness=1,
                          highlightbackground="#cedbd5", highlightcolor=ACCENT)
         entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=9)
@@ -192,7 +226,8 @@ class PlotterSettingsDialog(tk.Toplevel):
     def show_page(self, name):
         for key, panel in self.pages.items():
             panel.pack_forget()
-            self.tabs[key].config(bg=SOFT if key == name else BG)
+            if key in self.tabs:
+                self.tabs[key].config(bg=SOFT if key == name else BG)
         self.pages[name].pack(fill=tk.BOTH, expand=True)
         self.category.set(next(label for label, target in self.categories.items() if target[0] == name))
 
@@ -233,6 +268,7 @@ class PlotterSettingsDialog(tk.Toplevel):
             self.error.set("Preset staged. Apply settings to keep it, or Cancel to discard it.")
 
     def apply(self):
+        from PlotterAppearance import save_appearance
         if (self.app.sender.running or self.app.mat_handling.active
                 or self.app.tool_sequence.active):
             self.error.set("Wait until cutting, mat handling or the tool sequence finishes before changing settings.")
@@ -263,8 +299,13 @@ class PlotterSettingsDialog(tk.Toplevel):
         except ValueError as error:
             self.error.set(str(error))
             return False
+        save_appearance(self.app, self.appearance.get(), self.density.get())
         self.advanced.apply(advanced_values)
         CNC.vars.update(validated)
+        if Utils.getStr('Plotter', 'load_mode', 'auto') != self.loading_preference.get():
+            Utils.setStr('Plotter', 'load_mode', self.loading_preference.get())
+            self.workflow.loading_mode.current(0 if self.loading_preference.get() == 'auto' else 1)
+            self.workflow.confirmed.set(False)
         self.workflow.library = library
         self.workflow.save_library()
         Utils.addSection("Plotter")

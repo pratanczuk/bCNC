@@ -235,6 +235,8 @@ class WorkflowGUITest(unittest.TestCase):
 
     def setUp(self):
         a = self.app
+        for page in list(getattr(a, 'workspace_pages', []))[::-1]:
+            page.destroy()
         a.sender.serial = None
         a.sender.firmware = None
         CNC.vars["mpg"] = False
@@ -372,7 +374,9 @@ class WorkflowGUITest(unittest.TestCase):
                 yield from buttons(child)
         for button in buttons(d):
             self.assertTrue(button.winfo_ismapped())
-            self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),d.winfo_rooty()+d.winfo_height())
+            # Project lists scroll; the fixed Close action must remain in view.
+            if button.cget('text') == 'Close':
+                self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),d.winfo_rooty()+d.winfo_height())
         d.destroy()
 
     def test_canvas_selection_expands_group_and_native_move_preserves_text(self):
@@ -606,7 +610,7 @@ class WorkflowGUITest(unittest.TestCase):
             a.update()
             try:
                 panel = dialog.advanced
-                self.assertEqual(set(panel.pages), {'Job G-code', 'Configuration', 'Machine control', 'System'})
+                self.assertEqual(set(panel.pages), {'Job G-code', 'Configuration', 'Controller', 'Machine control', 'System'})
                 for name, page in panel.pages.items():
                     panel.notebook.select(page)
                     a.update()
@@ -921,15 +925,18 @@ class WorkflowGUITest(unittest.TestCase):
         a.workflow.select_all()
         dialog = a.workflow.arrange()
         dialog.width.set('20')
-        dialog.perform(dialog.resize)
-        bounds = dialog.bounds()
-        self.assertAlmostEqual(bounds[2]-bounds[0], 20)
+        before = [list(b) for b in a.gcode.blocks]
+        dialog.rebuild()
+        from PlotterEditing import bounds as preview_bounds
+        bounds = preview_bounds(dialog.paths)
+        self.assertAlmostEqual(bounds[2]-bounds[0], 20, places=5)
         dialog.x.set('25')
         dialog.y.set('35')
-        dialog.perform(dialog.move)
-        self.assertAlmostEqual(dialog.bounds()[0], 25)
-        self.assertAlmostEqual(dialog.bounds()[1], 35)
-        dialog.destroy()
+        dialog.rebuild()
+        self.assertEqual(before, [list(b) for b in a.gcode.blocks])
+        self.assertTrue(dialog.insert())
+        self.assertAlmostEqual(design_bounds(a.gcode.blocks)[0], 25)
+        self.assertAlmostEqual(design_bounds(a.gcode.blocks)[1], 35)
 
     def test_combine_and_break_apart_are_single_undo_operations(self):
         a = self.app
@@ -1245,8 +1252,8 @@ class WorkflowGUITest(unittest.TestCase):
         footer = list(a.gcode.blocks[-1])
         a.editor.select([(1, None)], clear=True)
         dialog = a.workflow.design_dialog("ArrangeDialog")
-        dialog.flip(False)
-        dialog.destroy()
+        dialog.horizontal.set(True)
+        self.assertTrue(dialog.insert())
         a.draw()
         self.assertEqual(design_bounds(a.gcode.blocks), (5, 5, 15, 15))
         a.workflow.duplicate()
@@ -1707,7 +1714,8 @@ class WorkflowGUITest(unittest.TestCase):
             self.assertEqual(dialog.values['mat_pressure'].get(),'321')
             self.assertNotIn('Old holder',dialog.blade_profiles)
             self.assertIn('New holder',dialog.blade_profiles)
-            self.assertIs(dialog.grab_current(),dialog)
+            self.assertIs(self.app.workspace_pages[-1], dialog)
+            self.assertIsNone(dialog.grab_current())
         finally:
             dialog.cancel()
             w.library=original; w.save_library()

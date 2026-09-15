@@ -1,5 +1,7 @@
 # Visual conformity audit — Foil Studio
 
+> Historical audit. A subsequent implementation pass addresses these findings; see the [current correction report and gallery](../gui-review-fixed/README.md).
+
 **Verdict: the current implementation does not follow the original visual design 1:1.** The shared palette and parts of the workflow are present, but the window architecture, control recipes, sizing and several compact layouts differ materially. The earlier implementation should be described as a partial adaptation, not completion of the proposal.
 
 Reviewed local commit **5dfcf38**, 15 September 2026. This audit changes documentation only.

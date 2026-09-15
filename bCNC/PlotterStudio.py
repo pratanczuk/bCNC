@@ -2,6 +2,8 @@
 from copy import deepcopy
 import uuid
 import tkinter as tk
+from PlotterUI import Field
+from PlotterPages import WorkspacePage
 from tkinter import ttk
 from CNC import CNC, Block, GCode
 from PlotterDesign import DesignDialog
@@ -12,8 +14,9 @@ from PlotterProject import commit, changed_block, metadata
 
 def preview_map(canvas, paths):
     x0,y0,x1,y1=bounds(paths)
-    w,h=max(100,canvas.winfo_width()),max(100,canvas.winfo_height())
-    scale=min((w-48)/max(x1-x0,.001),(h-48)/max(y1-y0,.001))
+    w,h=max(1,canvas.winfo_width()),max(1,canvas.winfo_height())
+    margin=min(24,w/5,h/5)
+    scale=min((w-2*margin)/max(x1-x0,.001),(h-2*margin)/max(y1-y0,.001))
     ox,oy=(w-(x1-x0)*scale)/2,(h-(y1-y0)*scale)/2
     return lambda point:(ox+(point[0]-x0)*scale,h-oy-(point[1]-y0)*scale)
 
@@ -40,9 +43,9 @@ class SelectionDialog(DesignDialog):
 
     def compact(self,title,value):
         row=tk.Frame(self.controls,bg=PANEL); row.pack(fill='x',pady=5)
-        self.workflow.label(row,title,size=10).pack(side='left')
+        self.workflow.label(row,title,size=10).pack(anchor='w')
         var=tk.StringVar(self,value)
-        tk.Entry(row,textvariable=var,width=8,bg=BG,fg=INK,relief='flat',font=('DejaVu Sans',11)).pack(side='right',ipady=5)
+        Field(row,textvariable=var,width=8,bg=BG,fg=INK,relief='flat',font=('DejaVu Sans',11)).pack(fill='x',ipady=8)
         var.trace_add('write',self.schedule)
         return var
 
@@ -59,6 +62,57 @@ class SelectionDialog(DesignDialog):
         commit(self.app.gcode,blocks,title)
         self.app.refresh(); self.workflow.confirmed.set(False); self.workflow.update_state()
         self.app.after_idle(self.workflow.fit_mat); self.destroy(); return True
+
+
+class ArrangeDialog(SelectionDialog):
+    """Stage transformations against a snapshot; commit one undo record."""
+    def __init__(self, workflow):
+        super().__init__(workflow, 'Size & arrange')
+        box = bounds([p for paths in self.source.values() for p in paths])
+        self.width = self.field('Width · mm', f'{box[2]-box[0]:g}')
+        self.angle = self.field('Rotation · degrees', '0')
+        self.x = self.field('Left edge · mm', f'{box[0]:g}')
+        self.y = self.field('Bottom edge · mm', f'{box[1]:g}')
+        self.horizontal = tk.BooleanVar(self, False)
+        self.vertical = tk.BooleanVar(self, False)
+        for text, var in [('Flip horizontal', self.horizontal), ('Flip vertical', self.vertical)]:
+            tk.Checkbutton(self.controls, text=text, variable=var, command=self.schedule, bg=PANEL).pack(fill='x')
+        workflow.button(self.controls, 'Center on mat', self.center).pack(fill='x', pady=8)
+        self.insert_button.configure(text='Apply changes')
+        self.schedule()
+
+    def make_paths(self):
+        import math
+        from PlotterEditing import number, multiply
+        source = [p for paths in self.source.values() for p in paths]
+        x0, y0, x1, y1 = bounds(source)
+        scale = number(self.width.get().replace(',', '.'), .001) / max(x1-x0, .001)
+        angle = math.radians(number(self.angle.get().replace(',', '.')))
+        sx = -scale if self.horizontal.get() else scale
+        sy = -scale if self.vertical.get() else scale
+        matrix = [sx*math.cos(angle), sx*math.sin(angle), -sy*math.sin(angle), sy*math.cos(angle), 0, 0]
+        box = bounds(transform(source, matrix))
+        self.matrix = multiply([1, 0, 0, 1, number(self.x.get().replace(',', '.'))-box[0],
+                               number(self.y.get().replace(',', '.'))-box[1]], matrix)
+        return transform(source, self.matrix)
+
+    def center(self):
+        self.rebuild()
+        if self.paths:
+            box = bounds(self.paths)
+            self.x.set(f"{(CNC.vars['mat_width']-box[2]+box[0])/2:g}")
+            self.y.set(f"{(CNC.vars['mat_height']-box[3]+box[1])/2:g}")
+
+    def insert(self):
+        if not self.valid_source():
+            return False
+        self.rebuild()
+        if not self.paths:
+            return False
+        blocks = list(self.app.gcode.blocks)
+        for i in self.ids:
+            blocks[i] = changed_block(self.app.gcode, blocks[i], transform(self.source[i], self.matrix), self.matrix, preserve_text=True)
+        return self.apply_blocks(blocks, 'Arrange objects')
 
 
 class LayoutDialog(SelectionDialog):
@@ -221,12 +275,13 @@ from PlotterLayersUI import LayersDialog
 class CutPreviewDialog(DesignDialog):
     def __init__(self,workflow):
         super().__init__(workflow,'Cut sequence preview')
+        self.cancel_button.pack_forget()
         self.insert_button.config(text='Done',command=self.destroy)
         self.order=tk.BooleanVar(self,bool(CNC.vars.get('mat_inner_first',False)))
         tk.Checkbutton(self.controls,text='Inner contours before outer',variable=self.order,bg=PANEL,
                        command=self.change_order).pack(anchor='w',pady=8)
         self.position=tk.IntVar(self,0)
-        self.slider=tk.Scale(self.controls,variable=self.position,from_=0,to=1,orient='horizontal',bg=PANEL,
+        self.slider=ttk.Scale(self.controls,variable=self.position,from_=0,to=1,orient='horizontal',
                              command=lambda value:self.draw_preview())
         self.slider.pack(fill='x')
         workflow.label(self.controls,'Solid green: cut outlines. Dashed orange: travel between outlines. Numbers show the sequence. Drag the slider to inspect progress. This sends nothing to the plotter.',muted=True).pack(fill='x',pady=12)
@@ -259,7 +314,7 @@ class CutPreviewDialog(DesignDialog):
             previous=point(path[-1].B)
 
 
-class ProjectsDialog(tk.Toplevel):
+class ProjectsDialog(WorkspacePage):
     def __init__(self,workflow):
         super().__init__(workflow.app)
         self.workflow=workflow; self.app=workflow.app
@@ -267,53 +322,67 @@ class ProjectsDialog(tk.Toplevel):
         self.geometry('740x640'); self.transient(self.app)
         footer=tk.Frame(self,bg=PANEL); footer.pack(side='bottom',fill='x',pady=(8,0))
         workflow.button(footer,'Close',self.destroy).pack(side='right')
-        heading=workflow.label(self,'Your local projects',size=20,bold=True); heading.config(wraplength=680); heading.pack(anchor='w')
-        description=workflow.label(self,'Editable projects keep text, layers and groups. G-code export is for cutting.',muted=True); description.config(wraplength=680); description.pack(fill='x',pady=10)
-        workflow.button_grid(self,[('Open project…',self.open),('Save project…',self.save)])
-        workflow.button(self,'Export prepared cut G-code…',workflow.project.export_cut).pack(fill='x',pady=4)
-        workflow.label(self,'Recent projects',bold=True).pack(anchor='w',pady=(16,4))
+        from PlotterUI import ScrollFrame
+        scroller = ScrollFrame(self); scroller.pack(fill='both', expand=True)
+        body = scroller.body
+        heading=workflow.label(body,'Your local projects',size=20,bold=True); heading.config(wraplength=680); heading.pack(anchor='w')
+        description=workflow.label(body,'Editable projects keep text, layers and groups. G-code export is for cutting.',muted=True); description.config(wraplength=680); description.pack(fill='x',pady=10)
+        workflow.button_grid(body,[('New project',lambda:self.navigate(workflow.new_design)),('Import artwork…',lambda:self.navigate(workflow.import_artwork))])
+        workflow.button_grid(body,[('Open project…',self.open),('Save project…',self.save)])
+        workflow.button(body,'Export prepared cut G-code…',workflow.project.export_cut).pack(fill='x',pady=4)
+        workflow.label(body,'Recent projects',bold=True).pack(anchor='w',pady=(16,4))
         self.recent=workflow.project.recent()
-        self.list=tk.Listbox(self,height=5,bg=BG,fg=INK,exportselection=False)
+        self.list=tk.Listbox(body,height=5,bg=BG,fg=INK,exportselection=False)
         self.list.pack(fill='x')
         for name in self.recent: self.list.insert('end',name)
-        workflow.button(self,'Open selected recent project',self.open_recent).pack(fill='x',pady=4)
+        workflow.button(body,'Open selected recent project',self.open_recent).pack(fill='x',pady=4)
         self.recoveries=workflow.project.recoveries()
-        workflow.label(self,'Recovery copies',bold=True).pack(anchor='w',pady=(12,4))
-        self.recovery_list=tk.Listbox(self,height=3,bg=BG,fg=INK,exportselection=False)
+        workflow.label(body,'Recovery copies',bold=True).pack(anchor='w',pady=(12,4))
+        self.recovery_list=tk.Listbox(body,height=3,bg=BG,fg=INK,exportselection=False)
         self.recovery_list.pack(fill='x')
         from datetime import datetime
         for path in self.recoveries:
             self.recovery_list.insert('end',datetime.fromtimestamp(path.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')+' · '+path.name[:8])
-        workflow.button_grid(self,[('Recover selected copy',self.recover),('First-cut guide',self.guide)])
+        workflow.button_grid(body,[('Recover selected copy',self.recover),('First-cut guide',self.guide)])
         self.bind('<Escape>',lambda e:self.destroy()); self.grab_set()
 
+    def navigate(self, command):
+        self.destroy()
+        command()
+
     def open(self):
-        if self.workflow.project.open(): self.destroy()
+        if self.workflow.project.open():
+            self.destroy(); self.workflow.show_step(0)
     def save(self):
         if self.workflow.project.save(): self.destroy()
     def open_recent(self):
         ids=self.list.curselection()
-        if ids and self.workflow.project.open(self.recent[ids[0]]): self.destroy()
+        if ids and self.workflow.project.open(self.recent[ids[0]]):
+            self.destroy(); self.workflow.show_step(0)
     def recover(self):
         ids=self.recovery_list.curselection()
-        if ids and self.workflow.project.open(self.recoveries[ids[0]],recovery=True): self.destroy()
+        if ids and self.workflow.project.open(self.recoveries[ids[0]],recovery=True):
+            self.destroy(); self.workflow.show_step(0)
     def guide(self):
-        self.destroy(); FirstCutDialog(self.workflow)
+        self.destroy(); self.workflow.design_dialog('FirstCutDialog')
 
 
-class FirstCutDialog(tk.Toplevel):
+class FirstCutDialog(WorkspacePage):
     def __init__(self,workflow):
         super().__init__(workflow.app)
         self.workflow=workflow
-        self.title('Your first cut · Foil Studio'); self.configure(bg=PANEL,padx=28,pady=24)
-        self.geometry('620x480'); self.transient(workflow.app)
+        self.title('Your first cut · Foil Studio')
+        self.configure(bg=PANEL, padx=24, pady=16)
         self.step=getattr(workflow,'guide_step',0)
-        self.heading=workflow.label(self,'',size=20,bold=True); self.heading.config(wraplength=550); self.heading.pack(fill='x')
-        self.text=workflow.label(self,'',size=12); self.text.config(wraplength=550); self.text.pack(fill='both',expand=True,pady=20)
-        self.action=workflow.button(self,'',self.perform,primary=True); self.action.pack(fill='x',pady=8)
-        workflow.button_grid(self,[('Back',lambda:self.move(-1)),('Next',lambda:self.move(1))])
-        workflow.button(self,'Close guide',self.destroy).pack(anchor='e',pady=8)
-        self.bind('<Escape>',lambda e:self.destroy()); self.show(); self.grab_set()
+        footer=tk.Frame(self,bg=PANEL);footer.pack(side='bottom',fill='x')
+        self.action=workflow.button(footer,'',self.perform,primary=True);self.action.pack(fill='x',pady=8)
+        workflow.button_grid(footer,[('Back',lambda:self.move(-1)),('Next',lambda:self.move(1))])
+        workflow.button(footer,'Close guide',self.destroy).pack(fill='x',pady=8)
+        from PlotterUI import ScrollFrame
+        scroller=ScrollFrame(self);scroller.pack(fill='both',expand=True)
+        self.heading=workflow.label(scroller.body,'',size=20,bold=True);self.heading.pack(fill='x')
+        self.text=workflow.label(scroller.body,'',size=12);self.text.pack(fill='x',pady=24)
+        self.bind('<Escape>',lambda e:self.destroy());self.show()
 
     def show(self):
         steps=[('1 · Connect your plotter','Connect USB and switch on the plotter. Choose the port and GRBL firmware. Return here after the connection succeeds.','Connection setup'),
@@ -321,11 +390,13 @@ class FirstCutDialog(tk.Toplevel):
                ('3 · Make a small test','Save your artwork, then create a separate square, circle and corner test. Use scrap material attached securely to the mat.','Create test design'),
                ('4 · Position the mat','Align the mat, set the origin in Prepare and confirm it. Review the cut preview. You must press Start cut yourself; this guide never starts motion.','Go to Prepare'),
                ('5 · Check the result','Peel the foil. The backing should remain intact. Reduce pressure or blade exposure if the backing is cut; adjust offset for rounded or hooked corners. Make another small test after each adjustment.','Finish')]
-        title,text,action=steps[self.step]; self.heading.config(text=title); self.text.config(text=text); self.action.config(text=action)
+        steps[2], steps[3] = steps[3], steps[2]
+        title,text,action=steps[self.step]
+        title = str(self.step+1) + title[1:]; self.heading.config(text=title); self.text.config(text=text); self.action.config(text=action)
     def move(self,delta): self.step=max(0,min(4,self.step+delta)); self.show()
     def perform(self):
         step=self.step; self.workflow.guide_step=min(4,step+1); self.destroy()
         if step==0: self.workflow.connection_settings()
         elif step==1: self.workflow.settings('Material')
-        elif step==2: self.workflow.new_calibration()
-        elif step==3: self.workflow.show_step(1)
+        elif step==2: self.workflow.show_step(1)
+        elif step==3: self.workflow.new_calibration()

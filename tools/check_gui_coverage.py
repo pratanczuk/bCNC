@@ -12,6 +12,7 @@ GUI_MODULES = (
     'PlotterAdvanced', 'PlotterConnection', 'PlotterDesign', 'PlotterLayersUI',
     'PlotterLibraryUI', 'PlotterProjectUI', 'PlotterSettings', 'PlotterStudio',
     'PlotterTrace', 'PlotterTheme', 'PlotterErrorDialog',
+    'PlotterPages', 'PlotterAppearance', 'PlotterIcons',
 )
 
 
