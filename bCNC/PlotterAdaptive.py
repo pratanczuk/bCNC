@@ -291,9 +291,17 @@ class AdaptiveWorkflow(PlotterWorkflow):
         if signature == self.layout:
             return
         self.layout = signature
-        self.header.configure(padx=layout.padding, pady=8)
+        landscape = width >= 1024
+        short = landscape and height <= 700
+        self.header.configure(padx=12 if landscape else layout.padding, pady=4 if short else 8)
+        self.footer.configure(pady=2 if short else 10)
+        self.action_area.configure(pady=4 if short else 8)
+        self.sidebar.configure(pady=8 if short else 14)
         self.nav.pack_forget()
-        self.nav.pack(side='bottom' if width < 600 else 'top', fill='x', before=self.app.paned)
+        if landscape:
+            self.nav.pack(in_=self.header, side='left', fill='x', expand=True)
+        else:
+            self.nav.pack(in_=self.app, side='bottom' if width < 600 else 'top', fill='x', before=self.app.paned)
         self.more_tab.pack_forget()
         if width < 600:
             self.more_tab.pack(side='left', fill='x', expand=True, padx=2)
@@ -303,7 +311,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
         for i, tab in enumerate(self.tabs):
             tab.configure(text=('Design', 'Prepare', 'Cut')[i] if width < 600 else ('1  Design', '2  Prepare', '3  Cut')[i], padx=6 if width < 600 else 12, font=('DejaVu Sans', 10 if width < 600 else 11))
         self.more_tab.configure(padx=6, font=('DejaVu Sans', 10))
-        self.nav.configure(padx=8 if width < 600 else 12)
+        self.nav.configure(padx=6 if landscape else 8 if width < 600 else 12, pady=0 if landscape else 6)
         self.project_button.pack(side='left', fill='x', expand=True)
         self.project_button.configure(font=('DejaVu Sans', 10), padx=4)
         self.sidebar.pack_forget()
@@ -313,16 +321,16 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self.preview_button.pack_forget()
         editing = self.step == 0
         if editing:
-            self.toolbar.configure(padx=4 if width >= 1200 else layout.padding, pady=8)
-            self.toolbar.pack(side='left' if width >= 1200 else 'top', fill='y' if width >= 1200 else 'x')
+            self.toolbar.configure(padx=4 if landscape else layout.padding, pady=2 if short else 8)
+            self.toolbar.pack(side='left' if landscape else 'top', fill='y' if landscape else 'x')
             self.tool_row.pack(fill='both')
-            columns = 1 if width >= 1200 else 4 if width < 600 else 8
+            columns = 1 if landscape else 4 if width < 600 else 8
             from PlotterTk import Balloon
             for index, button in enumerate(self.tool_buttons):
                 label = ('Select', 'Pan', 'Move', 'Fit mat', 'Undo', 'Redo', 'Grid', 'Panel')[index]
-                button.configure(icon=label if width >= 1200 else None)
+                button.configure(icon=label if landscape else None)
                 Balloon.set(button, label)
-                button.grid(row=index // columns, column=index % columns, sticky='ew', padx=2, pady=4)
+                button.grid(row=index // columns, column=index % columns, sticky='ew', padx=2, pady=(0 if height < 600 else 1) if short else 4)
                 self.tool_row.columnconfigure(index % columns, weight=1, uniform='toolbar')
             for index in range(columns, 8):
                 self.tool_row.columnconfigure(index, weight=0, minsize=0, uniform='')
@@ -452,7 +460,8 @@ class AdaptiveWorkflow(PlotterWorkflow):
         full = project_name
         if self.app.winfo_width() >= 600:
             project_name = 'Foil Studio · ' + project_name
-        available = max(80, self.app.winfo_width() - (150 if self.app.winfo_width() < 600 else 270))
+        width = self.app.winfo_width()
+        available = min(320, width // 4) if width >= 1024 else max(80, width - (150 if width < 600 else 270))
         measure = font.Font(self.app, font=('DejaVu Sans', 10)).measure
         for value_name in ('project_name', 'save_state'):
             value = project_name if value_name == 'project_name' else save_state

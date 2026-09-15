@@ -138,7 +138,30 @@ class ResponsiveText:
     def __init__(self, dialog):
         self.dialog = dialog
         self.width = None
+        self.pending = None
+        self.parent_widths = {}
         dialog.bind('<Configure>', self.resize, add='+')
+        parents = {child.master for child in descendants(dialog)
+                   if isinstance(child, (tk.Label, tk.Checkbutton))}
+        for parent in parents:
+            parent.bind('<Configure>', self.queue_resize, add='+')
+        dialog.bind('<Destroy>', self.cancel_resize, add='+')
+
+    def queue_resize(self, event):
+        if self.parent_widths.get(event.widget) == event.width:
+            return
+        self.parent_widths[event.widget] = event.width
+        if self.pending is None:
+            self.pending = self.dialog.after_idle(self.refresh)
+
+    def refresh(self):
+        self.pending = None
+        self.resize(type('Size', (), dict(widget=self.dialog, width=self.dialog.winfo_width()))())
+
+    def cancel_resize(self, event):
+        if event.widget is self.dialog and self.pending is not None:
+            self.dialog.after_cancel(self.pending)
+            self.pending = None
 
     def resize(self, event):
         if event.widget is not self.dialog:

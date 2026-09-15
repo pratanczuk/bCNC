@@ -33,36 +33,39 @@ class MachineWindow(WorkspacePage):
         stop.pack(side='left')
         self.buttons['stop'] = stop
         workflow.button(bottom, 'Close', self.destroy).pack(side='right')
-        content = ScrollFrame(self)
+        content = self.content_scroll = ScrollFrame(self)
         content.pack(fill='both', expand=True, padx=16)
         columns = content.body
         left = tk.Frame(columns, bg=PANEL)
         right = tk.Frame(columns, bg=PANEL)
         def reflow(event):
             compact = event.width < 840
-            columns.columnconfigure(0, weight=1)
-            columns.columnconfigure(1, weight=0 if compact else 1)
+            columns.columnconfigure(0, weight=1, uniform='machine' if not compact else '')
+            columns.columnconfigure(1, weight=0 if compact else 1, uniform='machine' if not compact else '')
             left.grid(row=0, column=0, sticky='nsew', padx=8)
             right.grid(row=1 if compact else 0, column=0 if compact else 1, sticky='nsew', padx=8)
         columns.bind('<Configure>', reflow)
         body = left
         tk.Label(body, textvariable=self.position, bg=PANEL, fg=INK,
-                 font=('DejaVu Sans Mono', 12), justify='left').pack(fill='x', pady=12)
-        workflow.label(body, 'One tap moves one step. Keep the blade clear.', muted=True).pack(fill='x')
-        for label, variable in [('Step · mm', self.step), ('Speed · mm/min', self.speed)]:
-            workflow.label(body, label).pack(anchor='w', pady=(8, 4))
-            ttk.Entry(body, textvariable=variable).pack(fill='x')
+                 font=('DejaVu Sans Mono', 12), justify='left').pack(fill='x', pady=4)
+        workflow.label(body, 'Tap an arrow to move one step.', muted=True).pack(fill='x')
+        fields = tk.Frame(body, bg=PANEL)
+        fields.pack(fill='x', pady=(4, 0))
+        for column, (label, variable) in enumerate([('Step · mm', self.step), ('Speed · mm/min', self.speed)]):
+            fields.columnconfigure(column, weight=1, uniform='jog')
+            workflow.label(fields, label).grid(row=0, column=column, sticky='w', padx=4, pady=4)
+            ttk.Entry(fields, textvariable=variable, width=8).grid(row=1, column=column, sticky='ew', padx=4)
         pad = tk.Frame(body, bg=PANEL)
-        pad.pack(pady=12)
+        pad.pack(pady=4)
         for axis, sign, row, col in [('Y', 1, 0, 1), ('X', -1, 1, 0),
                                      ('X', 1, 1, 2), ('Y', -1, 2, 1)]:
             key = axis + (' +' if sign > 0 else ' −')
             button = workflow.button(pad, key, lambda a=axis, s=sign: self.jog(a, s))
-            button.grid(row=row, column=col, padx=4, pady=4, sticky='ew')
+            button.grid(row=row, column=col, padx=4, pady=2, sticky='ew')
             self.buttons[key] = button
         center_stop = workflow.button(pad, 'Stop', lambda: self.action(self.machine.stop_motion))
         center_stop.configure(bg=DANGER, fg='white', minimum_height=56)
-        center_stop.grid(row=1, column=1, padx=4, pady=4)
+        center_stop.grid(row=1, column=1, padx=4, pady=2)
         self.buttons['pad_stop'] = center_stop
         stop.configure(bg=DANGER, fg='white', minimum_height=56)
         body = right
@@ -101,7 +104,7 @@ class MachineWindow(WorkspacePage):
     def poll(self):
         state = self.machine.snapshot()
         x, y, z = state.position
-        self.position.set(f'{state.state}\nX {x:.2f}   Y {y:.2f}\nZ {z:.2f} mm')
+        self.position.set(f'{state.state}\nX {x:.2f}   Y {y:.2f}   Z {z:.2f} mm')
         from PlotterPolicy import can_unlock
         for name, button in self.buttons.items():
             enabled = state.ready

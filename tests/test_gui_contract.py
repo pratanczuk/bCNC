@@ -265,6 +265,43 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_tablet_machine_arrows_and_connection_copy_fit(self):
+        self.w._cut_started = False; self.w.clear_notice()
+        self.app.geometry('1024x600'); self.app.update()
+        page = self.w.open_machine(); self.app.update()
+        for name in ('Y +', 'X −', 'X +', 'Y −', 'pad_stop'):
+            button = page.buttons[name]
+            self.assertTrue(button.winfo_ismapped())
+            self.assertGreaterEqual(button.winfo_height(), 48)
+            self.assertLessEqual(button.winfo_rooty()+button.winfo_height(), page.content_scroll.canvas.winfo_rooty()+page.content_scroll.canvas.winfo_height())
+        page.destroy()
+        page = self.w.connection_settings(); self.app.update()
+        heading = next(w for w in descendants(page) if isinstance(w, tk.Label) and w.cget('text') == 'Connect your plotter')
+        self.assertGreater(float(heading.cget('wraplength')), 600)
+        self.assertLess(heading.winfo_height(), 48)
+        page.destroy()
+
+    def test_tablet_baseline_keeps_full_left_rail_and_single_header(self):
+        self.w._cut_started = False; self.w.clear_notice(); self.w.show_step(0)
+        for size in ('1024x560', '1024x600', '1280x720', '1920x1080'):
+            self.app.geometry(size); self.app.update()
+            self.assertEqual(str(self.w.nav.pack_info()['in']), str(self.w.header))
+            self.assertEqual(self.w.toolbar.pack_info()['side'], 'left')
+            self.assertGreaterEqual(self.app.canvas.winfo_height(), 360 if size == '1024x560' else 400)
+            self.assertGreaterEqual(self.app.canvas.winfo_width(), 600)
+            left = {b.winfo_rootx() for b in self.w.tool_buttons}
+            self.assertEqual(len(left), 1)
+            for button in self.w.tool_buttons:
+                self.assertIsNotNone(button._icon)
+                self.assertGreaterEqual(button.winfo_height(), 48)
+                self.assertTrue(button.winfo_ismapped())
+                self.assertLessEqual(button.winfo_rooty()+button.winfo_height(), self.app.canvasPane.winfo_rooty()+self.app.canvasPane.winfo_height())
+            for button in self.w.tabs + [self.w.project_button, self.w.menu_button, self.w.diagnostics_button]:
+                self.assertTrue(button.winfo_ismapped())
+                self.assertGreaterEqual(button.winfo_width(), 48)
+                self.assertGreaterEqual(button.winfo_height(), 48)
+                self.assertLessEqual(button.winfo_rootx()+button.winfo_width(), self.app.winfo_rootx()+self.app.winfo_width())
+
     def test_added_shapes_and_text_refit_the_whole_mat(self):
         self.w._cut_started = False; self.w.clear_notice(); self.w.show_step(0)
         for size in ('1280x900', '390x844'):
