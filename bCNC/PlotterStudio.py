@@ -310,16 +310,40 @@ class CutPreviewDialog(DesignDialog):
         super().__init__(workflow,'Cut sequence preview')
         self.cancel_button.pack_forget()
         self.insert_button.config(text='Done',command=self.destroy)
+        self.subtitle.configure(text='Inspect the cut order. Preview only — no machine movement.')
         self.order=tk.BooleanVar(self,bool(CNC.vars.get('mat_inner_first',False)))
-        tk.Checkbutton(self.controls,text='Inner contours before outer',variable=self.order,bg=PANEL,
-                       command=self.change_order).pack(anchor='w',pady=8)
+        tk.Checkbutton(self.controls,text='Cut inner shapes first',variable=self.order,bg=PANEL,
+                       command=self.change_order).pack(fill='x',pady=8)
         self.position=tk.IntVar(self,0)
         self.slider=ttk.Scale(self.controls,variable=self.position,from_=0,to=1,orient='horizontal',
                              command=lambda value:self.draw_preview())
         self.slider.pack(fill='x')
-        workflow.label(self.controls,'Solid green: cut outlines. Dashed orange: travel between outlines. Numbers show the sequence. Drag the slider to inspect progress. This sends nothing to the plotter.',muted=True).pack(fill='x',pady=12)
-        workflow.label(self.controls,'The preview includes blade compensation. Multi-tool sequences draw with pens first, then cut with knives. Each physical tool change requires your confirmation; homing and travel between passes are not shown.',muted=True).pack(fill='x',pady=12)
+        self.position_text = tk.StringVar(self, '0 of 0 outlines')
+        position_label = workflow.label(self.controls, '', muted=True)
+        position_label.configure(textvariable=self.position_text)
+        position_label.pack(fill='x', pady=(8, 12))
+        legend = tk.Canvas(self.controls, height=68, bg=PANEL, highlightthickness=0)
+        legend.pack(fill='x', pady=(0, 8))
+        legend.create_line(4, 12, 38, 12, fill=ACCENT, width=2)
+        legend.create_text(48, 12, text='Cut outline', anchor='w', fill=INK, font=('DejaVu Sans', 11))
+        legend.create_line(4, 34, 38, 34, fill='#b47a12', dash=(4,3), arrow='last')
+        legend.create_text(48, 34, text='Travel', anchor='w', fill=INK, font=('DejaVu Sans', 11))
+        legend.create_text(20, 56, text='1', fill=INK, font=('DejaVu Sans', 11))
+        legend.create_text(48, 56, text='Cut order', anchor='w', fill=INK, font=('DejaVu Sans', 11))
+        self.details_button = workflow.button(self.controls, 'Preview details', self.toggle_details)
+        self.details_button.pack(fill='x', pady=8)
+        self.details = workflow.label(self.controls,
+            'Blade compensation is included. Pens run before knives. Tool changes require confirmation; homing and travel between tool passes are not shown.', muted=True)
         self.schedule()
+
+    def toggle_details(self):
+        if self.details.winfo_manager():
+            self.details.pack_forget()
+            self.details_button.configure(text='Preview details')
+        else:
+            self.details.configure(wraplength=max(80, self.controls.winfo_width()-16))
+            self.details.pack(fill='x', pady=8)
+            self.details_button.configure(text='Hide details')
 
     def change_order(self):
         CNC.vars['mat_inner_first']=self.order.get()
@@ -333,6 +357,8 @@ class CutPreviewDialog(DesignDialog):
 
     def draw_preview(self):
         if not hasattr(self,'position'): return
+        if hasattr(self, 'position_text'):
+            self.position_text.set(f'{min(self.position.get(), len(self.paths))} of {len(self.paths)} outlines')
         self.preview.delete('all')
         if not self.paths: return
         point=preview_map(self.preview,self.paths)

@@ -97,7 +97,7 @@ class DesignDialog(WorkspacePage):
         heading = workflow.label(top, title, size=20, bold=True)
         heading.config(wraplength=800)
         heading.pack(anchor='w')
-        subtitle = workflow.label(top, 'Create, preview, then add to your mat.', muted=True)
+        subtitle = self.subtitle = workflow.label(top, 'Create, preview, then add to your mat.', muted=True)
         subtitle.config(wraplength=800)
         subtitle.pack(anchor='w', pady=(6, 0))
         bottom = tk.Frame(self, bg=PANEL, padx=24, pady=16)
@@ -124,7 +124,14 @@ class DesignDialog(WorkspacePage):
         self.controls = tk.Frame(controls_canvas, bg=PANEL)
         controls_window = controls_canvas.create_window(0,0,window=self.controls,anchor='nw')
         self.controls.bind('<Configure>', lambda e: controls_canvas.config(scrollregion=controls_canvas.bbox('all')))
-        controls_canvas.bind('<Configure>', lambda e: controls_canvas.itemconfig(controls_window,width=e.width))
+        def resize_controls(event):
+            controls_canvas.itemconfig(controls_window, width=event.width)
+            # The page's first Configure can precede the sidebar's final width.
+            # Wrap against its allocated canvas, not the provisional label width.
+            for child in self.controls.winfo_children():
+                if isinstance(child, (tk.Label, tk.Checkbutton)):
+                    child.configure(wraplength=max(80, event.width-16))
+        controls_canvas.bind('<Configure>', resize_controls)
         def scroll_controls(event):
             direction = -1 if getattr(event,'num',None)==4 or getattr(event,'delta',0)>0 else 1
             controls_canvas.yview_scroll(direction*3,'units')

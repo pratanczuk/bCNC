@@ -265,6 +265,27 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_cut_preview_has_compact_legend_and_optional_details(self):
+        self.w.clear_notice(); self.w._cut_started = False
+        page = self.w.design_dialog('CutPreviewDialog')
+        for size in ('1868x1060', '1280x900', '390x844', '320x600'):
+            self.app.geometry(size); self.app.update(); page.rebuild(); self.app.update()
+            self.assertFalse(page.details.winfo_manager())
+            self.assertNotIn('add to your mat', page.subtitle.cget('text'))
+            check = next(w for w in page.controls.winfo_children() if isinstance(w, tk.Checkbutton))
+            self.assertGreaterEqual(float(check.cget('wraplength')), page.controls.winfo_width()-24)
+            self.assertIn('of', page.position_text.get())
+            with patch.object(self.app.sender, 'sendGCode') as send:
+                page.position.set(0); page.draw_preview()
+                self.assertEqual(page.position_text.get(), f'0 of {len(page.paths)} outlines')
+                send.assert_not_called()
+            page.details_button.invoke(); self.app.update()
+            self.assertTrue(page.details.winfo_manager())
+            self.assertGreaterEqual(float(page.details.cget('wraplength')), page.controls.winfo_width()-24)
+            page.details_button.invoke(); self.app.update()
+            self.assertFalse(page.details.winfo_manager())
+        page.destroy()
+
     def test_cut_mat_layout_stays_mapped_during_idle_polling(self):
         from CNC import CNC
         self.w._cut_started = False
