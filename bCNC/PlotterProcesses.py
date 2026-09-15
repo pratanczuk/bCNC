@@ -51,7 +51,7 @@ def prepare_processes(blocks, parameters, use_material=True):
         if process_label(process) != chosen:
             continue
         tool = process['tool'] if process else None
-        material = (process['material'] if process else None) or parameters.material
+        material = parameters.material
         if material is not None:
             from PlotterLibrary import validate_profile
             material = validate_profile('materials', material)

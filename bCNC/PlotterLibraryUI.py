@@ -22,7 +22,7 @@ class LibraryDialog(WorkspacePage):
         top = tk.Frame(self, bg=PANEL, padx=20, pady=14); top.pack(fill='x')
         title = workflow.label(top, 'Materials & tools', size=20, bold=True)
         title.configure(wraplength=750); title.pack(anchor='w')
-        subtitle = workflow.label(top, 'Save tested setups. Assign them to layers in Layers & objects.', muted=True)
+        subtitle = workflow.label(top, 'Choose one material for the mat in Prepare. Assign tools to layers.', muted=True)
         subtitle.configure(wraplength=750); subtitle.pack(anchor='w', pady=(6,0))
         bottom = tk.Frame(self, bg=PANEL, padx=20, pady=12); bottom.pack(side='bottom', fill='x')
         workflow.button(bottom, 'Done', self.destroy, primary=True).pack(side='bottom', anchor='e')
@@ -55,7 +55,7 @@ class LibraryDialog(WorkspacePage):
             right = tk.Frame(page, bg=PANEL); right.pack(side='left', fill='both', expand=True)
             footer = tk.Frame(right, bg=PANEL); footer.pack(side='bottom', fill='x', pady=8)
             workflow.button(footer, 'Save preset', lambda k=kind:self.save(k)).pack(fill='x', pady=4)
-            workflow.button(footer, 'Use on selected layer', lambda k=kind:self.use_on_layer(k), primary=True).pack(fill='x', pady=4)
+            workflow.button(footer, 'Use in Prepare' if kind == 'materials' else 'Use on selected layer', lambda k=kind:self.use_on_layer(k), primary=True).pack(fill='x', pady=4)
             if kind == 'tools':
                 self.color_button = workflow.button(footer, 'Choose color…', self.pick_color)
                 self.color_button.pack(fill='x')
@@ -118,6 +118,16 @@ class LibraryDialog(WorkspacePage):
 
     def use_on_layer(self, kind):
         name = self.selected_names[kind]
+        if kind == 'materials':
+            if not name:
+                self.message.set('Select a saved material first.')
+                return
+            self.workflow.refresh_library()
+            self.workflow.material.set(name)
+            self.workflow.apply_material()
+            self.destroy()
+            self.workflow.show_step(1)
+            return
         if not name or not self.workflow.selection():
             self.message.set('Select artwork and a saved preset first.')
             return
@@ -126,11 +136,11 @@ class LibraryDialog(WorkspacePage):
         page = LayersDialog(self.workflow)
         page.tree.selection_set(page.tree.parent('object:' + str(self.workflow.selection()[0])))
         page.selected()
-        (page.material_profile if kind == 'materials' else page.tool_profile).set(name)
+        page.tool_profile.set(name)
         if kind == 'tools':
             page.operation.set('Draw' if self.library.records[kind][name]['kind'] == 'Pen' else 'Cut')
         page.adaptive_split.show_detail()
-        page.message.set('Review the selected layer setup, then Apply material & tool.')
+        page.message.set('Review the selected layer setup, then Apply tool & operation.')
         fit_dialog(page, self.workflow.app)
 
     def select(self, kind):

@@ -25,3 +25,11 @@ These are actual Tk screenshots under Linux/Xvfb, captured at 1024 × 600. Physi
 The layout tests visit all six sections, require their content and action buttons to fit, and verify that no scrollbar appears. Another test fills the list, confirms that its scrollbar appears, filters it to an empty result, and confirms that the scrollbar disappears. Existing layer lifecycle and drag/drop tests cover the reorganized actions.
 
 Final validation: **301 tests passed** across the 197-test regression group and the separate 104-test workflow run. **GUI coverage: 92.99%**, above the 90% gate. Compilation and diff checks passed. The first workflow run had an intermittent failure in the existing import/center test; that test passed alone and the subsequent complete workflow run passed without changes to centering code.
+
+## One material per mat
+
+Material is now selected only in Prepare. Layers retain tool and operation settings. Old project layer material snapshots are discarded during normalization, so they cannot override the mat material, its speed, pressure, or pass count. Object pass counts still multiply the selected material pass count. With Current settings selected in Prepare, the current global speed and pressure apply.
+
+The material library action is now **Use in Prepare** and needs no selected artwork. The tool library still offers **Use on selected layer**.
+
+Single-material validation: **303 tests passed** (199 regression + 104 workflow); **GUI coverage 93.21%**. All six Layers sections still fit 1024 × 600 without default scrollbars.

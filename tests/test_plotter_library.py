@@ -74,15 +74,16 @@ class ProfileLibraryTests(unittest.TestCase):
 
     def test_operation_tool_and_material_compatibility(self):
         assignment = process()
-        assignment['material']['compatible']='Knife'
-        with self.assertRaises(ValueError): validate_process(assignment)
+        assignment['material']={'name':'Old layer material','compatible':'Knife'}
+        self.assertIsNone(validate_process(assignment)['material'])
         assignment=process(); assignment['operation']='Cut'
         with self.assertRaises(ValueError): validate_process(assignment)
 
     def test_pen_never_calls_compensation_even_with_global_and_imported_flags(self):
         source=[artwork()]; original=deepcopy(source)
         assignment=process(); assignment['tool'].update(compensate=True,offset=5,overcut=10)
-        params=JobParameters(compensate=True,knife_offset=5,overcut=10,processes={'Default':assignment})
+        params=JobParameters(compensate=True,knife_offset=5,overcut=10,processes={'Default':assignment},
+            material=validate_profile('materials',dict(name='Paper',pressure=120,speed=700,passes=2)))
         with patch('PlotterProcesses.compensate_path',side_effect=AssertionError('Pen compensation called')):
             prepared=prepare_job(source,params)
             commands=compile_buffer(prepared)
@@ -94,6 +95,22 @@ class ProfileLibraryTests(unittest.TestCase):
         self.assertEqual(list(source[0]),list(original[0]))
         self.assertEqual(source[0].foil,original[0].foil)
         self.assertEqual(str(commands[-1]).strip().upper(),'M5')
+
+    def test_prepare_material_overrides_legacy_layer_snapshot(self):
+        assignment=process()
+        assignment['material']=dict(name='Legacy',pressure=999,speed=10,passes=9,compatible='Knife')
+        chosen=validate_profile('materials',dict(name='Mat paper',pressure=210,speed=850,passes=3))
+        for material, pressure, speed, passes in ((chosen,210,850,3),(None,330,920,1)):
+            with self.subTest(material=material):
+                prepared=prepare_job([artwork()],JobParameters(processes={'Default':assignment},
+                    material=material,pressure=330,speed=920))
+                body=next(b for b in prepared if b.name()=='Artwork')
+                self.assertEqual(body.passes,passes)
+                commands=' '.join(str(line).upper() for line in compile_buffer(prepared))
+                self.assertIn(f'S{pressure}',commands)
+                self.assertIn(f'F{speed}',commands)
+                self.assertNotIn('S999',commands)
+        self.assertEqual(assignment['material']['name'],'Legacy')
 
     def test_pen_travel_releases_tool_and_uses_no_z_axis(self):
         from CNC import CNC

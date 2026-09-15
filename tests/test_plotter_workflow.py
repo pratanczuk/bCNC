@@ -1011,11 +1011,12 @@ class WorkflowGUITest(unittest.TestCase):
             try:
                 layer.tree.selection_set('layer:0'); layer.selected()
                 layer.operation.set('Draw'); layer.process_choices()
-                layer.tool_profile.set('Fine pen'); layer.material_profile.set('Drawing paper')
+                layer.tool_profile.set('Fine pen')
+                w.material.set('Drawing paper'); w.apply_material()
                 self.assertTrue(layer.apply_process())
                 saved = catalog(self.app.gcode)[0]['process']
                 self.assertEqual(saved['operation'],'Draw')
-                self.assertEqual(saved['material']['pressure'],125)
+                self.assertIsNone(saved['material'])
                 self.assertFalse(saved['tool']['compensate'])
                 self.app.update()
                 self.assertIn('Pen · Fine pen',w.pass_choice.cget('values'))

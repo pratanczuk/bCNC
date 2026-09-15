@@ -881,7 +881,7 @@ class PlotterWorkflow:
             self.tool_pass.set(ALL_TOOLS)
         self.pass_hint.configure(text=('Guided sequence: pens first, then knives. X homes before each exchange; confirm each tool before continuing. Keep the mat loaded.') if len(passes)>1 and chosen==ALL_TOOLS else
             ('Fit ' + (chosen if chosen != ALL_TOOLS else ', '.join(passes)) + '. Pen compensation and overcut are off.') if passes else
-            'Assign materials and knives or pens in Layers & objects.')
+            'Choose material here; assign knives or pens in Layers & objects.')
         pressure = CNC.vars.get('mat_pressure', 500)
         knife_on = bool(CNC.vars.get('mat_auto_dragknife'))
         self.settings_summary.config(text=f"Pressure {pressure:g}/1000 · {CNC.vars.get('mat_speed', 500):g} mm/min\n"
@@ -901,7 +901,7 @@ class PlotterWorkflow:
                 if selected != ALL_TOOLS and process_label(process) != selected: continue
                 if process:
                     tool = process['tool']
-                    material = process['material'] or self.library.records['materials'].get(self.material.get())
+                    material = self.library.records['materials'].get(self.material.get())
                     speed = material['speed'] if material else CNC.vars.get('mat_speed',500)
                     strength = material['pressure'] if material else pressure
                     descriptions.append(f"{layer['name']} · {process['operation']}\n{tool['name']} · {strength:g}/1000 · {speed:g} mm/min\n" +

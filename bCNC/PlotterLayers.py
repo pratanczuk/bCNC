@@ -164,7 +164,7 @@ class LayerManager:
         blocks, layers = self._state()
         target = self._layer(layers, name)
         if target['name'] == DEFAULT:
-            raise ValueError('Default is the permanent home for unassigned objects. Add a named material layer instead.')
+            raise ValueError('Default is the permanent home for unassigned objects. Add a named layer instead.')
         replacement = valid_name(replacement)
         if any(layer is not target and layer['name'].casefold() == replacement.casefold() for layer in layers):
             raise ValueError('A layer with that name already exists.')
@@ -217,7 +217,7 @@ class LayerManager:
         else:
             from PlotterLibrary import validate_process
             target['process'] = validate_process(process)
-        self._commit(blocks, layers, 'Change layer material and tool')
+        self._commit(blocks, layers, 'Change layer tool and operation')
         return target['name']
 
     def show_all(self):

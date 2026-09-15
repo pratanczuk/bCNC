@@ -62,12 +62,10 @@ def validate_process(raw):
     operation = raw.get('operation')
     if operation not in ('Cut', 'Draw') or (operation == 'Draw') != (tool['kind'] == 'Pen'):
         raise ValueError('Draw requires a pen; Cut requires a knife.')
-    material = raw.get('material')
-    if material is not None:
-        material = validate_profile('materials', material)
-        if material['compatible'] not in ('Both', tool['kind']):
-            raise ValueError('This material profile is not compatible with the selected tool.')
-    return {'operation': operation, 'tool': tool, 'material': material}
+    # Older projects may contain layer material snapshots. The material now
+    # belongs to the whole mat; discard those overrides when normalizing.
+    return {'operation': operation, 'tool': tool, 'material': None}
+
 
 
 class ProfileLibrary:

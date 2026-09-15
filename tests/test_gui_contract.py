@@ -183,16 +183,29 @@ class VisualContractTest(unittest.TestCase):
         page.forms['materials']['name'].set('Draft')
         page.details['materials'].show_list();page.details['materials'].show_detail()
         self.assertEqual(page.forms['materials']['name'].get(),'Draft')
-        page.use_on_layer('materials');self.assertIn('Select artwork',page.message.get())
+        page.use_on_layer('materials');self.assertIn('Select a saved material',page.message.get())
         page.destroy()
 
-    def test_library_use_on_layer_is_staged(self):
-        self.w.select_all();self.w.library.save('materials',dict(name='Layer vinyl'))
-        page=self.w.open_library();page.refresh('materials','Layer vinyl')
+    def test_library_material_applies_to_prepare_without_layer_selection(self):
+        from CNC import CNC
+        self.w.select_none();self.w.library.save('materials',dict(name='Mat vinyl',pressure=321))
+        page=self.w.open_library();page.refresh('materials','Mat vinyl')
         before=[list(b) for b in self.app.gcode.blocks]
         page.use_on_layer('materials');self.app.update()
+        self.assertFalse(page.winfo_exists())
+        self.assertEqual(self.w.material.get(),'Mat vinyl')
+        self.assertEqual(CNC.vars['mat_pressure'],321)
+        self.assertEqual(self.w.step,1)
+        self.assertEqual(before,[list(b) for b in self.app.gcode.blocks])
+
+    def test_library_tool_use_on_layer_is_staged(self):
+        self.w.select_all();self.w.library.save('tools',dict(name='Layer pen',kind='Pen'))
+        page=self.w.open_library();page.refresh('tools','Layer pen')
+        before=[list(b) for b in self.app.gcode.blocks]
+        page.use_on_layer('tools');self.app.update()
         layer=self.app.workspace_pages[-1]
-        self.assertIsNot(layer,page);self.assertEqual(layer.material_profile.get(),'Layer vinyl')
+        self.assertIsNot(layer,page);self.assertEqual(layer.tool_profile.get(),'Layer pen')
+        self.assertFalse(hasattr(layer,'material_combo'))
         self.assertEqual(before,[list(b) for b in self.app.gcode.blocks])
         layer.destroy();page.destroy()
 

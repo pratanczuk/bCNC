@@ -34,7 +34,6 @@ class LayersDialog(WorkspacePage):
         self.object_color = tk.StringVar(self, 'Layer color')
         self.operation = tk.StringVar(self, 'Current settings')
         self.tool_profile = tk.StringVar(self)
-        self.material_profile = tk.StringVar(self, 'Current settings')
         self.saved_process = None
         self.delete_mode = tk.StringVar(self, 'Keep objects in Default')
         self.context = tk.IntVar(self, 0)
@@ -104,9 +103,8 @@ class LayersDialog(WorkspacePage):
         self.operation_combo = self.combo(operation_box, 'Operation', self.operation, ['Current settings','Cut','Draw'])
         self.operation_combo.bind('<<ComboboxSelected>>', lambda e:self.process_choices())
         self.tool_combo = self.combo(tool_box, 'Tool', self.tool_profile, [])
-        self.material_combo = self.combo(setup, 'Material', self.material_profile, ['Current settings'])
-        self.button(setup, 'Apply material & tool', self.apply_process)
-        workflow.label(setup, 'Choose a layer on the left to set its material and tool.', size=10, muted=True).pack(fill='x', pady=4)
+        self.button(setup, 'Apply tool & operation', self.apply_process)
+        workflow.label(setup, 'Material is selected once in Prepare for the whole mat.', size=10, muted=True).pack(fill='x', pady=4)
         self.action_field(layer_style, 'Layer color', self.color, self.color_layer, 'Apply', list(PALETTE))
         workflow.button_grid(layer_style, [('Include', lambda:self.show_layer(True)), ('Exclude', lambda:self.show_layer(False))])
         workflow.button_grid(layer_style, [('Only this layer', self.only_layer), ('Show all', self.show_all)])
@@ -256,7 +254,6 @@ class LayersDialog(WorkspacePage):
         self.saved_process = info.get('process')
         self.operation.set(self.saved_process['operation'] if self.saved_process else 'Current settings')
         self.tool_profile.set(self.saved_process['tool']['name'] if self.saved_process else '')
-        self.material_profile.set(self.saved_process['material']['name'] if self.saved_process and self.saved_process['material'] else 'Current settings')
         self.process_choices()
         self.color.set(next((label for label,color in PALETTE.items() if color == info['color']), 'Teal'))
         self.layer_rename.config(state='disabled' if name == DEFAULT else 'normal')
@@ -337,17 +334,12 @@ class LayersDialog(WorkspacePage):
         kind = 'Pen' if operation=='Draw' else 'Knife'
         library = self.workflow.library.records
         tools = [name for name, profile in library['tools'].items() if profile['kind']==kind]
-        materials = [name for name, profile in library['materials'].items() if profile['compatible'] in ('Both',kind)]
         if self.saved_process:
             saved = self.saved_process
             if saved['tool']['kind']==kind and saved['tool']['name'] not in tools:
                 tools.append(saved['tool']['name'])
-            if saved['material'] and saved['material']['compatible'] in ('Both',kind) and saved['material']['name'] not in materials:
-                materials.append(saved['material']['name'])
         self.tool_combo.configure(values=sorted(tools), state='disabled' if operation=='Current settings' else 'readonly')
-        self.material_combo.configure(values=['Current settings']+sorted(materials), state='disabled' if operation=='Current settings' else 'readonly')
         if self.tool_profile.get() not in tools: self.tool_profile.set(tools[0] if tools else '')
-        if self.material_profile.get() not in materials: self.material_profile.set('Current settings')
 
     def apply_process(self):
         def apply():
@@ -355,14 +347,9 @@ class LayersDialog(WorkspacePage):
             if self.operation.get() != 'Current settings':
                 library = self.workflow.library.records
                 tool = library['tools'].get(self.tool_profile.get())
-                material = library['materials'].get(self.material_profile.get())
-                if self.saved_process:
-                    if tool is None and self.tool_profile.get()==self.saved_process['tool']['name']:
-                        tool = self.saved_process['tool']
-                    saved_material = self.saved_process['material']
-                    if material is None and saved_material and self.material_profile.get()==saved_material['name']:
-                        material = saved_material
-                process = {'operation':self.operation.get(), 'tool':tool, 'material':material}
+                if self.saved_process and tool is None and self.tool_profile.get()==self.saved_process['tool']['name']:
+                    tool = self.saved_process['tool']
+                process = {'operation':self.operation.get(), 'tool':tool}
             return self.manager.set_process(self.selected_layer, process)
         return self.perform(apply)
 
