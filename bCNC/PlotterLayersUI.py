@@ -54,8 +54,10 @@ class LayersDialog(tk.Toplevel):
         body.columnconfigure(0, weight=1)
         body.columnconfigure(1, minsize=310)
         body.rowconfigure(0, weight=1)
-        left = tk.Frame(body, bg=PANEL)
-        left.grid(row=0, column=0, sticky='nsew', padx=(0,16))
+        from PlotterUI import ScrollFrame
+        list_shell = ScrollFrame(body)
+        list_shell.grid(row=0, column=0, sticky='nsew', padx=(0,16))
+        left = list_shell.body
         tools = tk.Frame(left, bg=PANEL); tools.pack(fill='x', pady=(0,8))
         workflow.button(tools, '+ Add layer', self.add_layer, primary=True).pack(side='right', padx=(8,0))
         search = ttk.Entry(tools, textvariable=self.search, font=('DejaVu Sans',11))
@@ -122,7 +124,13 @@ class LayersDialog(tk.Toplevel):
         self.bind('<Escape>', lambda e: self.destroy())
         self.search.trace_add('write', lambda *args: self.refresh(self.ids))
         self.refresh(self.ids)
+        from PlotterUI import SplitPanel
+        self.adaptive_split = SplitPanel(body, list_shell, self.controls, threshold=760, first_height=220)
+        body.bind('<Configure>', self.adapt_columns, add='+')
         self.grab_set()
+
+    def adapt_columns(self, event):
+        self.tree.configure(displaycolumns=('included',) if event.width < 760 else ('included', 'kind', 'passes'))
 
     def scroll_page(self, title):
         holder = tk.Frame(self.controls, bg=PANEL, width=330)

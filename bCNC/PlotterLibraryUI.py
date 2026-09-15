@@ -21,8 +21,8 @@ class LibraryDialog(tk.Toplevel):
         subtitle = workflow.label(top, 'Save tested setups. Assign them to layers in Layers & objects.', muted=True)
         subtitle.configure(wraplength=750); subtitle.pack(anchor='w', pady=(6,0))
         bottom = tk.Frame(self, bg=PANEL, padx=20, pady=12); bottom.pack(side='bottom', fill='x')
-        workflow.button(bottom, 'Done', self.destroy, primary=True).pack(side='right')
-        tk.Label(bottom, textvariable=self.message, wraplength=620, justify='left', bg=PANEL, fg=INK).pack(side='left')
+        workflow.button(bottom, 'Done', self.destroy, primary=True).pack(side='bottom', anchor='e')
+        tk.Label(bottom, textvariable=self.message, wraplength=620, justify='left', anchor='w', bg=PANEL, fg=INK).pack(side='top', fill='x')
         book = ttk.Notebook(self); book.pack(fill='both', expand=True, padx=20)
         definitions = {
             'materials': [('name','Name',None),('speed','Speed · mm/min',None),('pressure','Pressure · 0–1000 PWM',None),
@@ -38,8 +38,11 @@ class LibraryDialog(tk.Toplevel):
                                  bg='#f1f5f7', fg=INK, selectbackground='#166c5e', selectforeground='white')
             listing.pack(fill='both', expand=True); self.lists[kind] = listing
             listing.bind('<<ListboxSelect>>', lambda e, k=kind: self.select(k))
-            for label, action in [('Add', self.new),('Duplicate', self.duplicate),('Delete', self.delete)]:
-                workflow.button(left, label, lambda a=action,k=kind: a(k)).pack(fill='x', pady=(6,0))
+            actions = tk.Frame(left, bg=PANEL)
+            actions.pack(side='bottom', fill='x', pady=6, before=listing)
+            for index, (label, action) in enumerate([('Add', self.new),('Duplicate', self.duplicate),('Delete', self.delete)]):
+                actions.columnconfigure(index, weight=1)
+                workflow.button(actions, label, lambda a=action,k=kind: a(k)).grid(row=0, column=index, sticky='ew', padx=2)
             right = tk.Frame(page, bg=PANEL); right.pack(side='left', fill='both', expand=True)
             footer = tk.Frame(right, bg=PANEL); footer.pack(side='bottom', fill='x', pady=8)
             workflow.button(footer, 'Save changes', lambda k=kind:self.save(k), primary=True).pack(side='right')
@@ -67,6 +70,11 @@ class LibraryDialog(tk.Toplevel):
                 self.tool_note = workflow.label(form,'',muted=True,size=10)
                 self.tool_note.configure(wraplength=470); self.tool_note.pack(fill='x',pady=12)
             self.refresh(kind); self.new(kind)
+            from PlotterUI import SplitPanel
+            # List/detail becomes a stacked, scrollable form on a narrow screen.
+            if not hasattr(self, 'adaptive_splits'):
+                self.adaptive_splits = []
+            self.adaptive_splits.append(SplitPanel(page, left, right, threshold=720, first_height=150))
         self.bind('<Escape>',lambda e:self.destroy())
         self.grab_set()
 

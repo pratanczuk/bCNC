@@ -477,6 +477,8 @@ class WorkflowGUITest(unittest.TestCase):
                     yield from children(child)
             button = next(w for w in children(d) if w.winfo_class() == 'Button' and w.cget('text') == 'Apply object color')
             self.assertTrue(button.winfo_ismapped())
+            # Comfortable controls may need scrolling; the last action stays reachable.
+            button.master.master.yview_moveto(1); a.update()
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(), d.insert_button.winfo_rooty())
             d.geometry('880x620'); a.update()
             button.master.master.yview_moveto(1); a.update()
@@ -600,9 +602,8 @@ class WorkflowGUITest(unittest.TestCase):
     def test_advanced_header_button_opens_every_tab_without_callback_errors(self):
         a, w = self.app, self.app.workflow
         with patch.object(a, 'report_callback_exception') as errors:
-            w.diagnostics_button.invoke()
+            dialog = w.settings('Advanced')
             a.update()
-            dialog = w.settings_dialog
             try:
                 panel = dialog.advanced
                 self.assertEqual(set(panel.pages), {'Job G-code', 'Configuration', 'Machine control', 'System'})
@@ -681,7 +682,7 @@ class WorkflowGUITest(unittest.TestCase):
     def test_manual_jog_is_bounded_and_uses_existing_sender(self):
         a = self.app
         a.sender.serial = Mock(); CNC.vars['state'] = 'Idle'
-        dialog = a.workflow.open_diagnostics()
+        dialog = a.workflow.settings('Advanced')
         panel = dialog.advanced
         a.workflow.confirmed.set(True)
         panel.step.set('1'); panel.feed.set('250')
@@ -828,8 +829,9 @@ class WorkflowGUITest(unittest.TestCase):
         dialog = a.workflow.open_diagnostics()
         self.assertEqual(len(a.paned.panes()), 1)
         self.assertFalse(hasattr(a.workflow, "diagnostics"))
-        self.assertEqual(dialog.advanced.notebook.tab(dialog.advanced.notebook.select(), 'text'), 'Machine control')
-        dialog.cancel()
+        self.assertIn('Machine', dialog.title())
+        self.assertIs(dialog.machine, a.machine)
+        dialog.destroy()
         a.saveConfig()
         self.assertEqual(len(a.paned.panes()), 1)
 
@@ -916,6 +918,7 @@ class WorkflowGUITest(unittest.TestCase):
 
     def test_arrange_resizes_and_places_selection(self):
         a = self.app
+        a.workflow.select_all()
         dialog = a.workflow.arrange()
         dialog.width.set('20')
         dialog.perform(dialog.resize)
@@ -1223,6 +1226,7 @@ class WorkflowGUITest(unittest.TestCase):
         path = os.path.join(ROOT, '..', 'docs', 'examples', 'leaf-decals.svg')
         a.gcode._modified = False
         a.load(path)
+        a.workflow.select_all()
         a.workflow.center()
         a.draw()
         a.workflow.update_state()
@@ -1375,7 +1379,8 @@ class WorkflowGUITest(unittest.TestCase):
     def test_tcp_selector_preserves_address_and_disables_baud(self):
         a = self.app
         dialog = a.workflow.connection_settings()
-        self.assertIn('Refresh serial ports', [w.cget('text') for w in dialog.winfo_children() if w.winfo_class() == 'Button'])
+        from PlotterUI import descendants
+        self.assertIn('Refresh serial ports', [w.cget('text') for w in descendants(dialog) if w.winfo_class() == 'Button'])
         dialog.port.set('socket://plotter.local:8888')
         self.assertEqual(str(dialog.baud_combo['state']), 'disabled')
         self.assertIn('TCP', dialog.transport_hint.get())

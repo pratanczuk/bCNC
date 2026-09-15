@@ -1198,30 +1198,29 @@ class CNCCanvas(Canvas):
         self._cuttingMat = mat_item
 
         # ── 10 mm internal grid ──────────────────────────────────────────
-        x_steps = int(mat_w) // 10
-        y_steps = int(mat_h) // 10
+        spacing = 10 if self.zoom >= 2 else 25 if self.zoom >= 1 else 50
+        x_steps = int(mat_w) // spacing if self.draw_grid else 0
+        y_steps = int(mat_h) // spacing if self.draw_grid else 0
 
         for yi in range(1, y_steps + 1):
-            y = yi * 10.0
+            y = yi * spacing
             if y >= mat_h:
                 break
             xyz = [(0.0, y, 0.0), (mat_w, y, 0.0)]
             self.create_line(
                 self.plotCoords(xyz),
                 fill=MAT_GRID_COLOR,
-                dash=(2, 4),
                 tag="CuttingMat",
             )
 
         for xi in range(1, x_steps + 1):
-            x = xi * 10.0
+            x = xi * spacing
             if x >= mat_w:
                 break
             xyz = [(x, 0.0, 0.0), (x, mat_h, 0.0)]
             self.create_line(
                 self.plotCoords(xyz),
                 fill=MAT_GRID_COLOR,
-                dash=(2, 4),
                 tag="CuttingMat",
             )
         # Lower all mat items with one Tcl call (O(1) vs O(n))

@@ -19,7 +19,7 @@ class PlotterSettingsDialog(tk.Toplevel):
         self.app = workflow.app
         self.title("Settings · Foil Studio")
         self.configure(bg=PANEL)
-        self.resizable(False, False)
+        self.resizable(True, True)
         self.transient(self.app)
         self.values = {
             key: tk.StringVar(self, f"{CNC.vars.get(key, default):g}")
@@ -37,19 +37,29 @@ class PlotterSettingsDialog(tk.Toplevel):
 
         title = tk.Frame(self, bg=PANEL, padx=24, pady=20)
         title.pack(fill=tk.X)
-        self.text(title, "Plotter settings", size=20, bold=True).pack(anchor="w")
-        self.text(title, "Cut settings, machine setup and system preferences.", muted=True).pack(anchor="w", pady=(8, 0))
+        self.text(title, "Settings", size=20, bold=True).pack(anchor="w")
+        self.text(title, "Job setup and application preferences.", muted=True).pack(fill='x', pady=(8, 0))
         nav = tk.Frame(self, bg=PANEL, padx=24)
         nav.pack(fill=tk.X)
-        content = tk.Frame(self, bg=PANEL, padx=24, pady=18, width=610, height=460)
-        content.pack(fill=tk.BOTH, expand=True)
-        content.pack_propagate(False)
+        from PlotterUI import ScrollFrame
+        self.scroller = ScrollFrame(self)
+        self.scroller.pack(fill=tk.BOTH, expand=True, padx=16, pady=8)
+        content = self.scroller.body
         for name in ("Material", "Blade", "Mat", "Advanced"):
             tab = workflow.button(nav, {"Material": "Pressure & speed", "Blade": "Drag knife", "Mat": "Mat", "Advanced": "Advanced"}[name],
                                   lambda name=name: self.show_page(name))
-            tab.pack(side=tk.LEFT, padx=(0, 8))
             self.tabs[name] = tab
             self.pages[name] = tk.Frame(content, bg=PANEL)
+        self.category = tk.StringVar(self)
+        self.categories = {'Pressure & speed': ('Material', None), 'Drag knife': ('Blade', None),
+                           'Mat setup': ('Mat', None), 'Job commands': ('Advanced', 'Job G-code'),
+                           'Planning defaults': ('Advanced', 'Configuration'),
+                           'Machine control': ('Advanced', 'Machine control'),
+                           'Language & support': ('Advanced', 'System')}
+        picker = ttk.Combobox(nav, textvariable=self.category, values=list(self.categories),
+                              state='readonly', style='Foil.TCombobox')
+        picker.pack(fill='x')
+        picker.bind('<<ComboboxSelected>>', self.choose_category)
 
         p = self.pages["Material"]
         self.text(p, "Set blade exposure mechanically, then test pressure on your material.", muted=True).pack(anchor="w", pady=(0, 14))
@@ -59,7 +69,7 @@ class PlotterSettingsDialog(tk.Toplevel):
         row.pack(fill=tk.X, pady=6)
         workflow.button(row, "−25", lambda: self.adjust_pressure(-25)).pack(side=tk.LEFT)
         workflow.button(row, "+25", lambda: self.adjust_pressure(25)).pack(side=tk.LEFT, padx=8)
-        self.text(row, "Machine units, not grams", muted=True).pack(side=tk.LEFT, padx=8)
+        self.text(p, "Machine units, not grams", muted=True).pack(fill=tk.X, pady=4)
         self.text(p, "Test the square: foil should peel cleanly while its backing stays intact. If it cuts the backing, review blade exposure and reduce pressure.", muted=True).pack(fill=tk.X, pady=12)
 
         p = self.pages["Blade"]
@@ -87,6 +97,9 @@ class PlotterSettingsDialog(tk.Toplevel):
 
         from PlotterAdvanced import AdvancedPanel
         self.advanced = AdvancedPanel(self, self.pages['Advanced'])
+        style = ttk.Style(self)
+        style.layout('FoilFlat.TNotebook.Tab', [])
+        self.advanced.notebook.configure(style='FoilFlat.TNotebook', height=390)
         p = self.advanced.pages['Job G-code']
         self.text(p, 'Job G-code · before and after the artwork', bold=True).pack(anchor='w')
         self.text(p, 'Apply edits this job. Pressure and speed settings also apply when cutting.', muted=True).pack(fill=tk.X, pady=(6, 8))
@@ -115,11 +128,11 @@ class PlotterSettingsDialog(tk.Toplevel):
                        font=('DejaVu Sans', 11)).pack(anchor='w', pady=10)
 
         bottom = tk.Frame(self, bg=PANEL, padx=24, pady=16)
-        bottom.pack(fill=tk.X)
+        bottom.pack(side=tk.BOTTOM, fill=tk.X, before=self.scroller)
         tk.Label(bottom, textvariable=self.error, bg=PANEL, fg="#a52a2a", font=("DejaVu Sans", 11),
                  wraplength=555, anchor="w", justify=tk.LEFT, height=2).pack(fill=tk.X, pady=(0, 8))
         self.library_button = workflow.button(bottom, "Materials & tools…", self.open_library)
-        self.library_button.pack(side=tk.LEFT)
+        self.library_button.pack(side=tk.TOP, fill=tk.X, pady=(0, 8))
         workflow.button(bottom, "Apply settings", self.apply, primary=True).pack(side=tk.RIGHT)
         workflow.button(bottom, "Cancel", self.cancel).pack(side=tk.RIGHT, padx=10)
         self.show_page(page)
@@ -129,6 +142,14 @@ class PlotterSettingsDialog(tk.Toplevel):
         self.geometry(f"+{x}+{y}")
         self.grab_set()
         self.focus_set()
+
+    def choose_category(self, event=None):
+        page, section = self.categories[self.category.get()]
+        self.show_page(page)
+        if section:
+            self.advanced.notebook.select(self.advanced.pages[section])
+        self.category.set(next(name for name, target in self.categories.items() if target == (page, section)))
+        self.scroller.canvas.yview_moveto(0)
 
     def open_library(self):
         before = dict(self.workflow.blade_profiles)
@@ -158,12 +179,12 @@ class PlotterSettingsDialog(tk.Toplevel):
     def field(self, parent, key, title, units, hint=""):
         row = tk.Frame(parent, bg=PANEL)
         row.pack(fill=tk.X, pady=(6, 8))
-        self.text(row, title, bold=True).pack(side=tk.LEFT)
+        self.text(row, title, bold=True).pack(side=tk.TOP, anchor='w', fill='x', pady=(0, 4))
         self.text(row, units, muted=True).pack(side=tk.RIGHT, padx=(10, 0))
         entry = tk.Entry(row, textvariable=self.values[key], width=11, font=("DejaVu Sans", 13),
                          bg=BG, fg=INK, relief=tk.FLAT, highlightthickness=1,
                          highlightbackground="#cedbd5", highlightcolor=ACCENT)
-        entry.pack(side=tk.RIGHT, ipady=9)
+        entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=9)
         self.entries[key] = entry
         if hint:
             self.text(parent, hint, muted=True).pack(fill=tk.X, pady=(0, 8))
@@ -173,6 +194,7 @@ class PlotterSettingsDialog(tk.Toplevel):
             panel.pack_forget()
             self.tabs[key].config(bg=SOFT if key == name else BG)
         self.pages[name].pack(fill=tk.BOTH, expand=True)
+        self.category.set(next(label for label, target in self.categories.items() if target[0] == name))
 
     def adjust_pressure(self, amount):
         try:

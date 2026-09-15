@@ -30,11 +30,13 @@ def show_modal_error(workflow, parent, title, detail):
         if previous_grab is not None and previous_grab.winfo_exists():
             previous_grab.grab_set()
     buttons = tk.Frame(dialog, bg=PANEL)
-    buttons.pack(fill='x', pady=8)
+    buttons.pack(side='bottom', fill='x', pady=8)
     details = workflow.button(buttons, 'Show details', toggle)
     details.pack(side='left')
-    workflow.button(buttons, 'Back to editing', close, primary=True).pack(side='right', padx=(20, 0))
+    workflow.button(buttons, 'Back to editing', close, primary=True).pack(side='right', padx=(8, 0))
     dialog.protocol('WM_DELETE_WINDOW', close)
     dialog.bind('<Escape>', lambda event: close())
+    from PlotterUI import fit_dialog
+    fit_dialog(dialog, workflow.app, 540, 500)
     dialog.grab_set()
     return dialog

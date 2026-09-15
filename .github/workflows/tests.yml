@@ -18,6 +18,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb xauth python3-tk libgl1 fonts-dejavu-core
-          python -m pip install .
+          python -m pip install . -r requirements-test.txt
       - name: Test the plotter workflow without hardware
-        run: xvfb-run -a python -W ignore::ResourceWarning -m unittest discover -s tests
+        run: xvfb-run -a python -W ignore::ResourceWarning -m coverage run --source=bCNC -m unittest discover -s tests
+      - name: Enforce UI coverage above 90 percent
+        run: python tools/check_gui_coverage.py

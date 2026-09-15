@@ -131,6 +131,13 @@ geometry = None
 # Main Application window
 # =============================================================================
 class Application(Tk):
+    def destroy(self):
+        # Tcl timers otherwise outlive their Python callbacks when a window is
+        # closed and a new application is opened in the same process.
+        for timer in self.tk.call('after', 'info'):
+            self.after_cancel(timer)
+        super().destroy()
+
     def showTextInsertion(self, event=None):
         """Use the same vector editor in the workspace and diagnostics."""
         self.workflow.add_text()
@@ -339,8 +346,8 @@ class Application(Tk):
         # Use after_idle() so the widget is fully laid out before collapse()
         # reads winfo_width() – otherwise it would get 1 (un-rendered size).
 
-        from PlotterWorkflow import PlotterWorkflow
-        self.workflow = PlotterWorkflow(self)
+        from PlotterAdaptive import AdaptiveWorkflow
+        self.workflow = AdaptiveWorkflow(self)
 
         # Auto start serial when configured.
 
@@ -689,6 +696,8 @@ class Application(Tk):
                     if index in expanded: self.workflow.objects.selection_set(position)
         items = self.editor.getSelection()
         self.canvas.clearSelection()
+        if hasattr(self, 'workflow'):
+            self.workflow.update_state()
         if not items:
             return
         self.canvas.select(items)

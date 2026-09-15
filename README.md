@@ -219,3 +219,10 @@ Further documentation is available at: https://pyserial.readthedocs.io/en/latest
     - https://harvie.github.io/cnc-simulator ([github](https://github.com/Harvie/cnc-simulator))
     - https://camotics.org
     - https://freecad.org
+
+# Adaptive Foil Studio interface
+
+The application now opens the adaptive Design → Prepare → Cut workspace. See the
+[implementation notes](docs/design/adaptive-gui-implementation.md) for desktop and
+compact layouts, real screenshots, launch instructions and the UI coverage gate.
+The local `old-gui` tag preserves the interface before this redesign.

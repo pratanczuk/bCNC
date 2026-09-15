@@ -17,53 +17,58 @@ class ConnectionDialog(tk.Toplevel):
         self.workflow = workflow
         self.app = workflow.app
         self.title('Connect your plotter · Foil Studio')
-        self.configure(bg=PANEL, padx=24, pady=18)
+        self.configure(bg=PANEL, padx=16, pady=12)
+        from PlotterUI import ScrollFrame, fit_dialog
+        scroller = ScrollFrame(self)
+        scroller.pack(fill='both', expand=True)
+        body = scroller.body
         self.transient(self.app)
-        self.resizable(False, False)
+        self.resizable(True, True)
         defaults = self.app.connection.defaults()
         self.port = tk.StringVar(self, defaults.port)
         self.baud = tk.StringVar(self, defaults.baud)
         self.controller = tk.StringVar(self, FIRMWARE_LABELS.get(defaults.controller, defaults.controller))
         self.autoconnect = tk.BooleanVar(self, self.app.connection.autoconnect())
         self.message = tk.StringVar(self)
-        tk.Label(self, text='Connect your plotter', bg=PANEL, fg=INK,
+        tk.Label(body, text='Connect your plotter', bg=PANEL, fg=INK,
                  font=('DejaVu Sans', 20, 'bold')).pack(anchor='w')
-        tk.Label(self, text='Power on your plotter. Choose a USB port or enter its TCP address.',
+        tk.Label(body, text='Power on your plotter. Choose a USB port or enter its TCP address.',
                  bg=PANEL, fg=MUTED, wraplength=500, justify='left').pack(anchor='w', pady=12)
         for title, variable, values in [('USB port or TCP address', self.port, []),
                 ('Baud rate', self.baud, ['115200', '57600', '38400', '9600']),
                 ('Firmware', self.controller, list(FIRMWARE_LABELS.values()))]:
-            tk.Label(self, text=title, bg=PANEL, fg=INK).pack(anchor='w', pady=(10, 4))
-            combo = ttk.Combobox(self, textvariable=variable, values=values, width=48,
+            tk.Label(body, text=title, bg=PANEL, fg=INK).pack(anchor='w', pady=(10, 4))
+            combo = ttk.Combobox(body, textvariable=variable, values=values, width=48,
                                 style='Foil.TCombobox', state='readonly' if variable is self.controller else 'normal')
             combo.pack(fill='x')
             if variable is self.port:
                 self.ports = combo
             elif variable is self.baud:
                 self.baud_combo = combo
-        workflow.button(self, 'Refresh serial ports', self.refresh).pack(anchor='w', pady=10)
-        tk.Label(self, text='TCP examples: socket://plotter.local:8888\nor socket://192.168.1.50:8888\nUse the hostname or IP address and TCP port configured on your plotter.\nAutomatic detection supports GRBL 0.8/0.9, 1.0/1.1 and grblHAL. Manual profiles are troubleshooting overrides.',
+        workflow.button(body, 'Refresh serial ports', self.refresh).pack(anchor='w', pady=10)
+        tk.Label(body, text='TCP examples: socket://plotter.local:8888\nor socket://192.168.1.50:8888\nUse the hostname or IP address and TCP port configured on your plotter.\nAutomatic detection supports GRBL 0.8/0.9, 1.0/1.1 and grblHAL. Manual profiles are troubleshooting overrides.',
                  bg=PANEL, fg=MUTED, wraplength=500, justify='left').pack(anchor='w')
         self.transport_hint = tk.StringVar(self)
-        tk.Label(self, textvariable=self.transport_hint, bg=PANEL, fg=MUTED,
+        tk.Label(body, textvariable=self.transport_hint, bg=PANEL, fg=MUTED,
                  wraplength=500, justify='left').pack(fill='x', pady=(10,0))
         self.port.trace_add('write', self.update_transport)
         self.update_transport()
         self.autoconnect_check = tk.Checkbutton(
-            self, text='Automatically connect on startup', variable=self.autoconnect,
+            body, text='Automatically connect on startup', variable=self.autoconnect,
             command=self.change_autoconnect, bg=PANEL, fg=INK, activebackground=PANEL,
             selectcolor=PANEL, font=('DejaVu Sans', 11), anchor='w')
         self.autoconnect_check.pack(fill='x', pady=(10, 0))
-        tk.Label(self, text='Uses your saved serial port or TCP address next time you open Foil Studio.',
+        tk.Label(body, text='Uses your saved serial port or TCP address next time you open Foil Studio.',
                  bg=PANEL, fg=MUTED, wraplength=500, justify='left').pack(anchor='w')
-        tk.Label(self, textvariable=self.message, bg=PANEL, fg='#a52a2a',
+        tk.Label(body, textvariable=self.message, bg=PANEL, fg='#a52a2a',
                  wraplength=500, justify='left').pack(fill='x', pady=12)
         row = tk.Frame(self, bg=PANEL)
-        row.pack(fill='x')
+        row.pack(side='bottom', fill='x', before=scroller)
         workflow.button(row, 'Connect', self.connect, primary=True).pack(side='right')
         workflow.button(row, 'Close', self.destroy).pack(side='right', padx=8)
         self.bind('<Escape>', lambda event: self.destroy())
         self.refresh()
+        fit_dialog(self, self.app, 570, 740)
         self.grab_set()
 
     def change_autoconnect(self):

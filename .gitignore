@@ -14,3 +14,8 @@ release
 
 flatpak/builddir
 flatpak/.flatpak-builder
+
+.coverage*
+htmlcov/
+coverage.xml
+coverage.json

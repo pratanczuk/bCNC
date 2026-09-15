@@ -139,6 +139,8 @@ class DesignDialog(tk.Toplevel):
         tk.Label(right, textvariable=self.message, bg=PANEL, fg=MUTED, wraplength=480,
                  justify='left', anchor='w', height=3).pack(fill='x', pady=8)
         self.preview.bind('<Configure>', lambda event: self.draw_preview())
+        from PlotterUI import SplitPanel
+        self.adaptive_split = SplitPanel(body, right, controls_shell, threshold=720, first_height=160)
         self.bind('<Escape>', lambda event: self.destroy())
         self.grab_set()
 

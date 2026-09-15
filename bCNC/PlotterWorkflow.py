@@ -87,12 +87,12 @@ class PlotterWorkflow:
         self.sidebar = tk.Frame(app.canvasPane, width=330, bg=PANEL, padx=16, pady=14)
         self.sidebar.pack(side=tk.RIGHT, fill=tk.Y, before=app.canvasFrame)
         self.sidebar.pack_propagate(False)
-        self.action_area = tk.Frame(self.sidebar, bg=PANEL)
-        self.action_area.pack(side=tk.BOTTOM, fill=tk.X, pady=(16, 0))
+        self.action_area = tk.Frame(app, bg=PANEL, padx=16, pady=8)
+        self.action_area.pack(side=tk.BOTTOM, fill=tk.X, before=app.paned)
         self.next_button = self.button(self.action_area, "", self.next_step, primary=True)
-        self.next_button.pack(fill=tk.X)
+        self.next_button.pack(side=tk.RIGHT)
         self.back_button = self.button(self.action_area, "← Back", lambda: self.show_step(self.step - 1))
-        self.back_button.pack(fill=tk.X, pady=(8, 0))
+        self.back_button.pack(side=tk.LEFT)
         self.pause_button = self.button(self.action_area, "Pause", self.pause)
         self.stop_button = self.button(self.action_area, "Stop cut", self.stop)
         viewport = tk.Frame(self.sidebar, bg=PANEL)
@@ -166,11 +166,6 @@ class PlotterWorkflow:
                         font=("DejaVu Sans", size, "bold" if bold else "normal"),
                         anchor="w", justify=tk.LEFT, wraplength=245)
 
-    def resize_header(self, event):
-        if event.width < 1150:
-            self.brand_subtitle.pack_forget()
-        elif not self.brand_subtitle.winfo_manager():
-            self.brand_subtitle.pack(side=tk.LEFT, padx=16)
 
     def button(self, parent, text, command, primary=False, edit=False, machine=False):
         b = tk.Button(parent, text=text, command=command, relief=tk.FLAT, bd=0,
@@ -199,34 +194,6 @@ class PlotterWorkflow:
                 row=0, column=column, sticky="ew", padx=(0 if column == 0 else 4, 4 if column == 0 else 0))
         return row
 
-    def build_design(self, p):
-        self.heading(p, "Your design", "Create artwork and arrange it on the mat.")
-        self.button(p, "Import artwork…", self.import_artwork, primary=True, edit=True).pack(fill=tk.X, pady=(0, 4))
-        self.button_grid(p, [("New design", self.new_design), ("Save project", lambda: self.project.save())], edit=True)
-        self.projects_button = self.button(p, "Projects & recovery…", lambda: self.design_dialog("ProjectsDialog"), edit=True)
-        self.projects_button.pack(fill=tk.X, pady=3)
-        self.label(p, "CREATE", size=10, muted=True).pack(anchor="w", pady=(6, 4))
-        self.button_grid(p, [("Text…", self.add_text), ("Shapes…", self.add_shape)], edit=True)
-        self.button(p, "Trace image…", self.app.showImageTrace, edit=True).pack(fill=tk.X, pady=3)
-        self.size_label = self.label(p, "No design loaded", muted=True)
-        self.size_label.pack(fill=tk.X, pady=(6, 6))
-        self.objects = tk.Listbox(p, height=4, selectmode=tk.EXTENDED, exportselection=False,
-                                  font=("DejaVu Sans", 11), relief=tk.FLAT, bd=0,
-                                  bg=BG, fg=INK, selectbackground=ACCENT,
-                                  selectforeground="white", activestyle="none")
-        self.objects.pack(fill=tk.X)
-        self.objects.bind("<<ListboxSelect>>", self.select_objects)
-        self.label(p, "Select several with Ctrl / Shift", size=10, muted=True).pack(anchor='w', pady=5)
-        self.object_ids = []
-        self.button_grid(p, [("Arrange…", self.arrange),
-                             ("Combine…", lambda: self.design_dialog('CombineDialog'))], edit=True)
-        self.button_grid(p, [("Duplicate", self.duplicate), ("Remove", self.remove)], edit=True)
-        self.button(p, "Offset & weeding border…", lambda: self.design_dialog('OutlineDialog'), edit=True).pack(fill=tk.X, pady=3)
-        self.button_grid(p, [("Layout…", lambda: self.design_dialog('LayoutDialog')),
-                             ("Layers…", lambda: self.design_dialog('LayersDialog'))], edit=True)
-        self.button_grid(p, [("Contours…", lambda: self.design_dialog('ContourDialog')),
-                             ("Weed lines…", lambda: self.design_dialog('WeedDialog'))], edit=True)
-        self.button(p, "Split into outlines", self.break_apart, edit=True).pack(fill=tk.X, pady=3)
 
     def build_prepare(self, p):
         self.heading(p, "Prepare your cut", "Choose your material and load the mat.")
@@ -439,12 +406,6 @@ class PlotterWorkflow:
         self.sidebar.pack(side=tk.RIGHT, fill=tk.Y, before=a.canvasFrame)
         self.toolbar.pack(side=tk.TOP, fill=tk.X, before=a.canvasFrame)
 
-    def open_diagnostics(self, page="Control"):
-        dialog = self.settings("Advanced")
-        if dialog is not None:
-            target = "Machine control" if page == "Control" else "System"
-            dialog.advanced.notebook.select(dialog.advanced.pages[target])
-        return dialog
 
 
     def fit_mat(self):
@@ -577,15 +538,6 @@ class PlotterWorkflow:
         return sorted(set(ids) | {i for i,b in enumerate(self.app.gcode.blocks)
             if b.name() not in ('Header','Footer') and getattr(b,'foil',{}).get('group') in groups})
 
-    def selection(self):
-        ids = [i for i in self.app.editor.getSelectedBlocks()
-               if self.app.gcode.blocks[i].name() not in ("Header", "Footer")]
-        if not ids:
-            ids = [i for i, b in enumerate(self.app.gcode.blocks)
-                   if b.enable and b.name() not in ("Header", "Footer")]
-        ids = self.expand_groups(ids)
-        self.app.editor.select([(i, None) for i in ids], clear=True)
-        return ids
 
     def transform(self, command, *args):
         if self.app.sender.running:
@@ -944,8 +896,8 @@ class PlotterWorkflow:
         self.next_button.config(text=("Continue to Prepare →", "Review job →", "Start tool sequence" if len(passes)>1 and chosen==ALL_TOOLS else "Start tool pass" if processes else "Start cut")[self.step],
                                 state=tk.DISABLED if busy or (self.step == 2 and reason) else tk.NORMAL)
         if running:
-            self.pause_button.pack(fill=tk.X, pady=(8, 0))
-            self.stop_button.pack(fill=tk.X, pady=(8, 0))
+            self.pause_button.pack(side=tk.RIGHT, padx=8)
+            self.stop_button.pack(side=tk.LEFT, padx=8)
             self.pause_button.config(text="Resume" if a.sender._pause else "Pause")
             self.cut_message.config(text="Cut paused." if a.sender._pause else "Cutting your design…")
             count, total = getattr(a.sender, '_gcount', 0), getattr(a.sender, '_runLines', 0)
