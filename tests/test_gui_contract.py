@@ -278,6 +278,27 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_tablet_pages_do_not_show_scrollbars_without_overflow(self):
+        from tkinter import ttk
+        self.app.geometry('1024x600');self.app.update();self.w.select_all()
+        actions = [lambda k=k:self.w.design_dialog(k) for k in
+            ('TextDialog','ShapeDialog','TraceDialog','ArrangeDialog','CombineDialog',
+             'OutlineDialog','LayoutDialog','ContourDialog','WeedDialog','LayersDialog',
+             'CutPreviewDialog','ProjectsDialog','FirstCutDialog')]
+        actions += [self.w.open_library,self.w.open_machine,self.w.connection_settings,
+                    lambda:self.w.settings('Appearance')]
+        for action in actions:
+            page=action();self.app.update()
+            variants=list(page.categories) if hasattr(page,'categories') else [None]
+            for variant in variants:
+                if variant:
+                    page.category.set(variant);page.choose_category();self.app.update()
+                for bar in descendants(page):
+                    if isinstance(bar,ttk.Scrollbar) and bar.winfo_ismapped():
+                        first,last=map(float,bar.get())
+                        self.assertTrue(first>.001 or last<.999,(type(page).__name__,variant,str(bar)))
+            page.destroy();self.app.update()
+
     def test_layers_sections_fit_tablet_without_scrollbars(self):
         self.w._cut_started = False; self.w.clear_notice(); self.w.select_none()
         self.app.geometry('1024x600'); self.app.update()

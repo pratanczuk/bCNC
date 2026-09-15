@@ -53,6 +53,35 @@ class AdaptiveGUITest(unittest.TestCase):
         self.app.sender.emptyQueue()
         self.app.update()
 
+    def test_scrollbars_follow_overflow_and_preserve_pack_order(self):
+        from PlotterUI import AutoScrollbar
+        host = tk.Toplevel(self.app); host.geometry('400x200')
+        try:
+            frame = ScrollFrame(host); frame.pack(fill='both',expand=True)
+            content = tk.Frame(frame.body, height=40); content.pack(fill='x')
+            host.update()
+            self.assertFalse(frame.bar.winfo_ismapped())
+            content.configure(height=600); host.update()
+            self.assertTrue(frame.bar.winfo_ismapped())
+            frame.canvas.yview_moveto(1); host.update()
+            self.assertGreater(frame.canvas.yview()[0],0)
+            content.configure(height=40); host.update()
+            frame.canvas.event_generate('<Enter>');host.update()
+            self.assertFalse(frame.bar.winfo_ismapped())
+            frame.destroy()
+            text = tk.Text(host, width=10, height=2)
+            bar = AutoScrollbar(host, command=text.yview)
+            bar.pack(side='right',fill='y'); text.pack(fill='both',expand=True)
+            text.configure(yscrollcommand=bar.set); host.update()
+            self.assertFalse(bar.winfo_ismapped())
+            text.insert('1.0','line\n'*100);host.update()
+            self.assertTrue(bar.winfo_ismapped())
+            self.assertEqual(host.pack_slaves(),[bar,text])
+            text.delete('1.0','end');host.update()
+            self.assertFalse(bar.winfo_ismapped())
+        finally:
+            host.destroy()
+
     def test_application_uses_new_workspace_and_resizes_without_losing_document(self):
         from PlotterAdaptive import AdaptiveWorkflow
         self.assertIsInstance(self.w, AdaptiveWorkflow)

@@ -19,7 +19,7 @@ class ConnectionDialog(WorkspacePage):
         self.workflow = workflow
         self.app = workflow.app
         self.title('Connect your plotter · Foil Studio')
-        self.configure(bg=PANEL, padx=16, pady=12)
+        self.configure(bg=PANEL, padx=16, pady=4)
         from PlotterUI import ScrollFrame, fit_dialog
         scroller = ScrollFrame(self)
         scroller.pack(fill='both', expand=True)
@@ -35,7 +35,7 @@ class ConnectionDialog(WorkspacePage):
         tk.Label(body, text='Connect your plotter', bg=PANEL, fg=INK,
                  font=('DejaVu Sans', 20, 'bold')).pack(anchor='w')
         tk.Label(body, text='Power on your plotter. Choose a serial port or enter its TCP address.',
-                 bg=PANEL, fg=MUTED, wraplength=500, justify='left').pack(anchor='w', pady=12)
+                 bg=PANEL, fg=MUTED, wraplength=500, justify='left').pack(anchor='w', pady=4)
         self.transport = tk.StringVar(self, 'Network' if is_tcp_address(self.port.get()) else 'Serial port')
         self.host = tk.StringVar(self, 'plotter.local')
         self.network_port = tk.StringVar(self, '8888')
@@ -47,39 +47,39 @@ class ConnectionDialog(WorkspacePage):
         self.serial_form = tk.Frame(body, bg=PANEL)
         self.network_form = tk.Frame(body, bg=PANEL)
         for title, variable, values in [('Serial port', self.port, []), ('Baud rate', self.baud, ['115200','57600','38400','9600'])]:
-            workflow.label(self.serial_form, title).pack(anchor='w', pady=(8, 4))
-            combo = ttk.Combobox(self.serial_form, textvariable=variable, values=values, style='Foil.TCombobox')
-            combo.pack(fill='x')
+            row = tk.Frame(self.serial_form,bg=PANEL);row.pack(fill='x',pady=3)
+            workflow.label(row, title).pack(side='left',padx=(0,12))
+            combo = ttk.Combobox(row, textvariable=variable, values=values, style='Foil.TCombobox')
+            combo.pack(side='right',fill='x',expand=True)
             if variable is self.port:
                 self.ports = combo
             else:
                 self.baud_combo = combo
-        workflow.button(self.serial_form, 'Refresh serial ports', self.refresh).pack(fill='x', pady=8)
+        workflow.button(row, 'Refresh ports', self.refresh).pack(side='right',padx=8)
         for title, variable in [('Host name or IP address', self.host), ('TCP port', self.network_port)]:
-            workflow.label(self.network_form, title).pack(anchor='w', pady=(8, 4))
-            ttk.Entry(self.network_form, textvariable=variable).pack(fill='x')
+            row=tk.Frame(self.network_form,bg=PANEL);row.pack(fill='x',pady=3)
+            workflow.label(row,title).pack(side='left',padx=(0,12))
+            ttk.Entry(row,textvariable=variable).pack(side='right',fill='x',expand=True)
         self.firmware_label = workflow.label(body, 'Firmware')
-        self.firmware_label.pack(anchor='w', pady=(16, 4))
+        self.firmware_label.pack(anchor='w', pady=(4, 2))
         ttk.Combobox(body, textvariable=self.controller, values=list(FIRMWARE_LABELS.values()),
                      state='readonly', style='Foil.TCombobox').pack(fill='x')
         self.transport_hint = tk.StringVar(self)
         tk.Label(body, textvariable=self.transport_hint, bg=PANEL, fg=MUTED,
-                 wraplength=500, justify='left').pack(fill='x', pady=(10,0))
+                 wraplength=500, justify='left').pack(fill='x', pady=(2,0))
         self.port.trace_add('write', self.update_transport)
         self.update_transport()
         self.autoconnect_check = tk.Checkbutton(
             body, text='Automatically connect on startup', variable=self.autoconnect,
             command=self.change_autoconnect, bg=PANEL, fg=INK, activebackground=PANEL,
             selectcolor=PANEL, font=('DejaVu Sans', 11), anchor='w')
-        self.autoconnect_check.pack(fill='x', pady=(10, 0))
-        tk.Label(body, text='Uses your saved serial port or TCP address next time you open Foil Studio.',
-                 bg=PANEL, fg=MUTED, wraplength=500, justify='left').pack(anchor='w')
-        tk.Label(body, textvariable=self.message, bg=PANEL, fg='#a52a2a',
-                 wraplength=500, justify='left').pack(fill='x', pady=12)
+        self.autoconnect_check.pack(fill='x', pady=(2, 0))
+        feedback = tk.Label(body, textvariable=self.message, bg=PANEL, fg='#a52a2a',
+                 wraplength=500, justify='left'); self.message.trace_add('write',lambda *args:feedback.pack(fill='x',pady=4) if self.message.get() else feedback.pack_forget())
         row = tk.Frame(self, bg=PANEL)
         row.pack(side='bottom', fill='x', before=scroller)
         self.disconnect_button = workflow.button(row, 'Disconnect', self.disconnect)
-        self.disconnect_button.pack(side='top', fill='x', pady=(0, 8))
+        self.disconnect_button.pack(side='left')
         workflow.button(row, 'Connect', self.connect, primary=True).pack(side='right')
         workflow.button(row, 'Close', self.destroy).pack(side='right', padx=8)
         self.bind('<Escape>', lambda event: self.destroy())

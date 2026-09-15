@@ -327,7 +327,8 @@ class WorkflowGUITest(unittest.TestCase):
                 w.show_step(step)
                 a.update()
                 right = w.scroll.winfo_rootx() + w.scroll.winfo_width()
-                self.assertLess(right, w.scrollbar.winfo_rootx())
+                if w.scrollbar.winfo_ismapped():
+                    self.assertLess(right, w.scrollbar.winfo_rootx())
                 self.assertLessEqual(w.content.winfo_width(), w.scroll.winfo_width())
                 def check(widget):
                     for child in widget.winfo_children():
@@ -1387,7 +1388,7 @@ class WorkflowGUITest(unittest.TestCase):
         a = self.app
         dialog = a.workflow.connection_settings()
         from PlotterUI import descendants
-        self.assertIn('Refresh serial ports', [w.cget('text') for w in descendants(dialog) if w.winfo_class() == 'Button'])
+        self.assertIn('Refresh ports', [w.cget('text') for w in descendants(dialog) if w.winfo_class() == 'Button'])
         dialog.port.set('socket://plotter.local:8888')
         self.assertEqual(str(dialog.baud_combo['state']), 'disabled')
         self.assertIn('TCP', dialog.transport_hint.get())

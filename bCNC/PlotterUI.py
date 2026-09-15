@@ -178,6 +178,35 @@ class ResponsiveText:
                 child.configure(wraplength=max(80, min(event.width - 32, available)))
 
 
+class AutoScrollbar(ttk.Scrollbar):
+    """Show only for overflow, preserving grid/pack placement when restored."""
+    def set(self, first, last):
+        super().set(first, last)
+        needed = float(first) > .001 or float(last) < .999
+        manager = self.winfo_manager()
+        if not needed and manager == 'grid':
+            self._placement = ('grid', None)
+            self.grid_remove()
+        elif not needed and manager == 'pack':
+            options = self.pack_info()
+            siblings = self.master.pack_slaves()
+            following = siblings[siblings.index(self)+1:]
+            self._placement = ('pack', (options, following))
+            self.pack_forget()
+        elif needed and not manager and hasattr(self, '_placement'):
+            kind, saved = self._placement
+            if kind == 'grid':
+                self.grid()
+            else:
+                options, following = saved
+                options = dict(options)
+                for sibling in following:
+                    if sibling.winfo_exists() and sibling.winfo_manager() == 'pack':
+                        options['before'] = sibling
+                        break
+                self.pack(**options)
+
+
 class ScrollFrame(tk.Frame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, bg=PANEL, **kwargs)
@@ -185,16 +214,22 @@ class ScrollFrame(tk.Frame):
         self.rowconfigure(0, weight=1)
         self.canvas = tk.Canvas(self, bg=PANEL, highlightthickness=0, width=1)
         self.canvas.grid(row=0, column=0, sticky='nsew')
-        self.bar = ttk.Scrollbar(self, command=self.canvas.yview)
+        self.bar = AutoScrollbar(self, command=self.canvas.yview)
         self.bar.grid(row=0, column=1, sticky='ns')
         self.canvas.configure(yscrollcommand=self.bar.set)
         self.body = tk.Frame(self.canvas, bg=PANEL)
         self.window = self.canvas.create_window(0, 0, window=self.body, anchor='nw')
         self.body.bind('<Configure>', self.content_size)
         self.canvas.bind('<Configure>', self.viewport_size)
+        # Tk suppresses geometry events for canvas windows scrolled offscreen.
+        self.canvas.bind('<Enter>', self.content_size)
+        self.canvas.bind('<Map>', self.content_size)
 
     def content_size(self, event=None):
-        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+        height = self.body.winfo_reqheight()
+        self.canvas.configure(scrollregion=(0,0,self.body.winfo_width(),height))
+        if height <= self.canvas.winfo_height():
+            self.canvas.yview_moveto(0)
 
     def viewport_size(self, event):
         self.canvas.itemconfigure(self.window, width=event.width)

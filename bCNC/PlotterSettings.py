@@ -1,5 +1,6 @@
 """Staged, task-oriented settings for the foil-cutting workspace."""
 
+from PlotterUI import AutoScrollbar
 import tkinter as tk
 from PlotterUI import Field
 from PlotterPages import WorkspacePage
@@ -40,7 +41,7 @@ class PlotterSettingsDialog(WorkspacePage):
         title = tk.Frame(self, bg=PANEL, padx=24, pady=10)
         title.pack(fill=tk.X)
         self.text(title, "Settings", size=20, bold=True).pack(anchor="w")
-        self.text(title, "Job setup and application preferences.", muted=True).pack(fill='x', pady=(8, 0))
+        self.text(title, "Job setup and application preferences.", muted=True).pack(fill='x', pady=(2, 0))
         nav = tk.Frame(self, bg=PANEL, padx=24)
         nav.pack(fill=tk.X)
         from PlotterUI import ScrollFrame
@@ -54,11 +55,12 @@ class PlotterSettingsDialog(WorkspacePage):
             self.pages[name] = tk.Frame(content, bg=PANEL)
         self.category = tk.StringVar(self)
         self.categories = {'Appearance': ('Appearance', None), 'Pressure & speed': ('Material', None), 'Drag knife': ('Blade', None),
-                           'Mat setup': ('Mat', None), 'Job commands': ('Advanced', 'Job G-code'),
+                           'Mat setup': ('Mat', None), 'Mat loading': ('Loading', None), 'Job commands': ('Advanced', 'Job G-code'),
                            'Planning defaults': ('Advanced', 'Configuration'),
                            'Controller settings': ('Advanced', 'Controller'),
                            'Language & support': ('Advanced', 'System')}
         self.pages['Appearance'] = tk.Frame(content, bg=PANEL)
+        self.pages['Loading'] = tk.Frame(content, bg=PANEL)
         picker = ttk.Combobox(nav, textvariable=self.category, values=list(self.categories),
                               state='readonly', style='Foil.TCombobox')
         picker.pack(fill='x')
@@ -71,35 +73,35 @@ class PlotterSettingsDialog(WorkspacePage):
             self.text(self.pages['Appearance'], title, bold=True).pack(anchor='w', pady=8)
             ttk.Combobox(self.pages['Appearance'], textvariable=variable, values=choices,
                          state='readonly', style='Foil.TCombobox').pack(fill='x')
-        self.text(self.pages['Appearance'], 'Touch layouts retain 48 px controls. Machine job actions stay at least 56 px.', muted=True).pack(fill='x', pady=16)
+        self.text(self.pages['Appearance'], 'Touch layouts retain 48 px controls. Machine job actions stay at least 56 px.', muted=True).pack(fill='x', pady=4)
 
         p = self.pages["Material"]
-        self.text(p, "Set blade exposure mechanically, then test pressure on your material.", muted=True).pack(anchor="w", pady=(0, 14))
+        self.text(p, "Set blade exposure mechanically, then test pressure on your material.", muted=True).pack(anchor="w", pady=(0, 4))
         self.field(p, "mat_speed", "Cutting speed", "mm/min", "How quickly the blade moves through the foil.")
         self.field(p, "mat_pressure", "Cutting pressure", "0–1000 PWM", "Applied to the next job. Editing this value does not press the blade.")
         row = tk.Frame(p, bg=PANEL)
         row.pack(fill=tk.X, pady=6)
         workflow.button(row, "−25", lambda: self.adjust_pressure(-25)).pack(side=tk.LEFT)
         workflow.button(row, "+25", lambda: self.adjust_pressure(25)).pack(side=tk.LEFT, padx=8)
-        self.text(p, "Machine units, not grams", muted=True).pack(fill=tk.X, pady=4)
-        self.text(p, "Test the square: foil should peel cleanly while its backing stays intact. If it cuts the backing, review blade exposure and reduce pressure.", muted=True).pack(fill=tk.X, pady=12)
+
+        self.text(p, "Test cut: foil should peel cleanly without cutting its backing.", muted=True).pack(fill=tk.X, pady=4)
 
         p = self.pages["Blade"]
         self.text(p, "Blade-holder preset", bold=True).pack(anchor="w")
         row = tk.Frame(p, bg=PANEL)
-        row.pack(fill=tk.X, pady=(6, 8))
+        row.pack(fill=tk.X, pady=(2, 2))
         self.blade_choice = ttk.Combobox(row, state="readonly", style="Foil.TCombobox",
             font=("DejaVu Sans", 11), values=["Current blade"] + sorted(self.blade_profiles))
         self.blade_choice.set("Current blade")
-        self.blade_choice.pack(fill=tk.X)
+        self.blade_choice.pack(side=tk.LEFT,fill=tk.X,expand=True)
         self.blade_choice.bind("<<ComboboxSelected>>", self.choose_blade)
-        workflow.button(row, 'Save preset…', self.save_blade).pack(anchor='e', pady=8)
-        tk.Checkbutton(p, text="Compensate for the swivelling blade", variable=self.compensation,
+        workflow.button(row, 'Save preset…', self.save_blade).pack(side=tk.RIGHT, padx=8)
+        tk.Checkbutton(p, text="Compensate original swivel-blade outlines", variable=self.compensation,
                        bg=PANEL, fg=INK, activebackground=PANEL, selectcolor=PANEL,
-                       font=("DejaVu Sans", 12), pady=8).pack(anchor="w")
+                       font=("DejaVu Sans", 12), pady=2).pack(anchor="w")
         self.field(p, "mat_knife_offset", "Blade offset", "mm", "Use the offset specified for your blade holder.")
         self.field(p, "mat_overcut", "Close cuts with an overcut", "mm", "Continue along a closed outline to help its ends separate.")
-        self.text(p, "Test circle and triangle corners to check offset; check joined ends for overcut. Enable for original outlines, not files already compensated for a drag knife.", muted=True).pack(fill=tk.X, pady=8)
+        # Compensation applies only to original, uncompensated outlines.
 
         p = self.pages["Mat"]
         self.field(p, "mat_width", "Mat width", "mm")
@@ -107,13 +109,14 @@ class PlotterSettingsDialog(WorkspacePage):
         self.field(p, "mat_load_distance", "Automatic loading distance", "mm", "Used only by the grblHAL automatic loader.")
         self.text(p, "Changing mat dimensions or loading distance requires you to confirm the mat position again.", muted=True).pack(fill=tk.X, pady=8)
 
+        p = self.pages['Loading']
         self.text(p, 'Mat origin · lower-left corner', bold=True).pack(anchor='w', pady=(16, 8))
-        diagram = tk.Canvas(p, height=130, bg=PANEL, highlightthickness=0)
-        diagram.pack(fill='x')
-        diagram.create_rectangle(40, 10, 180, 105, outline=ACCENT, width=2)
-        diagram.create_oval(35, 100, 45, 110, fill=ACCENT, outline=ACCENT)
-        diagram.create_text(70, 118, text='X →', fill=INK)
-        diagram.create_text(22, 70, text='Y ↑', fill=INK)
+        diagram = tk.Canvas(p, height=85, bg=PANEL, highlightthickness=0)
+        diagram.pack(side='left',fill='y',padx=(0,16))
+        diagram.create_rectangle(40, 10, 180, 65, outline=ACCENT, width=2)
+        diagram.create_oval(35, 60, 45, 70, fill=ACCENT, outline=ACCENT)
+        diagram.create_text(70, 78, text='X →', fill=INK)
+        diagram.create_text(22, 40, text='Y ↑', fill=INK)
         self.loading_preference = tk.StringVar(self, Utils.getStr('Plotter', 'load_mode', 'auto'))
         self.text(p, 'Loading method', bold=True).pack(anchor='w', pady=8)
         from PlotterUI import ChoiceButton
@@ -124,10 +127,11 @@ class PlotterSettingsDialog(WorkspacePage):
         self.advanced = AdvancedPanel(self, self.pages['Advanced'])
         style = ttk.Style(self)
         style.layout('FoilFlat.TNotebook.Tab', [])
-        self.advanced.notebook.configure(style='FoilFlat.TNotebook', height=390)
+        self.advanced.notebook.configure(style='FoilFlat.TNotebook', height=200)
+        self.scroller.canvas.bind('<Configure>', lambda e:self.advanced.notebook.configure(height=max(140,e.height-12)), add='+')
         p = self.advanced.pages['Job G-code']
         self.text(p, 'Job G-code · before and after the artwork', bold=True).pack(anchor='w')
-        self.text(p, 'Apply edits this job. Pressure and speed settings also apply when cutting.', muted=True).pack(fill=tk.X, pady=(6, 8))
+        self.text(p, 'Apply edits this job. Pressure and speed settings also apply when cutting.', muted=True).pack(fill=tk.X, pady=(2, 2))
         self.gcode_editors = {}
         self.code_transaction = JobCodeTransaction(self.app.gcode)
         self.original_job_code = self.code_transaction.original
@@ -141,9 +145,9 @@ class PlotterSettingsDialog(WorkspacePage):
                              bg=BG, fg=INK, relief=tk.FLAT, padx=8, pady=6)
             editor.insert('1.0', value)
             editor.grid(row=0, column=0, sticky='ew')
-            vertical = ttk.Scrollbar(frame, orient='vertical', command=editor.yview)
+            vertical = AutoScrollbar(frame, orient='vertical', command=editor.yview)
             vertical.grid(row=0, column=1, sticky='ns')
-            horizontal = ttk.Scrollbar(frame, orient='horizontal', command=editor.xview)
+            horizontal = AutoScrollbar(frame, orient='horizontal', command=editor.xview)
             horizontal.grid(row=1, column=0, sticky='ew')
             editor.config(yscrollcommand=vertical.set, xscrollcommand=horizontal.set)
             self.gcode_editors[name] = editor
@@ -161,7 +165,7 @@ class PlotterSettingsDialog(WorkspacePage):
             else: feedback.pack_forget()
         self.error.trace_add("write", show_feedback)
         self.library_button = workflow.button(bottom, "Materials & tools…", self.open_library)
-        self.library_button.pack(side=tk.TOP, fill=tk.X, pady=(0, 8))
+        self.library_button.pack(side=tk.LEFT if self.app.winfo_width()>=840 else tk.TOP, fill=tk.NONE if self.app.winfo_width()>=840 else tk.X)
         self.apply_button = workflow.button(bottom, 'Apply settings', self.apply, primary=True)
         self.apply_button.pack(side=tk.RIGHT)
         workflow.button(bottom, "Cancel", self.cancel).pack(side=tk.RIGHT, padx=10)
@@ -212,16 +216,14 @@ class PlotterSettingsDialog(WorkspacePage):
 
     def field(self, parent, key, title, units, hint=""):
         row = tk.Frame(parent, bg=PANEL)
-        row.pack(fill=tk.X, pady=(6, 8))
-        self.text(row, title, bold=True).pack(side=tk.TOP, anchor='w', fill='x', pady=(0, 4))
-        self.text(row, units, muted=True).pack(side=tk.RIGHT, padx=(10, 0))
-        entry = Field(row, textvariable=self.values[key], width=11, font=("DejaVu Sans", 13),
-                         bg=BG, fg=INK, relief=tk.FLAT, highlightthickness=1,
-                         highlightbackground="#cedbd5", highlightcolor=ACCENT)
-        entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=9)
+        row.pack(fill=tk.X, pady=4)
+        self.text(row, units, muted=True).pack(side=tk.RIGHT, padx=(10,0))
+        entry = Field(row, textvariable=self.values[key], width=11, font=("DejaVu Sans",13),
+                      bg=BG, fg=INK, relief=tk.FLAT)
+        entry.pack(side=tk.RIGHT, ipady=4)
+        labels=tk.Frame(row,bg=PANEL);labels.pack(side=tk.LEFT,fill=tk.X,expand=True,padx=(0,12))
+        self.text(labels,title,bold=True).pack(fill=tk.X)
         self.entries[key] = entry
-        if hint:
-            self.text(parent, hint, muted=True).pack(fill=tk.X, pady=(0, 8))
 
     def show_page(self, name):
         for key, panel in self.pages.items():

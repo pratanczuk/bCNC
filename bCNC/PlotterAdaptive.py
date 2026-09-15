@@ -562,18 +562,20 @@ class AdaptiveWorkflow(PlotterWorkflow):
         page = WorkspacePage(self.app)
         page.title('Workspace utilities')
         footer = tk.Frame(page, bg=PANEL, padx=24, pady=16); footer.pack(side='bottom', fill='x')
-        self.button(footer, 'Back to workspace', page.destroy).pack(fill='x')
-        self.button(footer, 'Exit application', self.app.quit).pack(fill='x', pady=(8, 0))
+        self.button(footer, 'Back to workspace', page.destroy).pack(side='right' if self.app.winfo_width()>=840 else 'top',fill='x')
+        self.button(footer, 'Exit application', self.app.quit).pack(side='left' if self.app.winfo_width()>=840 else 'bottom',fill='x')
         scroll = ScrollFrame(page); scroll.pack(fill='both', expand=True, padx=24, pady=16)
         self.label(scroll.body, 'Workspace utilities', size=20, bold=True).pack(fill='x', pady=16)
         def navigate(command):
             page.destroy()
             command()
+        buttons = []
         for label, command in [('Projects & recovery', lambda: self.design_dialog('ProjectsDialog')),
                                ('New project', self.new_design), ('Materials & tools', self.open_library),
                                ('Machine', self.open_machine), ('Settings', lambda: self.settings('Appearance')),
                                ('First-cut guide', lambda: self.design_dialog('FirstCutDialog'))]:
-            self.button(scroll.body, label, lambda c=command: navigate(c)).pack(fill='x', pady=4)
+            buttons.append((label,lambda c=command:navigate(c)))
+        for i in range(0,len(buttons),2): self.button_grid(scroll.body,buttons[i:i+2])
         fit_dialog(page, self.app)
         return page
 

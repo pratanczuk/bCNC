@@ -1,4 +1,5 @@
 """Advanced settings and deliberate machine actions for the foil workspace."""
+from PlotterUI import AutoScrollbar
 import tkinter as tk
 from PlotterUI import Field
 from tkinter import ttk
@@ -57,7 +58,7 @@ class AdvancedPanel:
 
     def scroll_frame(self, parent):
         canvas = tk.Canvas(parent, bg=PANEL, highlightthickness=0)
-        scroll = ttk.Scrollbar(parent, orient='vertical', command=canvas.yview)
+        scroll = AutoScrollbar(parent, orient='vertical', command=canvas.yview)
         scroll.pack(side='right', fill='y')
         canvas.pack(fill='both', expand=True)
         canvas.config(yscrollcommand=scroll.set)
@@ -90,7 +91,7 @@ class AdvancedPanel:
         self.firmware = ttk.Treeview(firmware, columns=('name', 'value'), show='headings', height=5)
         self.firmware.heading('name', text='Controller setting'); self.firmware.heading('value', text='Current value')
         self.firmware.column('name', width=360); self.firmware.column('value', width=110)
-        scroll = ttk.Scrollbar(firmware, orient='vertical', command=self.firmware.yview)
+        scroll = AutoScrollbar(firmware, orient='vertical', command=self.firmware.yview)
         scroll.pack(side='right', fill='y'); self.firmware.config(yscrollcommand=scroll.set)
         self.firmware.pack(fill='both', expand=True)
         self.firmware.bind('<<TreeviewSelect>>', lambda event: self.action(self.select_firmware))
@@ -177,7 +178,7 @@ class AdvancedPanel:
         self.button(row, 'Show', self.show_system).pack(side='left', padx=6)
         self.button(row, 'Copy', self.copy_system).pack(side='right')
         self.system_text = tk.Text(page, height=10, wrap='word', bg=BG, fg=INK, font=('DejaVu Sans Mono', 10), relief='flat')
-        scroll = ttk.Scrollbar(page, command=self.system_text.yview)
+        scroll = AutoScrollbar(page, command=self.system_text.yview)
         scroll.pack(side='right', fill='y'); self.system_text.configure(yscrollcommand=scroll.set)
         self.system_text.pack(fill='both', expand=True)
         self.show_system()

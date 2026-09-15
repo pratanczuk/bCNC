@@ -1,5 +1,6 @@
 """Mat-first desktop views composed with document, machine and job services."""
 
+from PlotterUI import AutoScrollbar
 import math
 import os
 import json
@@ -102,7 +103,7 @@ class PlotterWorkflow:
         viewport.rowconfigure(0, weight=1)
         self.scroll = tk.Canvas(viewport, bg=PANEL, highlightthickness=0, width=1)
         self.scroll.grid(row=0, column=0, sticky="nsew")
-        self.scrollbar = ttk.Scrollbar(viewport, orient=tk.VERTICAL, command=self.scroll.yview)
+        self.scrollbar = AutoScrollbar(viewport, orient=tk.VERTICAL, command=self.scroll.yview)
         self.scrollbar.grid(row=0, column=1, sticky="ns", padx=(8, 0))
         self.scroll.config(yscrollcommand=self.scrollbar.set)
         self.content = tk.Frame(self.scroll, bg=PANEL)

@@ -1,4 +1,5 @@
 """Material and tool library editor. Edits never send machine commands."""
+from PlotterUI import AutoScrollbar
 import tkinter as tk
 from PlotterUI import Field
 from PlotterPages import WorkspacePage
@@ -19,15 +20,19 @@ class LibraryDialog(WorkspacePage):
         self.forms, self.lists, self.selected_names, self.widgets, self.rows = {}, {}, {}, {}, {}
         self.searches = {}
         self.details = {}
-        top = tk.Frame(self, bg=PANEL, padx=20, pady=14); top.pack(fill='x')
+        top = tk.Frame(self, bg=PANEL, padx=20, pady=4); top.pack(fill='x')
         title = workflow.label(top, 'Materials & tools', size=20, bold=True)
-        title.configure(wraplength=750); title.pack(anchor='w')
-        subtitle = workflow.label(top, 'Choose one material for the mat in Prepare. Assign tools to layers.', muted=True)
-        subtitle.configure(wraplength=750); subtitle.pack(anchor='w', pady=(6,0))
-        bottom = tk.Frame(self, bg=PANEL, padx=20, pady=12); bottom.pack(side='bottom', fill='x')
-        workflow.button(bottom, 'Done', self.destroy, primary=True).pack(side='bottom', anchor='e')
-        tk.Label(bottom, textvariable=self.message, wraplength=620, justify='left', anchor='w', bg=PANEL, fg=INK).pack(side='top', fill='x')
-        book = ttk.Notebook(self); book.pack(fill='both', expand=True, padx=20)
+        title.configure(wraplength=750); title.pack(side='left')
+        from PlotterUI import ChoiceButton
+        context=tk.IntVar(self,0)
+        for index,title in reversed(list(enumerate(('Materials','Tools')))):
+            ChoiceButton(top,text=title,variable=context,value=index,command=lambda:book.select(context.get())).pack(side='right',padx=3)
+        bottom = tk.Frame(self, bg=PANEL, padx=20, pady=6); bottom.pack(side='bottom', fill='x')
+        workflow.button(bottom, 'Done', self.destroy, primary=True).pack(side='right')
+        tk.Label(bottom, textvariable=self.message, wraplength=620, justify='left', anchor='w', bg=PANEL, fg=INK).pack(side='left', fill='x',expand=True)
+        style=ttk.Style(self);style.layout('LibraryContext.TNotebook.Tab',[])
+        book = ttk.Notebook(self,style='LibraryContext.TNotebook'); book.pack(fill='both', expand=True, padx=20)
+        book.bind('<<NotebookTabChanged>>',lambda e:context.set(book.index('current')))
         definitions = {
             'materials': [('name','Name',None),('speed','Speed · mm/min',None),('pressure','Pressure · 0–1000 PWM',None),
                           ('thickness','Thickness · mm (reference)',None),('passes','Passes',None),
@@ -36,7 +41,7 @@ class LibraryDialog(WorkspacePage):
                       ('offset','Blade offset · mm',None),('overcut','Overcut · mm',None),('compensate','Drag-knife compensation',('On','Off')),
                       ('width','Pen stroke width · mm (reference)',None),('color','Pen color · #RRGGBB',None),('notes','Notes',None)]}
         for kind, fields in definitions.items():
-            page = tk.Frame(book, bg=PANEL, padx=12, pady=12); book.add(page, text=kind.title())
+            page = tk.Frame(book, bg=PANEL, padx=8, pady=4); book.add(page, text=kind.title())
             left = tk.Frame(page, bg=PANEL); left.pack(side='left', fill='y', padx=(0,20))
             search = tk.StringVar(self)
             self.searches[kind] = search
@@ -54,31 +59,37 @@ class LibraryDialog(WorkspacePage):
                 workflow.button(actions, label, lambda a=action,k=kind: a(k)).grid(row=0, column=index, sticky='ew', padx=2)
             right = tk.Frame(page, bg=PANEL); right.pack(side='left', fill='both', expand=True)
             footer = tk.Frame(right, bg=PANEL); footer.pack(side='bottom', fill='x', pady=8)
-            workflow.button(footer, 'Save preset', lambda k=kind:self.save(k)).pack(fill='x', pady=4)
-            workflow.button(footer, 'Use in Prepare' if kind == 'materials' else 'Use on selected layer', lambda k=kind:self.use_on_layer(k), primary=True).pack(fill='x', pady=4)
-            if kind == 'tools':
-                self.color_button = workflow.button(footer, 'Choose color…', self.pick_color)
-                self.color_button.pack(fill='x')
-            holder = tk.Frame(right, bg=PANEL); holder.pack(fill='both', expand=True)
-            holder.columnconfigure(0,weight=1); holder.rowconfigure(0,weight=1)
-            canvas = tk.Canvas(holder, bg=PANEL, highlightthickness=0)
-            canvas.grid(row=0,column=0,sticky='nsew')
-            bar = ttk.Scrollbar(holder, command=canvas.yview); bar.grid(row=0,column=1,sticky='ns')
-            canvas.configure(yscrollcommand=bar.set)
-            form = tk.Frame(canvas,bg=PANEL); window = canvas.create_window(0,0,window=form,anchor='nw')
-            form.bind('<Configure>', lambda e,c=canvas:c.configure(scrollregion=c.bbox('all')))
-            canvas.bind('<Configure>',lambda e,c=canvas,w=window:c.itemconfigure(w,width=e.width))
+            workflow.button(footer, 'Save preset', lambda k=kind:self.save(k)).pack(side='left', pady=2)
+            workflow.button(footer, 'Use in Prepare' if kind == 'materials' else 'Use on selected layer', lambda k=kind:self.use_on_layer(k), primary=True).pack(side='right', pady=2)
+            sections = ttk.Notebook(right); sections.pack(fill='both',expand=True)
+            groups = ({'Cut settings': ('name','speed','pressure','passes'),
+                       'Details': ('thickness','compatible','notes')} if kind == 'materials' else
+                      {'Tool': ('name','kind','angle','offset'), 'Blade': ('overcut','compensate'),
+                       'Appearance': ('width','color','notes')})
+            forms = {}
+            from PlotterUI import ScrollFrame
+            for title, keys in groups.items():
+                scroller=ScrollFrame(sections);sections.add(scroller,text=title)
+                scroller.canvas.configure(height=1)
+                form=scroller.body
+                for col in (0,1): form.columnconfigure(col,weight=1,uniform='fields')
+                for index,key in enumerate(keys): forms[key]=(form,index)
             self.forms[kind], self.widgets[kind], self.rows[kind] = {}, {}, {}
             for key,label,choices in fields:
-                row = tk.Frame(form, bg=PANEL); row.pack(fill='x'); self.rows[kind][key] = row
-                workflow.label(row,label,size=10).pack(anchor='w',pady=(7,2))
+                form,index=forms[key]
+                row = tk.Frame(form,bg=PANEL);row.grid(row=index//2,column=index%2,sticky='ew',padx=4,pady=2);self.rows[kind][key]=row
+                workflow.label(row,label,size=10).pack(anchor='w',pady=(2,2))
                 var = tk.StringVar(self); self.forms[kind][key] = var
-                widget = ttk.Combobox(row,textvariable=var,values=choices,state='readonly',style='Foil.TCombobox') if choices else ttk.Entry(row,textvariable=var,font=('DejaVu Sans',11))
-                widget.pack(fill='x',ipady=4); self.widgets[kind][key] = widget
+                widget = ttk.Combobox(row,textvariable=var,values=choices,state='readonly',style='Foil.TCombobox',width=10) if choices else ttk.Entry(row,textvariable=var,width=10,font=('DejaVu Sans',11))
+                widget.pack(fill='x'); self.widgets[kind][key] = widget
+                if kind=='tools' and key=='color':
+                    self.color_button=workflow.button(row,'Choose color…',self.pick_color)
+                    self.color_button.pack(fill='x',pady=2)
                 if key == 'kind': widget.bind('<<ComboboxSelected>>',lambda e:self.tool_changed())
             if kind == 'tools':
+                form=forms['compensate'][0]
                 self.tool_note = workflow.label(form,'',muted=True,size=10)
-                self.tool_note.configure(wraplength=470); self.tool_note.pack(fill='x',pady=12)
+                self.tool_note.configure(wraplength=470); self.tool_note.grid(row=2,column=0,columnspan=2,sticky='ew',pady=4)
             self.refresh(kind); self.new(kind)
             from PlotterUI import ListDetail
             # List/detail becomes a stacked, scrollable form on a narrow screen.
@@ -157,10 +168,10 @@ class LibraryDialog(WorkspacePage):
             if pen: self.forms['tools'][key].set('Off' if key=='compensate' else '0')
             self.widgets['tools'][key].configure(state='disabled' if pen else 'readonly' if key=='compensate' else 'normal')
         if not pen and self.forms['tools']['angle'].get()=='0': self.forms['tools']['angle'].set('45')
-        for row in self.rows['tools'].values(): row.pack_forget()
+        for row in self.rows['tools'].values(): row.grid_remove()
         hidden = ('angle','offset','overcut','compensate') if pen else ('width','color')
         for key, row in self.rows['tools'].items():
-            if key not in hidden: row.pack(fill='x', before=self.tool_note)
+            if key not in hidden: row.grid()
         self.tool_note.configure(text='Pen paths use no drag-knife compensation or overcut. Stroke width describes the physical pen; it does not widen the drawing paths.' if pen else 'Blade angle is a reference for choosing your physical knife. Offset and overcut affect the prepared cutting paths.')
         if pen: self.color_button.pack(fill='x')
         else: self.color_button.pack_forget()

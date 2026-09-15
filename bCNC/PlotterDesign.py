@@ -1,4 +1,5 @@
 """Preview-first text and shape creation for the cutting workspace."""
+from PlotterUI import AutoScrollbar
 import math
 import os
 from functools import lru_cache
@@ -118,7 +119,7 @@ class DesignDialog(WorkspacePage):
         controls_shell.rowconfigure(0, weight=1)
         controls_canvas = tk.Canvas(controls_shell, bg=PANEL, width=1, highlightthickness=0)
         controls_canvas.grid(row=0, column=0, sticky='nsew')
-        controls_bar = ttk.Scrollbar(controls_shell, command=controls_canvas.yview)
+        controls_bar = AutoScrollbar(controls_shell, command=controls_canvas.yview)
         controls_bar.grid(row=0, column=1, sticky='ns', padx=(5,0))
         controls_canvas.configure(yscrollcommand=controls_bar.set)
         self.controls = tk.Frame(controls_canvas, bg=PANEL)
@@ -282,10 +283,10 @@ class ShapeDialog(DesignDialog):
     def __init__(self, workflow):
         super().__init__(workflow, 'Add a shape')
         self.kind = tk.StringVar(self, 'Rectangle')
-        for label in ('Rectangle', 'Circle', 'Ellipse', 'Triangle', 'Star'):
-            ChoiceButton(self.controls, text=label, value=label, variable=self.kind,
-                indicatoron=False, bg=BG, selectcolor='#dfeee8', fg=INK, relief='flat',
-                font=('DejaVu Sans', 12), pady=8, command=self.schedule).pack(fill='x', pady=3)
+        workflow.label(self.controls,'Shape',bold=True).pack(anchor='w')
+        choice=ttk.Combobox(self.controls,textvariable=self.kind,state='readonly',
+                           values=('Rectangle','Circle','Ellipse','Triangle','Star'))
+        choice.pack(fill='x',pady=4);choice.bind('<<ComboboxSelected>>',self.schedule)
         self.width = self.field('Width / circle diameter · mm', '40')
         self.height = self.field('Height · mm (except circles)', '30')
         self.schedule()
@@ -337,7 +338,7 @@ class TextDialog(DesignDialog):
         font_frame.pack(fill='both', expand=True, pady=(8, 0))
         self.font_list = tk.Listbox(font_frame, height=5, bg=BG, fg=INK, relief='flat',
                                    exportselection=False, selectbackground=ACCENT, font=('DejaVu Sans', 11))
-        scrollbar = ttk.Scrollbar(font_frame, command=self.font_list.yview)
+        scrollbar = AutoScrollbar(font_frame, command=self.font_list.yview)
         scrollbar.pack(side='right', fill='y')
         self.font_list.config(yscrollcommand=scrollbar.set)
         self.font_list.pack(side='left', fill='both', expand=True)
@@ -490,10 +491,8 @@ class CombineDialog(DesignDialog):
             'Exclude overlap': 'Keep areas covered an odd number of times.',
             'Combine outlines': 'One object; keep all paths and overlaps.',
         }
-        for title in OPERATIONS:
-            ChoiceButton(self.controls, text=title, value=title, variable=self.operation,
-                indicatoron=False, bg=BG, selectcolor='#dfeee8', fg=INK, relief='flat',
-                font=('DejaVu Sans', 12), pady=8, command=self.schedule).pack(fill='x', pady=3)
+        choice=ttk.Combobox(self.controls,textvariable=self.operation,state='readonly',values=list(OPERATIONS))
+        choice.pack(fill='x',pady=4);choice.bind('<<ComboboxSelected>>',self.schedule)
         self.explanation = tk.StringVar(self)
         self.descriptions = descriptions
         tk.Label(self.controls, textvariable=self.explanation, bg=PANEL, fg=MUTED,
