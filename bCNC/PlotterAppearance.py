@@ -22,17 +22,23 @@ def system_dark():
         return False
 
 
-def apply_appearance(root, appearance=None, density=None):
+def apply_appearance(root, appearance=None, density=None, scope=None):
     from PlotterUI import descendants, RoundedButton
+    if scope is not None and hasattr(root, '_appearance'):
+        appearance = root._appearance
+        density = root._density
     mode = appearance or Utils.getStr('Plotter', 'appearance', 'System')
     density = density or Utils.getStr('Plotter', 'density', 'Comfortable')
-    dark = mode == 'Dark' or (mode == 'System' and system_dark())
+    dark = (getattr(root, '_dark', False) if scope is not None and hasattr(root, '_palette')
+            else mode == 'Dark' or (mode == 'System' and system_dark()))
+    root._dark = dark
     palette = DARK if dark else LIGHT
     mapping = {p[k]: palette[k] for p in (LIGHT, DARK) for k in LIGHT}
     root._palette = mapping
     root._appearance = mode
     root._density = density
-    for child in [root, *descendants(root)]:
+    target = scope if scope is not None else root
+    for child in [target, *descendants(target)]:
         if isinstance(child, ttk.Widget):
             continue
         values = {}
@@ -48,12 +54,13 @@ def apply_appearance(root, appearance=None, density=None):
         if isinstance(child, RoundedButton):
             if child._minimum_height < 56:
                 values['minimum_height'] = 48 if density == 'Comfortable' or root.winfo_width() < 840 else 44
-            child._image_key = None
             if child.cget('bg') in (LIGHT['accent'], DARK['accent'], LIGHT['danger'], DARK['danger']):
                 values['fg'] = DARK['surface'] if dark else LIGHT['surface']
             values['disabledforeground'] = palette['muted']
         if values:
             child.configure(**values)
+    if scope is not None:
+        return palette
     style = ttk.Style(root)
     for name in ('.', 'TFrame', 'TNotebook', 'TNotebook.Tab', 'TLabel', 'TCombobox', 'Foil.TCombobox', 'TEntry', 'Treeview'):
         style.configure(name, background=palette['surface'], foreground=palette['text'],

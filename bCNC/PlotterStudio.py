@@ -170,8 +170,11 @@ class ContourDialog(SelectionDialog):
         self.nodes.bind('<<ListboxSelect>>',self.choose_node)
         self.loaded=None
         self.node_positions=[]
+        self._drag_map = None
         self.preview.bind('<Button-1>',self.pick_node)
-        workflow.label(self.controls,'Select a node below to see its coordinates. Curves use a 0.02 mm polyline approximation. Applying converts selected artwork to editable outlines; Undo restores text and groups.',muted=True).pack(fill='x')
+        self.preview.bind('<B1-Motion>',self.drag_node)
+        self.preview.bind('<ButtonRelease-1>',self.release_node)
+        workflow.label(self.controls,'Drag a node in the preview, or select it below and enter coordinates. Choose Apply to keep the edit. Curves use a 0.02 mm polyline approximation. Applying converts selected artwork to editable outlines; Undo restores text and groups.',muted=True).pack(fill='x')
         self.schedule()
 
     def choose_node(self,event=None):
@@ -200,12 +203,14 @@ class ContourDialog(SelectionDialog):
         if not hasattr(self,'flat'): return
         self.preview.delete('all'); self.node_positions=[]
         if not self.flat: return
-        point=preview_map(self.preview,self.flat+self.paths)
+        point=self._drag_map or preview_map(self.preview,self.flat+self.paths)
+        self._preview_map=point
         for path in self.flat: paint_path(self.preview,path,point,'#a9b4b0',(3,3))
         for path in self.paths: paint_path(self.preview,path,point,ACCENT)
         try:
             index=int(self.contour.get())-1; selected=int(self.node.get())
-            self.node_positions=[point(p) for p in contour_points(self.flat[index])]
+            visible=self.paths if self.operation.get()=='Move node' and self.paths else self.flat
+            self.node_positions=[point(p) for p in contour_points(visible[index])]
             for i,(x,y) in enumerate(self.node_positions):
                 self.preview.create_oval(x-3,y-3,x+3,y+3,fill='#b47a12' if i==selected else PANEL,outline=INK)
             if 0<=selected<len(self.node_positions):
@@ -218,8 +223,36 @@ class ContourDialog(SelectionDialog):
         index=min(range(len(self.node_positions)),key=lambda i:(self.node_positions[i][0]-event.x)**2+(self.node_positions[i][1]-event.y)**2)
         x,y=self.node_positions[index]
         if (x-event.x)**2+(y-event.y)**2>144: return
+        same = str(index) == self.node.get()
         self.nodes.selection_clear(0,'end'); self.nodes.selection_set(index); self.nodes.see(index)
-        self.choose_node()
+        if not same:
+            self.choose_node()
+        if self.operation.get() == 'Move node':
+            try:
+                origin = (event.x, event.y, float(self.x.get().replace(',', '.')), float(self.y.get().replace(',', '.')))
+            except ValueError:
+                return
+            self._drag_map = self._preview_map
+            self._drag_origin = origin
+
+    def drag_node(self, event):
+        if self._drag_map is None or self.operation.get() != 'Move node':
+            return
+        if (self.app.sender.running or self.app.mat_handling.active or self.app.tool_sequence.active):
+            self._drag_map = None
+            return
+        px, py, x, y = self._drag_origin
+        a, b = self._drag_map((0, 0)), self._drag_map((1, 1))
+        self.x.set(f'{x + (event.x-px)/(b[0]-a[0]):.6f}')
+        self.y.set(f'{y + (event.y-py)/(b[1]-a[1]):.6f}')
+        # Variable traces debounce numeric typing; dragging needs immediate feedback.
+        self.rebuild()
+
+    def release_node(self, event):
+        if self._drag_map is not None:
+            self.drag_node(event)
+            self._drag_map = None
+            self.draw_preview()
 
     def insert(self):
         if not self.valid_source(): return False

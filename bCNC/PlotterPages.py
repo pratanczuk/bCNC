@@ -54,8 +54,6 @@ class WorkspacePage(tk.Frame):
         workflow = getattr(self.app_root, 'workflow', None)
         if workflow and getattr(workflow, 'adaptive_ready', False):
             workflow.update_state()
-            self.app_root.update_idletasks()
-            self._resize()
 
     def _resize(self, event=None):
         area = getattr(self.app_root, 'paned', self.app_root)

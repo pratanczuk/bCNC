@@ -377,18 +377,19 @@ class Application(Tk):
 
     # -----------------------------------------------------------------------
     def quit(self, event=None):
-        if self.sender.running and self._quit < 1:
+        if (self.sender.running
+                or getattr(getattr(self, 'mat_handling', None), 'active', False)
+                or getattr(getattr(self, 'tool_sequence', None), 'active', False)):
             messagebox.showinfo(
                 _("Running"),
                 _("CNC is currently running, please stop it before."),
                 parent=self,
             )
-            self._quit += 1
             return
-        del self.widgets[:]
-
         if self.fileModified():
             return
+
+        del self.widgets[:]
 
         if hasattr(self, "workflow"):
             self.workflow.project.clear_recovery()

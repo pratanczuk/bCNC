@@ -116,12 +116,12 @@ def fit_dialog(dialog, app, width=900, height=680):
     """Keep every dialog within the application's available work area."""
     from PlotterPages import WorkspacePage
     if isinstance(dialog, WorkspacePage):
+        if not hasattr(dialog, '_responsive_text'):
+            polish(dialog)
+            dialog._responsive_text = ResponsiveText(dialog)
+            from PlotterAppearance import apply_appearance
+            apply_appearance(app, scope=dialog)
         dialog.present()
-        polish(dialog)
-        dialog._responsive_text = ResponsiveText(dialog)
-        dialog.after_idle(lambda: dialog._responsive_text.resize(type('Size', (), dict(widget=dialog, width=dialog.winfo_width()))()))
-        from PlotterAppearance import apply_appearance
-        apply_appearance(app)
         return
     dialog.resizable(True, True)
     dialog.minsize(300, 400)
@@ -228,15 +228,19 @@ class RoundedButton(tk.Button):
         if 'text' in options:
             self._label = options['text']
         if 'icon' in options:
-            self._icon = options.pop('icon')
-            self._geometry_key = None
+            icon = options.pop('icon')
+            if icon != self._icon:
+                self._icon = icon
+                self._geometry_key = None
         if self._icon:
             options['text'] = ''
         elif 'text' not in options:
             options['text'] = self._label
         if 'minimum_height' in options:
-            self._minimum_height = options.pop('minimum_height')
-            self._geometry_key = None
+            height = options.pop('minimum_height')
+            if height != self._minimum_height:
+                self._minimum_height = height
+                self._geometry_key = None
         if 'background' in options:
             options['bg'] = options.pop('background')
         for key in tuple(options):
@@ -252,10 +256,24 @@ class RoundedButton(tk.Button):
                         self._surface['padx'], self._surface['pady'])
         if geometry_key != self._geometry_key:
             self._geometry_key = geometry_key
-            font = tkfont.Font(self, font=geometry_key[1])
+            root = self.winfo_toplevel()
+            if not hasattr(root, '_button_fonts'):
+                root._button_fonts = {}
+                root._button_text_metrics = {}
+            font_key = str(geometry_key[1])
+            if font_key not in root._button_fonts:
+                root._button_fonts[font_key] = tkfont.Font(root, font=geometry_key[1])
+            font = root._button_fonts[font_key]
             lines = str(geometry_key[0]).split('\n')
-            self._width = 46 if self._icon else max(font.measure(line) for line in lines) + 2 * int(self._surface['padx'])
-            self._height = max(self._minimum_height - 2, font.metrics('linespace') * len(lines) + 2 * int(self._surface['pady']))
+            metric_key = (font_key, str(geometry_key[0]), self.tk.call('tk', 'scaling'))
+            if len(root._button_text_metrics) >= 512:
+                root._button_text_metrics.clear()
+            if metric_key not in root._button_text_metrics:
+                root._button_text_metrics[metric_key] = (max(font.measure(line) for line in lines),
+                                                        font.metrics('linespace') * len(lines))
+            text_width, text_height = root._button_text_metrics[metric_key]
+            self._width = 46 if self._icon else text_width + 2 * int(self._surface['padx'])
+            self._height = max(self._minimum_height - 2, text_height + 2 * int(self._surface['pady']))
             super().configure(width=self._width, height=self._height)
         self._paint(self.winfo_width() if self.winfo_width() > 1 else self._width,
                     self.winfo_height() if self.winfo_height() > 1 else self._height)

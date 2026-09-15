@@ -16,6 +16,101 @@ class VisualContractTest(unittest.TestCase):
     tearDown = adaptive.AdaptiveGUITest.tearDown
     add_square_fixture = adaptive.AdaptiveGUITest.add_square_fixture
 
+    def test_repeated_controls_reuse_font_measurements(self):
+        from PlotterPages import WorkspacePage
+        page = WorkspacePage(self.app)
+        first = RoundedButton(page, text='Repeated action', font=('DejaVu Sans', 11))
+        with patch('PlotterUI.tkfont.Font.measure', side_effect=AssertionError('Redundant font measurement')):
+            second = RoundedButton(page, text='Repeated action', font=('DejaVu Sans', 11))
+            second.configure(minimum_height=second._minimum_height)
+        self.assertEqual(first.winfo_reqwidth(), second.winfo_reqwidth())
+
+    def test_page_styling_is_scoped_and_presentation_is_idempotent(self):
+        from PlotterPages import WorkspacePage
+        from PlotterAppearance import apply_appearance
+        page = WorkspacePage(self.app)
+        RoundedButton(page, text='Local page action').pack()
+        with patch('PlotterAppearance.system_dark') as system, patch.object(self.w.project_button, 'configure') as configure:
+            fit_dialog(page, self.app)
+            binding = page.bind('<Configure>')
+            responsive = page._responsive_text
+            fit_dialog(page, self.app)
+            self.assertIs(page._responsive_text, responsive)
+            self.assertEqual(page.bind('<Configure>'), binding)
+            system.assert_not_called()
+            configure.assert_not_called()
+        self.assertEqual(self.app.workspace_pages.count(page), 1)
+
+    def test_touch_exit_is_visible_and_uses_normal_quit(self):
+        for size in ('320x600', '1280x900'):
+            self.app.geometry(size); self.app.update()
+            with patch.object(self.app, 'quit') as quit_app:
+                page = self.w.open_menu(); self.app.update()
+                button = next(w for w in descendants(page) if isinstance(w, RoundedButton) and w.cget('text') == 'Exit application')
+                self.assertTrue(button.winfo_ismapped())
+                self.assertGreaterEqual(button.winfo_height(), 48)
+                self.assertLessEqual(button.winfo_rooty()+button.winfo_height(), self.app.winfo_rooty()+self.app.winfo_height())
+                button.invoke(); quit_app.assert_called_once()
+                page.destroy()
+
+    def test_exit_cancel_preserves_controls_and_motion_always_blocks_exit(self):
+        widgets = list(self.app.widgets)
+        with patch.object(self.app, 'destroy') as destroy, patch.object(self.app, 'saveConfig') as save, patch.object(self.app, 'fileModified', return_value=True):
+            self.app.quit()
+            self.assertEqual(self.app.widgets, widgets)
+            destroy.assert_not_called(); save.assert_not_called()
+        for service, attr in ((self.app.sender, 'running'), (self.app.mat_handling, 'active'), (self.app.tool_sequence, 'active')):
+            with patch.object(service, attr, True), patch('bmain.messagebox.showinfo') as info, patch.object(self.app, 'destroy') as destroy:
+                self.app.quit(); self.app.quit()
+                self.assertEqual(info.call_count, 2); destroy.assert_not_called()
+        with patch.object(self.app, 'destroy') as destroy, patch.object(self.app, 'saveConfig') as save, patch.object(self.app, 'fileModified', return_value=False), patch.object(self.w.project, 'clear_recovery') as clear:
+            self.app.quit()
+            destroy.assert_called_once(); save.assert_called_once(); clear.assert_called_once()
+        self.app.widgets[:] = widgets
+
+    def test_node_mouse_drag_updates_preview_then_apply_and_undo(self):
+        self.w.select_all()
+        before = [list(b) for b in self.app.gcode.blocks]
+        page = self.w.design_dialog('ContourDialog'); self.app.update(); page.rebuild()
+        x, y = page.node_positions[0]
+        start_x, start_y = float(page.x.get()), float(page.y.get())
+        a, b = page._preview_map((0,0)), page._preview_map((1,1))
+        page.preview.event_generate('<Button-1>', x=round(x), y=round(y))
+        page.preview.event_generate('<B1-Motion>', x=round(x)+20, y=round(y)-15)
+        self.assertAlmostEqual(float(page.x.get()), start_x+20/(b[0]-a[0]), places=5)
+        self.assertAlmostEqual(float(page.y.get()), start_y-15/(b[1]-a[1]), places=5)
+        self.assertEqual([list(b) for b in self.app.gcode.blocks], before)
+        self.assertAlmostEqual(page.node_positions[0][0], x+20, places=3)
+        page.preview.event_generate('<ButtonRelease-1>', x=round(x)+20, y=round(y)-15)
+        self.assertIsNone(page._drag_map)
+        # The moved point remains pickable without snapping back to its original coordinates.
+        moved = (page.x.get(), page.y.get()); x,y = page.node_positions[0]
+        page.pick_node(SimpleNamespace(x=x, y=y))
+        self.assertEqual((page.x.get(), page.y.get()), moved)
+        page.release_node(SimpleNamespace(x=x, y=y))
+        self.assertTrue(page.insert())
+        self.assertNotEqual([list(b) for b in self.app.gcode.blocks], before)
+        self.app.undo()
+        self.assertEqual([list(b) for b in self.app.gcode.blocks], before)
+
+    def test_node_drag_ignores_empty_space_other_operations_and_busy_machine(self):
+        self.w.select_all()
+        page = self.w.design_dialog('ContourDialog'); self.app.update(); page.rebuild()
+        original = (page.x.get(), page.y.get())
+        page.pick_node(SimpleNamespace(x=-100, y=-100))
+        page.drag_node(SimpleNamespace(x=50, y=50))
+        self.assertEqual((page.x.get(), page.y.get()), original)
+        page.operation.set('Delete node'); page.rebuild()
+        x,y = page.node_positions[0]; page.pick_node(SimpleNamespace(x=x,y=y))
+        page.drag_node(SimpleNamespace(x=x+10,y=y+10))
+        self.assertIsNone(page._drag_map)
+        page.operation.set('Move node'); page.rebuild()
+        x,y = page.node_positions[0]; page.pick_node(SimpleNamespace(x=x,y=y))
+        with patch.object(self.app.sender, 'running', True):
+            page.drag_node(SimpleNamespace(x=x+10,y=y+10))
+        self.assertIsNone(page._drag_map)
+        self.assertEqual((page.x.get(), page.y.get()), original)
+
     def test_phone_navigation_and_canvas_remain_visible(self):
         for width,height in ((320,600),(390,844),(600,600),(768,800),(840,700),(1024,600),(1280,900),(1440,900)):
             self.app.geometry(f'{width}x{height}');self.app.update()

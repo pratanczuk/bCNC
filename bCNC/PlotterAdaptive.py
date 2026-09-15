@@ -465,6 +465,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
         page.title('Workspace utilities')
         footer = tk.Frame(page, bg=PANEL, padx=24, pady=16); footer.pack(side='bottom', fill='x')
         self.button(footer, 'Back to workspace', page.destroy).pack(fill='x')
+        self.button(footer, 'Exit application', self.app.quit).pack(fill='x', pady=(8, 0))
         scroll = ScrollFrame(page); scroll.pack(fill='both', expand=True, padx=24, pady=16)
         self.label(scroll.body, 'Workspace utilities', size=20, bold=True).pack(fill='x', pady=16)
         def navigate(command):
