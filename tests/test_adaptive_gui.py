@@ -307,8 +307,8 @@ class AdaptiveGUITest(unittest.TestCase):
             Utils.setStr('Plotter', 'load_mode', 'auto')
             self.app.sender.serial = None
             self.w.update_state()
-            self.assertIn('Automatic is selected', self.w.loading_hint['text'])
-            self.assertIn('Connect a compatible', self.w.loading_hint['text'])
+            self.assertIn('Connect the plotter', self.w.loading_hint['text'])
+            self.assertIn('detect its mat loader', self.w.loading_hint['text'])
         finally:
             Utils.setStr('Plotter', 'load_mode', previous)
 

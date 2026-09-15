@@ -1211,6 +1211,22 @@ class WorkflowGUITest(unittest.TestCase):
         a.sender.running = False
         dlg.cancel()
 
+    def test_custom_cut_settings_override_preset_without_editing_library(self):
+        a=self.app;w=a.workflow
+        old_speed,old_pressure=CNC.vars['mat_speed'],CNC.vars['mat_pressure']
+        w.library.save('materials',dict(name='Cut settings test',speed=800,pressure=300))
+        w.refresh_library();w.material.set('Cut settings test');w.apply_material()
+        original=deepcopy(w.library.records['materials']['Cut settings test'])
+        dialog=w.settings('Material')
+        dialog.values['mat_speed'].set('650');dialog.values['mat_pressure'].set('250')
+        self.assertTrue(dialog.apply())
+        self.assertEqual(w.material.get(),'Current settings')
+        self.assertEqual(CNC.vars['mat_speed'],650)
+        self.assertEqual(CNC.vars['mat_pressure'],250)
+        self.assertEqual(w.library.records['materials']['Cut settings test'],original)
+        w.library.delete('materials','Cut settings test');w.refresh_library()
+        CNC.vars['mat_speed'],CNC.vars['mat_pressure']=old_speed,old_pressure
+
     def test_settings_apply_changes_configuration_without_modifying_artwork(self):
         a = self.app
         original = [list(b) for b in a.gcode.blocks]

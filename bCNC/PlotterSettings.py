@@ -49,12 +49,12 @@ class PlotterSettingsDialog(WorkspacePage):
         self.scroller.pack(fill=tk.BOTH, expand=True, padx=16, pady=8)
         content = self.scroller.body
         for name in ("Material", "Blade", "Mat", "Advanced"):
-            tab = workflow.button(nav, {"Material": "Pressure & speed", "Blade": "Drag knife", "Mat": "Mat", "Advanced": "Advanced"}[name],
+            tab = workflow.button(nav, {"Material": "Cut settings", "Blade": "Drag knife", "Mat": "Mat", "Advanced": "Advanced"}[name],
                                   lambda name=name: self.show_page(name))
             self.tabs[name] = tab
             self.pages[name] = tk.Frame(content, bg=PANEL)
         self.category = tk.StringVar(self)
-        self.categories = {'Appearance': ('Appearance', None), 'Pressure & speed': ('Material', None), 'Drag knife': ('Blade', None),
+        self.categories = {'Appearance': ('Appearance', None), 'Cut settings': ('Material', None), 'Drag knife': ('Blade', None),
                            'Mat setup': ('Mat', None), 'Mat loading': ('Loading', None), 'Job commands': ('Advanced', 'Job G-code'),
                            'Planning defaults': ('Advanced', 'Configuration'),
                            'Controller settings': ('Advanced', 'Controller'),
@@ -309,6 +309,8 @@ class PlotterSettingsDialog(WorkspacePage):
             self.workflow.loading_mode.current(0 if self.loading_preference.get() == 'auto' else 1)
             self.workflow.confirmed.set(False)
         self.workflow.library = library
+        if material_changed:
+            self.workflow.material.set("Current settings")
         self.workflow.save_library()
         Utils.addSection("Plotter")
         Utils.setStr("Plotter", "blade_profiles", json.dumps(self.blade_profiles))

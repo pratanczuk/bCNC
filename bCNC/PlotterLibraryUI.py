@@ -34,7 +34,7 @@ class LibraryDialog(WorkspacePage):
         book = ttk.Notebook(self,style='LibraryContext.TNotebook'); book.pack(fill='both', expand=True, padx=20)
         book.bind('<<NotebookTabChanged>>',lambda e:context.set(book.index('current')))
         definitions = {
-            'materials': [('name','Name',None),('speed','Speed · mm/min',None),('pressure','Pressure · 0–1000 PWM',None),
+            'materials': [('name','Name',None),('speed','Preset speed · mm/min',None),('pressure','Preset pressure · 0–1000',None),
                           ('thickness','Thickness · mm (reference)',None),('passes','Passes',None),
                           ('compatible','Compatible tools',('Both','Knife','Pen')),('notes','Notes',None)],
             'tools': [('name','Name',None),('kind','Tool type',('Knife','Pen')),('angle','Blade angle · degrees (reference)',None),

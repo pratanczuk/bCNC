@@ -278,6 +278,18 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_prepare_sections_fit_tablet_without_scrollbars(self):
+        self.app.geometry('1024x600');self.w.clear_notice();self.w.show_step(1);self.app.update()
+        for name in self.w.prepare_sections:
+            self.w.prepare_section.set(name);self.w.show_prepare_section();self.app.update()
+            self.assertFalse(self.w.scrollbar.winfo_ismapped(),name)
+            for button in descendants(self.w.prepare_sections[name]):
+                if isinstance(button,RoundedButton) and button.winfo_ismapped():
+                    self.assertGreaterEqual(button.winfo_height(),48)
+                    self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),
+                                         self.w.scroll.winfo_rooty()+self.w.scroll.winfo_height())
+        self.w.prepare_section.set('Material');self.w.show_prepare_section()
+
     def test_tablet_pages_do_not_show_scrollbars_without_overflow(self):
         from tkinter import ttk
         self.app.geometry('1024x600');self.app.update();self.w.select_all()

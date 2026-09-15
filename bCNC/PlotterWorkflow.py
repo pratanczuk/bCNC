@@ -207,64 +207,62 @@ class PlotterWorkflow:
 
 
     def build_prepare(self, p):
-        self.heading(p, "Prepare", "Review three steps before cutting.")
-        self.label(p, "1 · Plotter", size=16, bold=True).pack(fill=tk.X, pady=(8, 12))
-        row = tk.Frame(p, bg=PANEL)
-        row.pack(fill=tk.X)
-        self.connect_button = self.button(row, "Connect", self.connect)
-        self.connect_button.pack(side=tk.LEFT, expand=True, fill=tk.X)
-        self.button(row, "Connection…", self.connection_settings).pack(side=tk.RIGHT, padx=(6, 0))
-        self.label(p, "2 · Layer setups", size=16, bold=True).pack(fill=tk.X, pady=(24, 12))
-        self.label(p, "Material preset").pack(fill=tk.X, pady=(16, 4))
-        row = tk.Frame(p, bg=PANEL)
-        row.pack(fill=tk.X)
-        self.material = ttk.Combobox(row, state="readonly", style="Foil.TCombobox", width=12,
-            font=("DejaVu Sans", 11), values=["Current settings"] + sorted(self.profiles))
-        self.material.set("Current settings")
-        self.button(row, "Save…", self.save_material, edit=True).pack(side=tk.RIGHT, padx=(6, 0))
-        self.material.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        self.material.bind("<<ComboboxSelected>>", self.apply_material)
+        self.label(p, 'Prepare', size=16, bold=True).pack(fill='x', pady=(0,6))
+        self.prepare_section = tk.StringVar(self.app, 'Material')
+        self.prepare_sections = {name:tk.Frame(p,bg=PANEL) for name in ('Material','Plotter & tool','Mat')}
+        from PlotterUI import ChoiceButton
+        tabs=tk.Frame(p,bg=PANEL);tabs.pack(fill='x',pady=(0,8))
+        for name,label in (('Material','Material'),('Plotter & tool','Plotter'),('Mat','Mat')):
+            ChoiceButton(tabs,text=label,variable=self.prepare_section,value=name,
+                         command=self.show_prepare_section).pack(side='left',fill='x',expand=True,padx=2)
+        material=self.prepare_sections['Material']
+        self.label(material,'Material on the mat',bold=True).pack(fill='x',pady=(0,4))
+        self.material=ttk.Combobox(material,state='readonly',style='Foil.TCombobox',width=12,
+                                  values=['Current settings']+sorted(self.profiles))
+        self.material.set('Current settings');self.material.pack(fill='x')
+        self.material.bind('<<ComboboxSelected>>',self.apply_material)
         self.edit_widgets.append(self.material)
-        self.button(p, "Materials & tools…", self.open_library, edit=True).pack(fill=tk.X, pady=(6, 0))
-        self.settings_summary = self.label(p, "", muted=True)
-        self.settings_summary.pack(fill=tk.X, pady=10)
-        row = tk.Frame(p, bg=PANEL)
-        row.pack(fill=tk.X)
-        self.button(row, "Pressure…", lambda: self.settings("Material"), edit=True).pack(side=tk.LEFT, fill=tk.X, expand=True)
-        self.button(row, "Drag knife…", lambda: self.settings("Blade"), edit=True).pack(side=tk.RIGHT, padx=(6, 0))
+        self.settings_summary=self.label(material,'',muted=True);self.settings_summary.pack(fill='x',pady=8)
+        self.button(material,'Cut settings…',lambda:self.settings('Material'),edit=True).pack(fill='x',pady=3)
+        self.button(material,'Material presets…',self.open_library,edit=True).pack(fill='x',pady=3)
+        self.label(material,'One material for the whole mat.',muted=True).pack(fill='x',pady=6)
 
-        self.label(p, 'Tool pass').pack(fill=tk.X, pady=(12,4))
-        self.pass_choice = ttk.Combobox(p, textvariable=self.tool_pass, state='readonly', style='Foil.TCombobox', values=['All included layers'])
-        self.pass_choice.pack(fill=tk.X)
-        self.edit_widgets.append(self.pass_choice)
-        self.pass_choice.bind('<<ComboboxSelected>>', lambda e: self.update_state())
-        self.pass_hint = self.label(p, 'Assign tools to layers in Layers & objects.', muted=True)
-        self.pass_hint.pack(fill=tk.X, pady=6)
-        self.label(p, "3 · Mat & origin", size=16, bold=True).pack(fill=tk.X, pady=(24, 12))
-        self.button(p, "Mat dimensions…", lambda: self.settings("Mat"), edit=True).pack(fill=tk.X, pady=(0, 6))
-        self.loading_mode = ttk.Combobox(p, state="readonly", style="Foil.TCombobox", font=("DejaVu Sans", 11),
-            values=("Automatic (detect plotter)", "Manual positioning"))
-        mode = "manual" if Utils.getStr("Plotter", "load_mode", "auto") == "manual" else "auto"
-        Utils.setStr("Plotter", "load_mode", mode)
-        self.loading_mode.current(1 if mode == "manual" else 0)
-        self.loading_mode.bind("<<ComboboxSelected>>", self.change_loading_mode)
-        self.loading_mode.pack(fill=tk.X)
-        row = tk.Frame(p, bg=PANEL)
-        row.pack(fill=tk.X, pady=8)
-        self.load_button = self.button(row, "Load mat", self.load_mat, machine=True)
-        self.load_button.pack(side=tk.LEFT, expand=True, fill=tk.X)
-        self.button(row, "Unload", self.unload_mat, machine=True).pack(side=tk.RIGHT, padx=(6, 0))
-        self.mat_stop = self.button(p, "Stop mat movement", self.app.mat_handling.cancel)
-        self.mat_stop.pack(fill=tk.X)
-        self.loading_hint = self.label(p, "", muted=True)
-        self.loading_hint.pack(fill=tk.X, pady=6)
-        self.sensor_label = self.label(p, "", muted=True)
-        self.sensor_label.pack(fill=tk.X, pady=8)
-        self.confirm_check = tk.Checkbutton(p, text="Mat is loaded and aligned", variable=self.confirmed,
-            bg=PANEL, fg=INK, selectcolor=PANEL, activebackground=PANEL,
-            font=("DejaVu Sans", 11), wraplength=220, justify=tk.LEFT)
-        self.confirm_check.pack(anchor="w")
-        self.label(p, "Confirm after loading finishes. A sensor cannot confirm alignment.", muted=True).pack(fill=tk.X, pady=8)
+        plotter=self.prepare_sections['Plotter & tool']
+        self.connect_button=self.button(plotter,'Connect',self.connect);self.connect_button.pack(fill='x',pady=3)
+        self.button(plotter,'Connection settings…',self.connection_settings).pack(fill='x',pady=3)
+        self.label(plotter,'Tool pass',bold=True).pack(fill='x',pady=(8,4))
+        self.pass_choice=ttk.Combobox(plotter,textvariable=self.tool_pass,state='readonly',
+                                     style='Foil.TCombobox',values=['All included layers'])
+        self.pass_choice.pack(fill='x');self.edit_widgets.append(self.pass_choice)
+        self.pass_choice.bind('<<ComboboxSelected>>',lambda e:self.update_state())
+        self.pass_hint=self.label(plotter,'',muted=True);self.pass_hint.pack(fill='x',pady=6)
+        self.button(plotter,'Blade settings…',lambda:self.settings('Blade'),edit=True).pack(fill='x',pady=3)
+
+        mat=self.prepare_sections['Mat']
+        self.loading_mode=ttk.Combobox(mat,state='readonly',style='Foil.TCombobox',
+                                       values=('Automatic (detect plotter)','Manual positioning'))
+        mode='manual' if Utils.getStr('Plotter','load_mode','auto')=='manual' else 'auto'
+        Utils.setStr('Plotter','load_mode',mode);self.loading_mode.current(1 if mode=='manual' else 0)
+        self.loading_mode.bind('<<ComboboxSelected>>',self.change_loading_mode);self.loading_mode.pack(fill='x')
+        row=tk.Frame(mat,bg=PANEL);row.pack(fill='x',pady=5)
+        self.load_button=self.button(row,'Load mat',self.load_mat,machine=True)
+        self.load_button.pack(side='left',fill='x',expand=True)
+        self.button(row,'Unload',self.unload_mat,machine=True).pack(side='right',padx=(6,0))
+        self.mat_stop=self.button(mat,'Stop mat movement',self.app.mat_handling.cancel)
+        self.loading_hint=self.label(mat,'',muted=True);self.loading_hint.pack(fill='x',pady=4)
+        self.sensor_label=self.label(mat,'',muted=True);self.sensor_label.pack(fill='x',pady=4)
+        self.confirm_check=tk.Checkbutton(mat,text='Mat is loaded and aligned',variable=self.confirmed,
+            bg=PANEL,fg=INK,selectcolor=PANEL,activebackground=PANEL,font=('DejaVu Sans',11),
+            wraplength=220,justify=tk.LEFT)
+        self.confirm_check.pack(anchor='w')
+        self.button(mat,'Mat settings…',lambda:self.settings('Mat'),edit=True).pack(fill='x',pady=4)
+        self.show_prepare_section()
+
+    def show_prepare_section(self, event=None):
+        for name,frame in self.prepare_sections.items():
+            if name==self.prepare_section.get():frame.pack(fill='x')
+            else:frame.pack_forget()
+        self.scroll.yview_moveto(0)
 
     def build_cut(self, p):
         self.heading(p, "Review and cut", "Your design stays visible throughout cutting.")
@@ -678,24 +676,6 @@ class PlotterWorkflow:
             CNC.vars["mat_pressure"] = values["strength"]
             self.update_state()
 
-    def save_material(self):
-        if self.app.sender.running:
-            return
-        name = simpledialog.askstring("Save material preset", "Name for these tested cut settings:", parent=self.app)
-        if not name or not name.strip() or name.strip() == "Current settings":
-            return
-        name = name.strip()
-        speed, strength = CNC.vars.get("mat_speed", 500), CNC.vars.get("mat_pressure", 500)
-        if not cut_settings_valid(speed, strength):
-            return
-        existing = self.library.records['materials'].get(name)
-        self.library.save('materials', dict(existing or {}, name=name, speed=speed, pressure=strength), name if existing else None)
-        self.save_library()
-        Utils.addSection("Plotter")
-        Utils.setStr("Plotter", "material_profiles", json.dumps(self.profiles))
-        self.material.config(values=["Current settings"] + sorted(self.profiles))
-        self.material.set(name)
-
     def connect(self):
         if not self.app.sender.running:
             self.confirmed.set(False)
@@ -861,13 +841,15 @@ class PlotterWorkflow:
                     'Mat detected. Choose Load mat to home and position it, then confirm alignment.') if automatic else                    'Position the mat manually, set its origin, then confirm alignment below.'
         self.cut_mat_hint.config(text=hint if connected else 'Connect the plotter to load the mat.')
         self.mat_stop.config(state=tk.NORMAL if mat_active else tk.DISABLED)
+        if mat_active:self.mat_stop.pack(fill='x',before=self.loading_hint,pady=4)
+        else:self.mat_stop.pack_forget()
         self.load_button.config(text="Load mat" if automatic else "Set origin here")
         automatic_requested = Utils.getStr('Plotter', 'load_mode', 'auto') != 'manual'
-        fallback_hint = ('Automatic is selected. Connect a compatible FilmCut plotter to detect its loader.'
+        fallback_hint = ('Connect the plotter to detect its mat loader.'
                          if not connected else
-                         'Automatic is selected, but this plotter has no detected automatic loader. Use manual positioning.')
-        self.loading_hint.config(text=a.mat_handling.message if mat_active else "The blade lifts and the carriage homes automatically before mat movement." if automatic else fallback_hint if automatic_requested else
-            "Align the mat, then set its origin at the blade. For unloading, lift the blade and remove the mat manually.")
+                         'No automatic loader detected. Use manual positioning.')
+        self.loading_hint.config(text=a.mat_handling.message if mat_active else "Blade lift and homing are automatic." if automatic else fallback_hint if automatic_requested else
+            "Align the mat and set its origin. Unload with the blade lifted.")
         self.objects.config(state=tk.DISABLED if busy else tk.NORMAL)
         self.connect_button.config(text="Disconnect" if connected else "Connect")
         sensor = "Detected" if "P" in CNC.vars.get("pins", "") else "Not detected"
@@ -880,9 +862,9 @@ class PlotterWorkflow:
         chosen = self.tool_pass.get()
         if not processes and chosen != ALL_TOOLS:
             self.tool_pass.set(ALL_TOOLS)
-        self.pass_hint.configure(text=('Guided sequence: pens first, then knives. X homes before each exchange; confirm each tool before continuing. Keep the mat loaded.') if len(passes)>1 and chosen==ALL_TOOLS else
+        self.pass_hint.configure(text=('Pens first, then knives. Confirm each tool change; keep the mat loaded.') if len(passes)>1 and chosen==ALL_TOOLS else
             ('Fit ' + (chosen if chosen != ALL_TOOLS else ', '.join(passes)) + '. Pen compensation and overcut are off.') if passes else
-            'Choose material here; assign knives or pens in Layers & objects.')
+            'Assign layer tools in Layers & objects.')
         pressure = CNC.vars.get('mat_pressure', 500)
         knife_on = bool(CNC.vars.get('mat_auto_dragknife'))
         self.settings_summary.config(text=f"Pressure {pressure:g}/1000 · {CNC.vars.get('mat_speed', 500):g} mm/min\n"
@@ -909,7 +891,7 @@ class PlotterWorkflow:
                         ('Compensation and overcut: Off' if tool['kind']=='Pen' else f"Drag knife: {'On' if tool['compensate'] else 'Off'}"))
                 else:
                     descriptions.append(layer['name'] + ' · Current knife settings')
-            self.settings_summary.config(text='Layer setups apply to this job. Review the selected tool pass below.')
+            self.settings_summary.config(text=f"Pressure {pressure:g}/1000 · {CNC.vars.get('mat_speed',500):g} mm/min\nLayer tools apply to this material.")
             self.cut_setup.config(text='\n\n'.join(descriptions) or 'Choose a tool pass with included objects.')
         reason = self.start_reason()
         self.checks.config(text=f"{'✓' if fits else '○'} Design fits the mat\n\n"
