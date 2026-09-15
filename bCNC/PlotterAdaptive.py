@@ -60,6 +60,8 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self.tool_buttons.append(self.grid_button)
         self.inspector_button = self.button(self.tool_row, 'Inspector', self.toggle_inspector)
         self.tool_buttons.append(self.inspector_button)
+        self._tool_trace = app.canvas.actionVar.trace_add('write', self.update_tool_selection)
+        self.tool_row.bind('<Destroy>', self.release_tool_trace, add='+')
         self.stop_button.configure(bg=DANGER, fg='white', text='Stop job', activebackground=DANGER, activeforeground='white')
         self.preview_visible = False
         self.preview_button = self.button(self.toolbar, 'Show preview', self.toggle_preview)
@@ -357,7 +359,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
         for button in self.selection_actions:
             button.configure(state='normal' if ids and not busy else 'disabled')
         self.more_tools.configure(state='readonly' if ids and not busy else 'disabled')
-        self.grid_button.configure(bg=SOFT if self.app.canvasFrame.draw_grid.get() else BG)
+        self.update_tool_selection()
         for index, button in enumerate(self.tabs):
             button.configure(bg=SOFT if index == self.step else PANEL)
         pages_open = bool(getattr(self.app, 'workspace_pages', []))
@@ -382,6 +384,21 @@ class AdaptiveWorkflow(PlotterWorkflow):
             self.stop_button.configure(command=self.stop, text='Stop job')
         if self.app.tool_sequence.active and not self.app.sender.running:
             self.stop_button.pack(side='left', padx=8)
+
+    def update_tool_selection(self, *args):
+        from CNCCanvas import ACTION_SELECT, ACTION_PAN, ACTION_MOVE, ACTION_MAT_DRAG
+        action = self.app.canvas.actionVar.get()
+        for button, modes in zip(self.tool_buttons[:3], ((ACTION_SELECT,), (ACTION_PAN,), (ACTION_MOVE, ACTION_MAT_DRAG))):
+            selected = action in modes
+            button.configure(bg=SOFT if selected else BG,
+                             activebackground=SOFT if selected else PANEL)
+        self.grid_button.configure(bg=SOFT if self.app.canvasFrame.draw_grid.get() else BG)
+        self.inspector_button.configure(bg=SOFT if self.inspector_visible else BG)
+
+    def release_tool_trace(self, event):
+        if event.widget is self.tool_row and self._tool_trace is not None:
+            self.app.canvas.actionVar.trace_remove('write', self._tool_trace)
+            self._tool_trace = None
 
     def update_connection_status(self):
         sender = self.app.sender

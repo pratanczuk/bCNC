@@ -178,7 +178,7 @@ class Application(Tk):
 
         photo = PhotoImage(file=f"{Utils.prgpath}/bCNC.png")
         self.iconphoto(True, photo)
-        self.title(f"{Utils.__prg__} {__version__} {__platform_fingerprint__}")
+        self.title(f"Foil Studio {__version__} {__platform_fingerprint__}")
         self.widgets = []
 
         # Global variables
@@ -718,7 +718,7 @@ class Application(Tk):
         self.gcode.headerFooter()
         self.editor.fill()
         self.draw()
-        self.title(f"{Utils.__prg__} {__version__} {__platform_fingerprint__}")
+        self.title(f"Foil Studio {__version__} {__platform_fingerprint__}")
 
     # -----------------------------------------------------------------------
     # load dialog
@@ -804,7 +804,7 @@ class Application(Tk):
         else:
             self.setStatus(_("'{}' loaded").format(filename))
         self.title(
-            f"{Utils.__prg__} {__version__}: {self.gcode.filename} "
+            f"Foil Studio {__version__}: {self.gcode.filename} "
             + f"{__platform_fingerprint__}"
         )
 
@@ -815,7 +815,7 @@ class Application(Tk):
         self.files.save(filename)
         self.setStatus(_("'{}' saved").format(filename))
         self.title(
-            f"{Utils.__prg__} {__version__}: {self.gcode.filename} "
+            f"Foil Studio {__version__}: {self.gcode.filename} "
             + f"{__platform_fingerprint__}"
         )
 

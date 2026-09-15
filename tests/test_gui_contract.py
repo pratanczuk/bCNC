@@ -265,6 +265,41 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_window_title_uses_product_name_for_new_loaded_and_saved_files(self):
+        self.assertTrue(self.app.title().startswith('Foil Studio'))
+        path = os.path.join(self.temp.name, 'window-title.ngc')
+        self.app.save(path)
+        self.assertTrue(self.app.title().startswith('Foil Studio'))
+        self.app.load(path)
+        self.assertTrue(self.app.title().startswith('Foil Studio'))
+        with patch.object(self.app, 'fileModified', return_value=False):
+            self.app.newFile()
+        self.assertTrue(self.app.title().startswith('Foil Studio'))
+
+    def test_active_canvas_tool_stays_highlighted_and_follows_escape(self):
+        from CNCCanvas import ACTION_SELECT, ACTION_PAN, ACTION_MOVE
+        from PlotterTheme import SOFT, BG
+        self.w.select_all()
+        for size in ('1280x900', '390x844'):
+            self.app.geometry(size); self.app.update()
+            for index, action in enumerate((ACTION_SELECT, ACTION_PAN, ACTION_MOVE)):
+                self.w.tool_buttons[index].invoke()
+                self.assertEqual(self.app.canvas.actionVar.get(), action)
+                for j, button in enumerate(self.w.tool_buttons[:3]):
+                    self.assertEqual(button.cget('bg'), SOFT if j == index else BG)
+                self.w.update_state(); self.app.update()
+                self.assertEqual(self.w.tool_buttons[index].cget('bg'), SOFT)
+            self.app.canvas.actionCancel()
+            self.assertEqual(self.w.tool_buttons[0].cget('bg'), SOFT)
+            self.assertEqual(self.w.tool_buttons[2].cget('bg'), BG)
+            # Fit is a one-shot action, not another persistent mode.
+            self.w.tool_buttons[3].invoke()
+            self.assertEqual(self.w.tool_buttons[0].cget('bg'), SOFT)
+        self.w.toggle_inspector(); self.w.update_state()
+        self.assertEqual(self.w.inspector_button.cget('bg'), BG)
+        self.w.toggle_inspector(); self.w.update_state()
+        self.assertEqual(self.w.inspector_button.cget('bg'), SOFT)
+
     def test_cut_preview_has_compact_legend_and_optional_details(self):
         self.w.clear_notice(); self.w._cut_started = False
         page = self.w.design_dialog('CutPreviewDialog')
