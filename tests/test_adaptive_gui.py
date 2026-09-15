@@ -174,7 +174,10 @@ class AdaptiveGUITest(unittest.TestCase):
         self.w.select_all()
         selected = self.app.editor.getSelectedBlocks()
         self.assertEqual(len(selected), 2)
-        self.w.show_inspector('Selection')
+        self.w.inspector_tabs['Properties'].invoke()
+        self.app.update()
+        self.assertTrue(self.w.selection_panel.winfo_ismapped())
+        self.assertFalse(self.w.layer_panel.winfo_ismapped())
         self.assertEqual(self.app.editor.getSelectedBlocks(), selected)
         self.w.multiple.set(False)
         self.w.multi_selection()
@@ -182,14 +185,28 @@ class AdaptiveGUITest(unittest.TestCase):
         self.assertFalse(self.w.selection())
 
     def test_collapse_panel_and_grid_controls_are_real(self):
-        self.app.geometry('390x844')
-        self.app.update()
-        self.w.toggle_inspector()
-        self.app.update()
-        self.assertFalse(self.w.sidebar.winfo_ismapped())
-        self.w.toggle_inspector()
-        self.app.update()
-        self.assertTrue(self.w.sidebar.winfo_ismapped())
+        for width, height in ((1024, 768), (840, 700), (390, 844)):
+            with self.subTest(width=width):
+                self.app.geometry(f'{width}x{height}')
+                self.app.update()
+                visible_size = (self.app.canvasFrame.winfo_width(),
+                                self.app.canvasFrame.winfo_height())
+                self.w.inspector_button.invoke()
+                self.app.update()
+                self.assertFalse(self.w.sidebar.winfo_ismapped())
+                self.assertEqual(self.w.inspector_button['text'], 'Show panel')
+                axis = 1 if width < 760 else 0
+                hidden_size = (self.app.canvasFrame.winfo_width(),
+                               self.app.canvasFrame.winfo_height())
+                self.assertGreater(hidden_size[axis], visible_size[axis])
+                # Crossing the breakpoint must not reopen a hidden panel.
+                self.app.geometry('1024x768' if width < 760 else '390x844')
+                self.app.update()
+                self.assertFalse(self.w.sidebar.winfo_ismapped())
+                self.w.inspector_button.invoke()
+                self.app.update()
+                self.assertTrue(self.w.sidebar.winfo_ismapped())
+                self.assertEqual(self.w.inspector_button['text'], 'Hide panel')
         before = self.app.canvasFrame.draw_grid.get()
         self.w.toggle_grid()
         self.assertNotEqual(self.app.canvasFrame.draw_grid.get(), before)

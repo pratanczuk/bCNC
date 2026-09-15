@@ -21,7 +21,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
     def __init__(self, app):
         self.adaptive_ready = False
         self.layout = None
-        self.inspector_mode = 'Selection'
+        self.inspector_mode = 'Properties'
         self.selection_signature = None
         self.inspector_visible = True
         install_theme(app)
@@ -86,7 +86,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
         nav = tk.Frame(p, bg=PANEL)
         nav.pack(fill='x', pady=6)
         self.inspector_tabs = {}
-        for name in ('Selection', 'Layers'):
+        for name in ('Properties', 'Layers'):
             b = self.button(nav, name, lambda n=name: self.show_inspector(n))
             b.pack(side='left', fill='x', expand=True, padx=2)
             self.inspector_tabs[name] = b
@@ -138,7 +138,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self.more_tools.set('More editing tools…')
         self.more_tools.pack(fill='x', pady=8)
         self.more_tools.bind('<<ComboboxSelected>>', self.choose_tool)
-        self.show_inspector('Selection')
+        self.show_inspector('Properties')
 
     def show_inspector(self, name):
         self.inspector_mode = name
@@ -256,7 +256,8 @@ class AdaptiveWorkflow(PlotterWorkflow):
             self.mat_label.pack_forget()
         else:
             self.sidebar.configure(width=layout.panel_width)
-            self.sidebar.pack(side='right', fill='y')
+            if self.inspector_visible:
+                self.sidebar.pack(side='right', fill='y')
             self.project_button.pack(side='right', padx=4)
             self.mat_label.pack(side='right')
         self.app.canvasFrame.pack(side='top', fill='both', expand=True)

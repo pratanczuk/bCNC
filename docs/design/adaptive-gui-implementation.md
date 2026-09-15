@@ -8,7 +8,7 @@
 ## Implemented
 
 - A shared visual style for buttons, editable fields, checkboxes, notebooks, selection, focus and progress.
-- Separate workflow navigation, contextual Selection / Layers panels, a compact tool row, Projects / More menus and a dedicated Machine window.
+- Separate workflow navigation, contextual Properties / Layers panels, a compact tool row, Projects / More menus and a dedicated Machine window.
 - Desktop side inspector; stacked inspector and bottom workflow navigation below 760 logical pixels. The inspector can be collapsed to enlarge the mat.
 - Exact numeric width, height and position editing, decimal-comma support, aspect locking, validation and a single undo transaction. An empty selection never implicitly edits the entire design.
 - Touch-friendly explicit multi-selection, Select all / Clear, numeric alternatives to canvas dragging, Select / Pan / Move modes and an adaptive, toggleable mat grid.
@@ -31,7 +31,7 @@ Coverage is collected for **all `bCNC` application Python modules**. The enforce
 
 No coverage exclusions were added to reach the target; the UI report has zero excluded lines. Tests construct real Tk widgets under Xvfb, edit real document geometry, exercise undo/error paths and verify commands through mocked/loopback transports. The new tests add compact-layout, explicit-selection, machine-control and lifecycle checks. Existing regression assertions changed only where navigation, scrolling or explicit-selection behavior intentionally changed.
 
-Validation on 15 September 2026: **265 tests passed**; workflow/dialog UI line coverage **91.65%** (3,215 / 3,508 lines); new modules `PlotterAdaptive`, `PlotterUI` and `PlotterMachineUI` **100%**; complete application line coverage **71.63%**. Syntax compilation and `git diff --check` also passed.
+Validation on 15 September 2026: **265 tests passed**; workflow/dialog UI line coverage **91.65%** (3,216 / 3,509 lines); new modules `PlotterAdaptive`, `PlotterUI` and `PlotterMachineUI` **100%**; complete application line coverage **71.63%**. Syntax compilation and `git diff --check` also passed.
 
 Run from the repository root:
 
@@ -62,3 +62,7 @@ These are real Tk renders under Xvfb, not the HTML concept.
 ![Compact design](../screenshots/adaptive-design-compact.png)
 
 Other captures: [Prepare](../screenshots/adaptive-prepare-desktop.png), [Cut](../screenshots/adaptive-cut-desktop.png), [Shape](../screenshots/adaptive-shape-compact.png), [Layers](../screenshots/adaptive-layers-compact.png), [Library](../screenshots/adaptive-library-compact.png), [Settings](../screenshots/adaptive-settings-compact.png), [Connection](../screenshots/adaptive-connection-compact.png), [Machine](../screenshots/adaptive-machine-compact.png).
+
+## Panel visibility correction
+
+Hide panel now collapses the inspector at desktop, tablet and compact widths, gives its space to the canvas, and preserves the hidden state across layout breakpoints. Show panel restores it. The former Selection tab is named Properties: it edits the selected artwork; the toolbar Select control selects artwork on the mat. Real-widget regressions cover both controls.
