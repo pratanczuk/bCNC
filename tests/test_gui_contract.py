@@ -206,15 +206,50 @@ class VisualContractTest(unittest.TestCase):
             with patch.object(WorkspacePage,'wait_window',choose):
                 self.assertEqual(ask_save_changes(self.app),result)
 
+    def test_connection_disconnect_and_serial_labels(self):
+        page = self.w.connection_settings()
+        for size in ('320x600', '1280x900'):
+            self.app.geometry(size); self.app.update()
+            button = page.disconnect_button
+            self.assertTrue(button.winfo_ismapped())
+            self.assertGreaterEqual(button.winfo_height(), 48)
+            self.assertLessEqual(button.winfo_rootx()+button.winfo_width(), self.app.winfo_rootx()+self.app.winfo_width())
+            self.assertLessEqual(button.winfo_rooty()+button.winfo_height(), self.app.winfo_rooty()+self.app.winfo_height())
+        labels = [str(w.cget('text')) for w in descendants(page) if isinstance(w, (tk.Label, RoundedButton))]
+        self.assertIn('Serial port', labels)
+        self.assertFalse(any('USB' in label for label in labels))
+        with patch.object(self.app, 'close') as close, patch.object(self.app, 'open') as connect:
+            self.assertTrue(page.disconnect())
+            close.assert_not_called(); connect.assert_not_called()
+        for service, attr in ((self.app.sender, 'running'), (self.app.mat_handling, 'active'), (self.app.tool_sequence, 'active')):
+            with patch.object(service, attr, True), patch.object(self.app, 'close') as close:
+                self.assertFalse(page.disconnect()); close.assert_not_called()
+        self.app.sender.serial = object()
+        with patch.object(self.app, 'close', side_effect=OSError('Port busy')):
+            self.assertFalse(page.disconnect())
+            self.assertIn('Could not disconnect', page.message.get())
+        def close_port():
+            self.app.sender.serial = None
+            self.app.sender.firmware = None
+        self.w.confirmed.set(True)
+        with patch.object(self.app, 'close', side_effect=close_port) as close, patch.object(self.app, 'open') as connect:
+            page.disconnect_button.invoke()
+            close.assert_called_once(); connect.assert_not_called()
+        self.assertIsNone(self.app.sender.serial)
+        self.assertFalse(self.w.confirmed.get())
+        self.assertIsNone(self.w._connection)
+        self.assertTrue(page.winfo_exists())
+        self.assertIn('Plotter disconnected', page.message.get())
+
     def test_connection_transport_form_switches_without_connecting(self):
         page=self.w.connection_settings();self.app.update()
         page.transport.set('Network');page.choose_transport();self.app.update()
-        self.assertTrue(page.network_form.winfo_ismapped());self.assertFalse(page.usb_form.winfo_ismapped())
+        self.assertTrue(page.network_form.winfo_ismapped());self.assertFalse(page.serial_form.winfo_ismapped())
         page.host.set('plotter.local');page.network_port.set('99999')
         with patch.object(self.app.connection,'connect') as connect:
             page.connect();connect.assert_not_called()
-        page.transport.set('USB');page.choose_transport();self.app.update()
-        self.assertTrue(page.usb_form.winfo_ismapped());self.assertFalse(page.network_form.winfo_ismapped())
+        page.transport.set('Serial port');page.choose_transport();self.app.update()
+        self.assertTrue(page.serial_form.winfo_ismapped());self.assertFalse(page.network_form.winfo_ismapped())
         page.destroy()
 
     def test_alarm_actions_stay_visible_on_short_phone(self):

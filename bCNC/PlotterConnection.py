@@ -34,27 +34,27 @@ class ConnectionDialog(WorkspacePage):
         self.message = tk.StringVar(self)
         tk.Label(body, text='Connect your plotter', bg=PANEL, fg=INK,
                  font=('DejaVu Sans', 20, 'bold')).pack(anchor='w')
-        tk.Label(body, text='Power on your plotter. Choose a USB port or enter its TCP address.',
+        tk.Label(body, text='Power on your plotter. Choose a serial port or enter its TCP address.',
                  bg=PANEL, fg=MUTED, wraplength=500, justify='left').pack(anchor='w', pady=12)
-        self.transport = tk.StringVar(self, 'Network' if is_tcp_address(self.port.get()) else 'USB')
+        self.transport = tk.StringVar(self, 'Network' if is_tcp_address(self.port.get()) else 'Serial port')
         self.host = tk.StringVar(self, 'plotter.local')
         self.network_port = tk.StringVar(self, '8888')
         nav = tk.Frame(body, bg=PANEL); nav.pack(fill='x', pady=8)
         from PlotterUI import ChoiceButton
-        for name in ('USB', 'Network'):
+        for name in ('Serial port', 'Network'):
             ChoiceButton(nav, text=name, variable=self.transport, value=name,
                          command=self.choose_transport).pack(side='left', fill='x', expand=True, padx=4)
-        self.usb_form = tk.Frame(body, bg=PANEL)
+        self.serial_form = tk.Frame(body, bg=PANEL)
         self.network_form = tk.Frame(body, bg=PANEL)
-        for title, variable, values in [('USB port', self.port, []), ('Baud rate', self.baud, ['115200','57600','38400','9600'])]:
-            workflow.label(self.usb_form, title).pack(anchor='w', pady=(8, 4))
-            combo = ttk.Combobox(self.usb_form, textvariable=variable, values=values, style='Foil.TCombobox')
+        for title, variable, values in [('Serial port', self.port, []), ('Baud rate', self.baud, ['115200','57600','38400','9600'])]:
+            workflow.label(self.serial_form, title).pack(anchor='w', pady=(8, 4))
+            combo = ttk.Combobox(self.serial_form, textvariable=variable, values=values, style='Foil.TCombobox')
             combo.pack(fill='x')
             if variable is self.port:
                 self.ports = combo
             else:
                 self.baud_combo = combo
-        workflow.button(self.usb_form, 'Refresh serial ports', self.refresh).pack(fill='x', pady=8)
+        workflow.button(self.serial_form, 'Refresh serial ports', self.refresh).pack(fill='x', pady=8)
         for title, variable in [('Host name or IP address', self.host), ('TCP port', self.network_port)]:
             workflow.label(self.network_form, title).pack(anchor='w', pady=(8, 4))
             ttk.Entry(self.network_form, textvariable=variable).pack(fill='x')
@@ -78,6 +78,8 @@ class ConnectionDialog(WorkspacePage):
                  wraplength=500, justify='left').pack(fill='x', pady=12)
         row = tk.Frame(self, bg=PANEL)
         row.pack(side='bottom', fill='x', before=scroller)
+        self.disconnect_button = workflow.button(row, 'Disconnect', self.disconnect)
+        self.disconnect_button.pack(side='top', fill='x', pady=(0, 8))
         workflow.button(row, 'Connect', self.connect, primary=True).pack(side='right')
         workflow.button(row, 'Close', self.destroy).pack(side='right', padx=8)
         self.bind('<Escape>', lambda event: self.destroy())
@@ -92,7 +94,7 @@ class ConnectionDialog(WorkspacePage):
 
     def update_transport(self, *args):
         tcp = is_tcp_address(self.port.get())
-        self.transport.set('Network' if tcp else 'USB')
+        self.transport.set('Network' if tcp else 'Serial port')
         if tcp:
             from urllib.parse import urlsplit
             try:
@@ -101,12 +103,12 @@ class ConnectionDialog(WorkspacePage):
                 self.network_port.set(str(address.port or 8888))
             except ValueError:
                 self.message.set('Enter a valid host and TCP port.')
-        self.usb_form.pack_forget()
+        self.serial_form.pack_forget()
         self.network_form.pack_forget()
-        (self.network_form if tcp else self.usb_form).pack(fill='x', before=self.firmware_label)
+        (self.network_form if tcp else self.serial_form).pack(fill='x', before=self.firmware_label)
         self.baud_combo.config(state='disabled' if tcp else 'normal')
         self.transport_hint.set('TCP connection · baud rate is not used. The plotter must be reachable on your network.' if tcp
-                                else 'USB connection · choose the baud rate used by your firmware.')
+                                else 'Serial connection · choose the baud rate used by your firmware.')
 
     def choose_transport(self):
         self.port.set('socket://' + self.host.get() + ':' + self.network_port.get() if self.transport.get() == 'Network' else '')
@@ -123,6 +125,26 @@ class ConnectionDialog(WorkspacePage):
         except Exception as error:
             self.message.set('We couldn’t list serial ports. Check the cable or enter the port manually.')
             self.app.reportPlotterError('Connection scan failed', str(error))
+
+    def disconnect(self):
+        if (self.app.sender.running or self.app.mat_handling.active
+                or self.app.tool_sequence.active):
+            self.message.set('Stop the current job or movement before disconnecting.')
+            return False
+        if self.app.sender.serial is None:
+            self.message.set('The plotter is already disconnected.')
+            return True
+        try:
+            self.app.close()
+        except OSError as error:
+            self.message.set(f'Could not disconnect: {error}')
+            return False
+        self.workflow.confirmed.set(False)
+        self.workflow._connection = None  # Intentional disconnect, not a lost connection.
+        self.workflow.clear_notice()
+        self.workflow.update_state()
+        self.message.set('Plotter disconnected. You can change the connection settings.')
+        return True
 
     def connect(self):
         try:
