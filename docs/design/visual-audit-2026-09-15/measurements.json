@@ -1,0 +1,8249 @@
+[
+  {
+    "name": "design",
+    "size": "desktop",
+    "image": "design-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Import\u2026",
+        "width": 139,
+        "height": 41,
+        "x": 955,
+        "y": 251
+      },
+      {
+        "text": "Save project",
+        "width": 139,
+        "height": 41,
+        "x": 1102,
+        "y": 251
+      },
+      {
+        "text": "Text",
+        "width": 91,
+        "height": 41,
+        "x": 955,
+        "y": 298
+      },
+      {
+        "text": "Shape",
+        "width": 91,
+        "height": 41,
+        "x": 1054,
+        "y": 298
+      },
+      {
+        "text": "Trace",
+        "width": 92,
+        "height": 41,
+        "x": 1149,
+        "y": 298
+      },
+      {
+        "text": "Properties",
+        "width": 152,
+        "height": 41,
+        "x": 957,
+        "y": 385
+      },
+      {
+        "text": "Layers",
+        "width": 126,
+        "height": 41,
+        "x": 1113,
+        "y": 385
+      },
+      {
+        "text": "Apply size & position",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 676
+      },
+      {
+        "text": "Rotate 90\u00b0",
+        "width": 139,
+        "height": 41,
+        "x": 955,
+        "y": 724
+      },
+      {
+        "text": "Center",
+        "width": 139,
+        "height": 41,
+        "x": 1102,
+        "y": 724
+      },
+      {
+        "text": "Duplicate",
+        "width": 139,
+        "height": 41,
+        "x": 955,
+        "y": 771
+      },
+      {
+        "text": "Delete",
+        "width": 139,
+        "height": 41,
+        "x": 1102,
+        "y": 771
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Continue to Prepare \u2192",
+        "width": 196,
+        "height": 41,
+        "x": 1068,
+        "y": 851
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "prepare",
+    "size": "desktop",
+    "image": "prepare-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Connect",
+        "width": 153,
+        "height": 41,
+        "x": 955,
+        "y": 296
+      },
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 1114,
+        "y": 296
+      },
+      {
+        "text": "Save\u2026",
+        "width": 78,
+        "height": 41,
+        "x": 1163,
+        "y": 380
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 427
+      },
+      {
+        "text": "Pressure\u2026",
+        "width": 160,
+        "height": 41,
+        "x": 955,
+        "y": 549
+      },
+      {
+        "text": "Drag knife\u2026",
+        "width": 120,
+        "height": 41,
+        "x": 1121,
+        "y": 549
+      },
+      {
+        "text": "New pressure & corner test",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 596
+      },
+      {
+        "text": "First-cut guide\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 640
+      },
+      {
+        "text": "Mat dimensions\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 860
+      },
+      {
+        "text": "Set origin here",
+        "width": 201,
+        "height": 41,
+        "x": 955,
+        "y": 954
+      },
+      {
+        "text": "Unload",
+        "width": 79,
+        "height": 41,
+        "x": 1162,
+        "y": 954
+      },
+      {
+        "text": "Stop mat movement",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 1003
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Review job \u2192",
+        "width": 127,
+        "height": 41,
+        "x": 1137,
+        "y": 851
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "cut-review",
+    "size": "desktop",
+    "image": "cut-review-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 302
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 352
+      },
+      {
+        "text": "Set origin here",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 408
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Start cut",
+        "width": 92,
+        "height": 41,
+        "x": 1172,
+        "y": 851
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "design-layers",
+    "size": "desktop",
+    "image": "design-layers-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Import\u2026",
+        "width": 139,
+        "height": 41,
+        "x": 955,
+        "y": 251
+      },
+      {
+        "text": "Save project",
+        "width": 139,
+        "height": 41,
+        "x": 1102,
+        "y": 251
+      },
+      {
+        "text": "Text",
+        "width": 91,
+        "height": 41,
+        "x": 955,
+        "y": 298
+      },
+      {
+        "text": "Shape",
+        "width": 91,
+        "height": 41,
+        "x": 1054,
+        "y": 298
+      },
+      {
+        "text": "Trace",
+        "width": 92,
+        "height": 41,
+        "x": 1149,
+        "y": 298
+      },
+      {
+        "text": "Properties",
+        "width": 152,
+        "height": 41,
+        "x": 957,
+        "y": 385
+      },
+      {
+        "text": "Layers",
+        "width": 126,
+        "height": 41,
+        "x": 1113,
+        "y": 385
+      },
+      {
+        "text": "Select all",
+        "width": 139,
+        "height": 41,
+        "x": 955,
+        "y": 583
+      },
+      {
+        "text": "Clear",
+        "width": 139,
+        "height": 41,
+        "x": 1102,
+        "y": 583
+      },
+      {
+        "text": "Layer materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 635
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Continue to Prepare \u2192",
+        "width": 196,
+        "height": 41,
+        "x": 1068,
+        "y": 851
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "TextDialog",
+    "size": "desktop",
+    "image": "TextDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 765,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 680,
+        "y": 623
+      },
+      {
+        "text": "Open font file\u2026",
+        "width": 287,
+        "height": 41,
+        "x": 568,
+        "y": 553
+      }
+    ]
+  },
+  {
+    "name": "ShapeDialog",
+    "size": "desktop",
+    "image": "ShapeDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 765,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 680,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "TraceDialog",
+    "size": "desktop",
+    "image": "TraceDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 765,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 680,
+        "y": 623
+      },
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 24,
+        "y": 623
+      },
+      {
+        "text": "Choose image\u2026",
+        "width": 291,
+        "height": 41,
+        "x": 566,
+        "y": 152
+      },
+      {
+        "text": "Basics",
+        "width": 141,
+        "height": 41,
+        "x": 568,
+        "y": 203
+      },
+      {
+        "text": "Refine",
+        "width": 142,
+        "height": 41,
+        "x": 713,
+        "y": 203
+      }
+    ]
+  },
+  {
+    "name": "ArrangeDialog",
+    "size": "desktop",
+    "image": "ArrangeDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Resize",
+        "width": 190,
+        "height": 41,
+        "x": 332,
+        "y": 118
+      },
+      {
+        "text": "Rotate",
+        "width": 190,
+        "height": 41,
+        "x": 332,
+        "y": 172
+      },
+      {
+        "text": "Place",
+        "width": 190,
+        "height": 41,
+        "x": 332,
+        "y": 280
+      },
+      {
+        "text": "Flip horizontal",
+        "width": 422,
+        "height": 41,
+        "x": 24,
+        "y": 376
+      },
+      {
+        "text": "Flip vertical",
+        "width": 422,
+        "height": 41,
+        "x": 454,
+        "y": 376
+      },
+      {
+        "text": "Center on mat",
+        "width": 852,
+        "height": 41,
+        "x": 24,
+        "y": 424
+      },
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 810,
+        "y": 561
+      },
+      {
+        "text": "Undo",
+        "width": 66,
+        "height": 41,
+        "x": 24,
+        "y": 561
+      }
+    ]
+  },
+  {
+    "name": "CombineDialog",
+    "size": "desktop",
+    "image": "CombineDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Apply to selected objects",
+        "width": 216,
+        "height": 41,
+        "x": 660,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 575,
+        "y": 623
+      },
+      {
+        "text": "Reverse object order",
+        "width": 291,
+        "height": 41,
+        "x": 566,
+        "y": 480
+      }
+    ]
+  },
+  {
+    "name": "OutlineDialog",
+    "size": "desktop",
+    "image": "OutlineDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add outlines",
+        "width": 121,
+        "height": 41,
+        "x": 755,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 670,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "LayoutDialog",
+    "size": "desktop",
+    "image": "LayoutDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Apply",
+        "width": 69,
+        "height": 41,
+        "x": 807,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 722,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "ContourDialog",
+    "size": "desktop",
+    "image": "ContourDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Apply",
+        "width": 69,
+        "height": 41,
+        "x": 807,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 722,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "WeedDialog",
+    "size": "desktop",
+    "image": "WeedDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add weed cuts",
+        "width": 139,
+        "height": 41,
+        "x": 737,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 652,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "LayersDialog",
+    "size": "desktop",
+    "image": "LayersDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 814,
+        "y": 627
+      },
+      {
+        "text": "Undo",
+        "width": 66,
+        "height": 41,
+        "x": 20,
+        "y": 627
+      },
+      {
+        "text": "Redo",
+        "width": 65,
+        "height": 41,
+        "x": 92,
+        "y": 627
+      },
+      {
+        "text": "+ Add layer",
+        "width": 116,
+        "height": 41,
+        "x": 406,
+        "y": 103
+      },
+      {
+        "text": "Select all objects",
+        "width": 247,
+        "height": 41,
+        "x": 20,
+        "y": 536
+      },
+      {
+        "text": "Select attached group",
+        "width": 247,
+        "height": 41,
+        "x": 275,
+        "y": 536
+      },
+      {
+        "text": "Rename layer",
+        "width": 272,
+        "height": 27,
+        "x": 560,
+        "y": 181
+      },
+      {
+        "text": "Apply material & tool",
+        "width": 272,
+        "height": 27,
+        "x": 560,
+        "y": 438
+      },
+      {
+        "text": "Apply layer color",
+        "width": 272,
+        "height": 27,
+        "x": 560,
+        "y": 631
+      },
+      {
+        "text": "Include",
+        "width": 132,
+        "height": 27,
+        "x": 560,
+        "y": 665
+      },
+      {
+        "text": "Exclude",
+        "width": 132,
+        "height": 27,
+        "x": 700,
+        "y": 665
+      },
+      {
+        "text": "Only this layer",
+        "width": 132,
+        "height": 27,
+        "x": 560,
+        "y": 698
+      },
+      {
+        "text": "All layers",
+        "width": 132,
+        "height": 27,
+        "x": 700,
+        "y": 698
+      },
+      {
+        "text": "Move layer up",
+        "width": 132,
+        "height": 27,
+        "x": 560,
+        "y": 731
+      },
+      {
+        "text": "Move down",
+        "width": 132,
+        "height": 27,
+        "x": 700,
+        "y": 731
+      },
+      {
+        "text": "Delete layer",
+        "width": 272,
+        "height": 27,
+        "x": 560,
+        "y": 839
+      },
+      {
+        "text": "Rename object",
+        "width": 294,
+        "height": 27,
+        "x": 562,
+        "y": 224
+      },
+      {
+        "text": "Move to layer",
+        "width": 294,
+        "height": 27,
+        "x": 562,
+        "y": 333
+      },
+      {
+        "text": "Apply",
+        "width": 66,
+        "height": 27,
+        "x": 790,
+        "y": 372
+      },
+      {
+        "text": "Include objects",
+        "width": 143,
+        "height": 27,
+        "x": 562,
+        "y": 406
+      },
+      {
+        "text": "Exclude",
+        "width": 143,
+        "height": 27,
+        "x": 713,
+        "y": 406
+      },
+      {
+        "text": "Move up",
+        "width": 143,
+        "height": 27,
+        "x": 562,
+        "y": 439
+      },
+      {
+        "text": "Move down",
+        "width": 143,
+        "height": 27,
+        "x": 713,
+        "y": 439
+      },
+      {
+        "text": "Duplicate",
+        "width": 143,
+        "height": 27,
+        "x": 562,
+        "y": 472
+      },
+      {
+        "text": "Delete objects",
+        "width": 143,
+        "height": 27,
+        "x": 713,
+        "y": 472
+      },
+      {
+        "text": "Attach",
+        "width": 143,
+        "height": 27,
+        "x": 562,
+        "y": 505
+      },
+      {
+        "text": "Detach",
+        "width": 143,
+        "height": 27,
+        "x": 713,
+        "y": 505
+      },
+      {
+        "text": "Apply object color",
+        "width": 294,
+        "height": 27,
+        "x": 562,
+        "y": 613
+      }
+    ]
+  },
+  {
+    "name": "CutPreviewDialog",
+    "size": "desktop",
+    "image": "CutPreviewDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 810,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 725,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "ProjectsDialog",
+    "size": "desktop",
+    "image": "ProjectsDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 809,
+        "y": 619
+      },
+      {
+        "text": "Open project\u2026",
+        "width": 422,
+        "height": 41,
+        "x": 24,
+        "y": 103
+      },
+      {
+        "text": "Save project\u2026",
+        "width": 422,
+        "height": 41,
+        "x": 454,
+        "y": 103
+      },
+      {
+        "text": "Export prepared cut G-code\u2026",
+        "width": 852,
+        "height": 41,
+        "x": 24,
+        "y": 151
+      },
+      {
+        "text": "Open selected recent project",
+        "width": 852,
+        "height": 41,
+        "x": 24,
+        "y": 352
+      },
+      {
+        "text": "Recover selected copy",
+        "width": 422,
+        "height": 41,
+        "x": 24,
+        "y": 506
+      },
+      {
+        "text": "First-cut guide",
+        "width": 422,
+        "height": 41,
+        "x": 454,
+        "y": 506
+      }
+    ]
+  },
+  {
+    "name": "FirstCutDialog",
+    "size": "desktop",
+    "image": "FirstCutDialog-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Connection setup",
+        "width": 844,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 418,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 418,
+        "height": 41,
+        "x": 454,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 757,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "guide-2",
+    "size": "desktop",
+    "image": "guide-2-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Pressure & blade settings",
+        "width": 844,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 418,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 418,
+        "height": 41,
+        "x": 454,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 757,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "guide-3",
+    "size": "desktop",
+    "image": "guide-3-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Create test design",
+        "width": 844,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 418,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 418,
+        "height": 41,
+        "x": 454,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 757,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "guide-4",
+    "size": "desktop",
+    "image": "guide-4-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Go to Prepare",
+        "width": 844,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 418,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 418,
+        "height": 41,
+        "x": 454,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 757,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "guide-5",
+    "size": "desktop",
+    "image": "guide-5-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Finish",
+        "width": 844,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 418,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 418,
+        "height": 41,
+        "x": 454,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 757,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "library-materials",
+    "size": "desktop",
+    "image": "library-materials-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 814,
+        "y": 627
+      },
+      {
+        "text": "Add",
+        "width": 112,
+        "height": 41,
+        "x": 36,
+        "y": 530
+      },
+      {
+        "text": "Duplicate",
+        "width": 154,
+        "height": 41,
+        "x": 152,
+        "y": 530
+      },
+      {
+        "text": "Delete",
+        "width": 131,
+        "height": 41,
+        "x": 310,
+        "y": 530
+      },
+      {
+        "text": "Save changes",
+        "width": 132,
+        "height": 41,
+        "x": 734,
+        "y": 528
+      }
+    ]
+  },
+  {
+    "name": "library-tools",
+    "size": "desktop",
+    "image": "library-tools-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 814,
+        "y": 627
+      },
+      {
+        "text": "Add",
+        "width": 112,
+        "height": 41,
+        "x": 36,
+        "y": 530
+      },
+      {
+        "text": "Duplicate",
+        "width": 154,
+        "height": 41,
+        "x": 152,
+        "y": 530
+      },
+      {
+        "text": "Delete",
+        "width": 131,
+        "height": 41,
+        "x": 310,
+        "y": 530
+      },
+      {
+        "text": "Save changes",
+        "width": 132,
+        "height": 41,
+        "x": 734,
+        "y": 528
+      }
+    ]
+  },
+  {
+    "name": "settings-pressure-and-speed",
+    "size": "desktop",
+    "image": "settings-pressure-and-speed-desktop.png",
+    "width": 740,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "\u221225",
+        "width": 59,
+        "height": 41,
+        "x": 16,
+        "y": 492
+      },
+      {
+        "text": "+25",
+        "width": 59,
+        "height": 41,
+        "x": 83,
+        "y": 492
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 692,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 581,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 494,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-drag-knife",
+    "size": "desktop",
+    "image": "settings-drag-knife-desktop.png",
+    "width": 740,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Save preset\u2026",
+        "width": 131,
+        "height": 41,
+        "x": 579,
+        "y": 185
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 692,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 581,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 494,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-mat-setup",
+    "size": "desktop",
+    "image": "settings-mat-setup-desktop.png",
+    "width": 740,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Materials & tools\u2026",
+        "width": 692,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 581,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 494,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-job-commands",
+    "size": "desktop",
+    "image": "settings-job-commands-desktop.png",
+    "width": 740,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Materials & tools\u2026",
+        "width": 692,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 581,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 494,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-planning-defaults",
+    "size": "desktop",
+    "image": "settings-planning-defaults-desktop.png",
+    "width": 740,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Materials & tools\u2026",
+        "width": 692,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 581,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 494,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-controller",
+    "size": "desktop",
+    "image": "settings-controller-desktop.png",
+    "width": 740,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Read controller settings",
+        "width": 207,
+        "height": 41,
+        "x": 28,
+        "y": 286
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 692,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 581,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 494,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-machine-control",
+    "size": "desktop",
+    "image": "settings-machine-control-desktop.png",
+    "width": 740,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 573,
+        "y": 169
+      },
+      {
+        "text": "Y +",
+        "width": 61,
+        "height": 41,
+        "x": 300,
+        "y": 294
+      },
+      {
+        "text": "X \u2212",
+        "width": 54,
+        "height": 41,
+        "x": 236,
+        "y": 341
+      },
+      {
+        "text": "X +",
+        "width": 54,
+        "height": 41,
+        "x": 371,
+        "y": 341
+      },
+      {
+        "text": "Y \u2212",
+        "width": 61,
+        "height": 41,
+        "x": 300,
+        "y": 388
+      },
+      {
+        "text": "Z +",
+        "width": 54,
+        "height": 41,
+        "x": 435,
+        "y": 294
+      },
+      {
+        "text": "Z \u2212",
+        "width": 54,
+        "height": 41,
+        "x": 435,
+        "y": 388
+      },
+      {
+        "text": "Stop",
+        "width": 61,
+        "height": 41,
+        "x": 300,
+        "y": 341
+      },
+      {
+        "text": "Home machine",
+        "width": 141,
+        "height": 41,
+        "x": 29,
+        "y": 436
+      },
+      {
+        "text": "Set XY origin",
+        "width": 123,
+        "height": 41,
+        "x": 176,
+        "y": 436
+      },
+      {
+        "text": "Release blade",
+        "width": 132,
+        "height": 41,
+        "x": 305,
+        "y": 436
+      },
+      {
+        "text": "Reset controller",
+        "width": 145,
+        "height": 41,
+        "x": 29,
+        "y": 481
+      },
+      {
+        "text": "Unlock after alarm",
+        "width": 165,
+        "height": 41,
+        "x": 180,
+        "y": 481
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 692,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 581,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 494,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-language-and-support",
+    "size": "desktop",
+    "image": "settings-language-and-support-desktop.png",
+    "width": 740,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Show",
+        "width": 68,
+        "height": 41,
+        "x": 258,
+        "y": 253
+      },
+      {
+        "text": "Copy",
+        "width": 65,
+        "height": 41,
+        "x": 635,
+        "y": 253
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 692,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 581,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 494,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "connection-usb",
+    "size": "desktop",
+    "image": "connection-usb-desktop.png",
+    "width": 570,
+    "height": 740,
+    "buttons": [
+      {
+        "text": "Refresh serial ports",
+        "width": 173,
+        "height": 41,
+        "x": 16,
+        "y": 341
+      },
+      {
+        "text": "Connect",
+        "width": 89,
+        "height": 41,
+        "x": 465,
+        "y": 687
+      },
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 390,
+        "y": 687
+      }
+    ]
+  },
+  {
+    "name": "connection-network",
+    "size": "desktop",
+    "image": "connection-network-desktop.png",
+    "width": 570,
+    "height": 740,
+    "buttons": [
+      {
+        "text": "Refresh serial ports",
+        "width": 173,
+        "height": 41,
+        "x": 16,
+        "y": 341
+      },
+      {
+        "text": "Connect",
+        "width": 89,
+        "height": 41,
+        "x": 465,
+        "y": 687
+      },
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 390,
+        "y": 687
+      }
+    ]
+  },
+  {
+    "name": "machine",
+    "size": "desktop",
+    "image": "machine-desktop.png",
+    "width": 460,
+    "height": 740,
+    "buttons": [
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 317,
+        "y": 12
+      },
+      {
+        "text": "Stop movement",
+        "width": 148,
+        "height": 41,
+        "x": 16,
+        "y": 687
+      },
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 377,
+        "y": 687
+      },
+      {
+        "text": "Y +",
+        "width": 53,
+        "height": 41,
+        "x": 196,
+        "y": 361
+      },
+      {
+        "text": "X \u2212",
+        "width": 54,
+        "height": 41,
+        "x": 134,
+        "y": 410
+      },
+      {
+        "text": "X +",
+        "width": 54,
+        "height": 41,
+        "x": 257,
+        "y": 410
+      },
+      {
+        "text": "Y \u2212",
+        "width": 53,
+        "height": 41,
+        "x": 196,
+        "y": 459
+      },
+      {
+        "text": "Home machine",
+        "width": 414,
+        "height": 41,
+        "x": 16,
+        "y": 520
+      },
+      {
+        "text": "Set XY origin",
+        "width": 414,
+        "height": 41,
+        "x": 16,
+        "y": 569
+      },
+      {
+        "text": "Release blade",
+        "width": 414,
+        "height": 41,
+        "x": 16,
+        "y": 618
+      },
+      {
+        "text": "Z +",
+        "width": 414,
+        "height": 41,
+        "x": 16,
+        "y": 667
+      },
+      {
+        "text": "Z \u2212",
+        "width": 414,
+        "height": 41,
+        "x": 16,
+        "y": 716
+      },
+      {
+        "text": "Reset controller",
+        "width": 414,
+        "height": 41,
+        "x": 16,
+        "y": 765
+      },
+      {
+        "text": "Unlock after inspection",
+        "width": 414,
+        "height": 41,
+        "x": 16,
+        "y": 814
+      }
+    ]
+  },
+  {
+    "name": "error",
+    "size": "desktop",
+    "image": "error-desktop.png",
+    "width": 540,
+    "height": 500,
+    "buttons": [
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 24,
+        "y": 431
+      },
+      {
+        "text": "Back to editing",
+        "width": 141,
+        "height": 41,
+        "x": 375,
+        "y": 431
+      }
+    ]
+  },
+  {
+    "name": "error-details",
+    "size": "desktop",
+    "image": "error-details-desktop.png",
+    "width": 540,
+    "height": 500,
+    "buttons": [
+      {
+        "text": "Hide details",
+        "width": 116,
+        "height": 41,
+        "x": 24,
+        "y": 431
+      },
+      {
+        "text": "Back to editing",
+        "width": 141,
+        "height": 41,
+        "x": 375,
+        "y": 431
+      }
+    ]
+  },
+  {
+    "name": "alarm",
+    "size": "desktop",
+    "image": "alarm-desktop.png",
+    "width": 540,
+    "height": 500,
+    "buttons": [
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 24,
+        "y": 431
+      },
+      {
+        "text": "Back to editing",
+        "width": 141,
+        "height": 41,
+        "x": 375,
+        "y": 431
+      }
+    ]
+  },
+  {
+    "name": "alarm-details",
+    "size": "desktop",
+    "image": "alarm-details-desktop.png",
+    "width": 540,
+    "height": 500,
+    "buttons": [
+      {
+        "text": "Hide details",
+        "width": 116,
+        "height": 41,
+        "x": 24,
+        "y": 431
+      },
+      {
+        "text": "Back to editing",
+        "width": 141,
+        "height": 41,
+        "x": 375,
+        "y": 431
+      }
+    ]
+  },
+  {
+    "name": "cut-running",
+    "size": "desktop",
+    "image": "cut-running-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 302
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 352
+      },
+      {
+        "text": "Set origin here",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 408
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Pause",
+        "width": 71,
+        "height": 41,
+        "x": 1185,
+        "y": 851
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "cut-paused",
+    "size": "desktop",
+    "image": "cut-paused-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 302
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 352
+      },
+      {
+        "text": "Set origin here",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 408
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Resume",
+        "width": 88,
+        "height": 41,
+        "x": 1168,
+        "y": 851
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "design",
+    "size": "compact",
+    "image": "design-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Import\u2026",
+        "width": 163,
+        "height": 41,
+        "x": 17,
+        "y": 416
+      },
+      {
+        "text": "Save project",
+        "width": 163,
+        "height": 41,
+        "x": 188,
+        "y": 416
+      },
+      {
+        "text": "Text",
+        "width": 107,
+        "height": 41,
+        "x": 17,
+        "y": 463
+      },
+      {
+        "text": "Shape",
+        "width": 107,
+        "height": 41,
+        "x": 132,
+        "y": 463
+      },
+      {
+        "text": "Trace",
+        "width": 108,
+        "height": 41,
+        "x": 243,
+        "y": 463
+      },
+      {
+        "text": "Properties",
+        "width": 176,
+        "height": 41,
+        "x": 19,
+        "y": 550
+      },
+      {
+        "text": "Layers",
+        "width": 150,
+        "height": 41,
+        "x": 199,
+        "y": 550
+      },
+      {
+        "text": "Apply size & position",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 841
+      },
+      {
+        "text": "Rotate 90\u00b0",
+        "width": 163,
+        "height": 41,
+        "x": 17,
+        "y": 889
+      },
+      {
+        "text": "Center",
+        "width": 163,
+        "height": 41,
+        "x": 188,
+        "y": 889
+      },
+      {
+        "text": "Duplicate",
+        "width": 163,
+        "height": 41,
+        "x": 17,
+        "y": 936
+      },
+      {
+        "text": "Delete",
+        "width": 163,
+        "height": 41,
+        "x": 188,
+        "y": 936
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Continue to Prepare \u2192",
+        "width": 196,
+        "height": 41,
+        "x": 178,
+        "y": 795
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "prepare",
+    "size": "compact",
+    "image": "prepare-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Connect",
+        "width": 201,
+        "height": 41,
+        "x": 17,
+        "y": 461
+      },
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 224,
+        "y": 461
+      },
+      {
+        "text": "Save\u2026",
+        "width": 78,
+        "height": 41,
+        "x": 273,
+        "y": 545
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 592
+      },
+      {
+        "text": "Pressure\u2026",
+        "width": 208,
+        "height": 41,
+        "x": 17,
+        "y": 714
+      },
+      {
+        "text": "Drag knife\u2026",
+        "width": 120,
+        "height": 41,
+        "x": 231,
+        "y": 714
+      },
+      {
+        "text": "New pressure & corner test",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 761
+      },
+      {
+        "text": "First-cut guide\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 805
+      },
+      {
+        "text": "Mat dimensions\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 1025
+      },
+      {
+        "text": "Set origin here",
+        "width": 249,
+        "height": 41,
+        "x": 17,
+        "y": 1119
+      },
+      {
+        "text": "Unload",
+        "width": 79,
+        "height": 41,
+        "x": 272,
+        "y": 1119
+      },
+      {
+        "text": "Stop mat movement",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 1168
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Review job \u2192",
+        "width": 127,
+        "height": 41,
+        "x": 247,
+        "y": 795
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "cut-review",
+    "size": "compact",
+    "image": "cut-review-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 467
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 517
+      },
+      {
+        "text": "Set origin here",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 573
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Start cut",
+        "width": 92,
+        "height": 41,
+        "x": 282,
+        "y": 795
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "design-layers",
+    "size": "compact",
+    "image": "design-layers-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Import\u2026",
+        "width": 163,
+        "height": 41,
+        "x": 17,
+        "y": 416
+      },
+      {
+        "text": "Save project",
+        "width": 163,
+        "height": 41,
+        "x": 188,
+        "y": 416
+      },
+      {
+        "text": "Text",
+        "width": 107,
+        "height": 41,
+        "x": 17,
+        "y": 463
+      },
+      {
+        "text": "Shape",
+        "width": 107,
+        "height": 41,
+        "x": 132,
+        "y": 463
+      },
+      {
+        "text": "Trace",
+        "width": 108,
+        "height": 41,
+        "x": 243,
+        "y": 463
+      },
+      {
+        "text": "Properties",
+        "width": 176,
+        "height": 41,
+        "x": 19,
+        "y": 550
+      },
+      {
+        "text": "Layers",
+        "width": 150,
+        "height": 41,
+        "x": 199,
+        "y": 550
+      },
+      {
+        "text": "Select all",
+        "width": 163,
+        "height": 41,
+        "x": 17,
+        "y": 748
+      },
+      {
+        "text": "Clear",
+        "width": 163,
+        "height": 41,
+        "x": 188,
+        "y": 748
+      },
+      {
+        "text": "Layer materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 800
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Continue to Prepare \u2192",
+        "width": 196,
+        "height": 41,
+        "x": 178,
+        "y": 795
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "TextDialog",
+    "size": "compact",
+    "image": "TextDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 255,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 170,
+        "y": 623
+      },
+      {
+        "text": "Open font file\u2026",
+        "width": 319,
+        "height": 41,
+        "x": 26,
+        "y": 713
+      }
+    ]
+  },
+  {
+    "name": "ShapeDialog",
+    "size": "compact",
+    "image": "ShapeDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 255,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 170,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "TraceDialog",
+    "size": "compact",
+    "image": "TraceDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 255,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 170,
+        "y": 623
+      },
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 24,
+        "y": 623
+      },
+      {
+        "text": "Choose image\u2026",
+        "width": 323,
+        "height": 41,
+        "x": 24,
+        "y": 312
+      },
+      {
+        "text": "Basics",
+        "width": 157,
+        "height": 41,
+        "x": 26,
+        "y": 363
+      },
+      {
+        "text": "Refine",
+        "width": 158,
+        "height": 41,
+        "x": 187,
+        "y": 363
+      }
+    ]
+  },
+  {
+    "name": "ArrangeDialog",
+    "size": "compact",
+    "image": "ArrangeDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Resize",
+        "width": 190,
+        "height": 41,
+        "x": 332,
+        "y": 118
+      },
+      {
+        "text": "Rotate",
+        "width": 190,
+        "height": 41,
+        "x": 332,
+        "y": 172
+      },
+      {
+        "text": "Place",
+        "width": 190,
+        "height": 41,
+        "x": 332,
+        "y": 280
+      },
+      {
+        "text": "Flip horizontal",
+        "width": 167,
+        "height": 41,
+        "x": 24,
+        "y": 376
+      },
+      {
+        "text": "Flip vertical",
+        "width": 167,
+        "height": 41,
+        "x": 199,
+        "y": 376
+      },
+      {
+        "text": "Center on mat",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 424
+      },
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 300,
+        "y": 561
+      },
+      {
+        "text": "Undo",
+        "width": 66,
+        "height": 41,
+        "x": 24,
+        "y": 561
+      }
+    ]
+  },
+  {
+    "name": "CombineDialog",
+    "size": "compact",
+    "image": "CombineDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Apply to selected objects",
+        "width": 216,
+        "height": 41,
+        "x": 150,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 65,
+        "y": 623
+      },
+      {
+        "text": "Reverse object order",
+        "width": 323,
+        "height": 41,
+        "x": 24,
+        "y": 640
+      }
+    ]
+  },
+  {
+    "name": "OutlineDialog",
+    "size": "compact",
+    "image": "OutlineDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add outlines",
+        "width": 121,
+        "height": 41,
+        "x": 245,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 160,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "LayoutDialog",
+    "size": "compact",
+    "image": "LayoutDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Apply",
+        "width": 69,
+        "height": 41,
+        "x": 297,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 212,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "ContourDialog",
+    "size": "compact",
+    "image": "ContourDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Apply",
+        "width": 69,
+        "height": 41,
+        "x": 297,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 212,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "WeedDialog",
+    "size": "compact",
+    "image": "WeedDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add weed cuts",
+        "width": 139,
+        "height": 41,
+        "x": 227,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 142,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "LayersDialog",
+    "size": "compact",
+    "image": "LayersDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 304,
+        "y": 627
+      },
+      {
+        "text": "Undo",
+        "width": 66,
+        "height": 41,
+        "x": 20,
+        "y": 627
+      },
+      {
+        "text": "Redo",
+        "width": 65,
+        "height": 41,
+        "x": 92,
+        "y": 627
+      },
+      {
+        "text": "+ Add layer",
+        "width": 116,
+        "height": 41,
+        "x": 240,
+        "y": 122
+      },
+      {
+        "text": "Select all objects",
+        "width": 164,
+        "height": 41,
+        "x": 20,
+        "y": 572
+      },
+      {
+        "text": "Select attached group",
+        "width": 164,
+        "height": 41,
+        "x": 192,
+        "y": 572
+      },
+      {
+        "text": "Rename layer",
+        "width": 272,
+        "height": 27,
+        "x": 28,
+        "y": 420
+      },
+      {
+        "text": "Apply material & tool",
+        "width": 272,
+        "height": 27,
+        "x": 28,
+        "y": 677
+      },
+      {
+        "text": "Apply layer color",
+        "width": 272,
+        "height": 27,
+        "x": 28,
+        "y": 870
+      },
+      {
+        "text": "Include",
+        "width": 132,
+        "height": 27,
+        "x": 28,
+        "y": 904
+      },
+      {
+        "text": "Exclude",
+        "width": 132,
+        "height": 27,
+        "x": 168,
+        "y": 904
+      },
+      {
+        "text": "Only this layer",
+        "width": 132,
+        "height": 27,
+        "x": 28,
+        "y": 937
+      },
+      {
+        "text": "All layers",
+        "width": 132,
+        "height": 27,
+        "x": 168,
+        "y": 937
+      },
+      {
+        "text": "Move layer up",
+        "width": 132,
+        "height": 27,
+        "x": 28,
+        "y": 970
+      },
+      {
+        "text": "Move down",
+        "width": 132,
+        "height": 27,
+        "x": 168,
+        "y": 970
+      },
+      {
+        "text": "Delete layer",
+        "width": 272,
+        "height": 27,
+        "x": 28,
+        "y": 1078
+      },
+      {
+        "text": "Rename object",
+        "width": 316,
+        "height": 27,
+        "x": 30,
+        "y": 463
+      },
+      {
+        "text": "Move to layer",
+        "width": 316,
+        "height": 27,
+        "x": 30,
+        "y": 572
+      },
+      {
+        "text": "Apply",
+        "width": 66,
+        "height": 27,
+        "x": 280,
+        "y": 611
+      },
+      {
+        "text": "Include objects",
+        "width": 154,
+        "height": 27,
+        "x": 30,
+        "y": 645
+      },
+      {
+        "text": "Exclude",
+        "width": 154,
+        "height": 27,
+        "x": 192,
+        "y": 645
+      },
+      {
+        "text": "Move up",
+        "width": 154,
+        "height": 27,
+        "x": 30,
+        "y": 678
+      },
+      {
+        "text": "Move down",
+        "width": 154,
+        "height": 27,
+        "x": 192,
+        "y": 678
+      },
+      {
+        "text": "Duplicate",
+        "width": 154,
+        "height": 27,
+        "x": 30,
+        "y": 711
+      },
+      {
+        "text": "Delete objects",
+        "width": 154,
+        "height": 27,
+        "x": 192,
+        "y": 711
+      },
+      {
+        "text": "Attach",
+        "width": 154,
+        "height": 27,
+        "x": 30,
+        "y": 744
+      },
+      {
+        "text": "Detach",
+        "width": 154,
+        "height": 27,
+        "x": 192,
+        "y": 744
+      },
+      {
+        "text": "Apply object color",
+        "width": 316,
+        "height": 27,
+        "x": 30,
+        "y": 852
+      }
+    ]
+  },
+  {
+    "name": "CutPreviewDialog",
+    "size": "compact",
+    "image": "CutPreviewDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 300,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 215,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "ProjectsDialog",
+    "size": "compact",
+    "image": "ProjectsDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 299,
+        "y": 619
+      },
+      {
+        "text": "Open project\u2026",
+        "width": 167,
+        "height": 41,
+        "x": 24,
+        "y": 122
+      },
+      {
+        "text": "Save project\u2026",
+        "width": 167,
+        "height": 41,
+        "x": 199,
+        "y": 122
+      },
+      {
+        "text": "Export prepared cut G-code\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 170
+      },
+      {
+        "text": "Open selected recent project",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 371
+      },
+      {
+        "text": "Recover selected copy",
+        "width": 167,
+        "height": 41,
+        "x": 24,
+        "y": 525
+      },
+      {
+        "text": "First-cut guide",
+        "width": 167,
+        "height": 41,
+        "x": 199,
+        "y": 525
+      }
+    ]
+  },
+  {
+    "name": "FirstCutDialog",
+    "size": "compact",
+    "image": "FirstCutDialog-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Connection setup",
+        "width": 334,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 163,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 163,
+        "height": 41,
+        "x": 199,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 247,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "guide-2",
+    "size": "compact",
+    "image": "guide-2-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Pressure & blade settings",
+        "width": 334,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 163,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 163,
+        "height": 41,
+        "x": 199,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 247,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "guide-3",
+    "size": "compact",
+    "image": "guide-3-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Create test design",
+        "width": 334,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 163,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 163,
+        "height": 41,
+        "x": 199,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 247,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "guide-4",
+    "size": "compact",
+    "image": "guide-4-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Go to Prepare",
+        "width": 334,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 163,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 163,
+        "height": 41,
+        "x": 199,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 247,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "guide-5",
+    "size": "compact",
+    "image": "guide-5-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Finish",
+        "width": 334,
+        "height": 41,
+        "x": 28,
+        "y": 503
+      },
+      {
+        "text": "Back",
+        "width": 163,
+        "height": 41,
+        "x": 28,
+        "y": 555
+      },
+      {
+        "text": "Next",
+        "width": 163,
+        "height": 41,
+        "x": 199,
+        "y": 555
+      },
+      {
+        "text": "Close guide",
+        "width": 115,
+        "height": 41,
+        "x": 247,
+        "y": 607
+      }
+    ]
+  },
+  {
+    "name": "library-materials",
+    "size": "compact",
+    "image": "library-materials-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 304,
+        "y": 627
+      },
+      {
+        "text": "Add",
+        "width": 83,
+        "height": 41,
+        "x": 36,
+        "y": 271
+      },
+      {
+        "text": "Duplicate",
+        "width": 125,
+        "height": 41,
+        "x": 123,
+        "y": 271
+      },
+      {
+        "text": "Delete",
+        "width": 102,
+        "height": 41,
+        "x": 252,
+        "y": 271
+      },
+      {
+        "text": "Save changes",
+        "width": 132,
+        "height": 41,
+        "x": 224,
+        "y": 508
+      }
+    ]
+  },
+  {
+    "name": "library-tools",
+    "size": "compact",
+    "image": "library-tools-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 304,
+        "y": 627
+      },
+      {
+        "text": "Add",
+        "width": 83,
+        "height": 41,
+        "x": 36,
+        "y": 271
+      },
+      {
+        "text": "Duplicate",
+        "width": 125,
+        "height": 41,
+        "x": 123,
+        "y": 271
+      },
+      {
+        "text": "Delete",
+        "width": 102,
+        "height": 41,
+        "x": 252,
+        "y": 271
+      },
+      {
+        "text": "Save changes",
+        "width": 132,
+        "height": 41,
+        "x": 224,
+        "y": 508
+      }
+    ]
+  },
+  {
+    "name": "settings-pressure-and-speed",
+    "size": "compact",
+    "image": "settings-pressure-and-speed-compact.png",
+    "width": 390,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "\u221225",
+        "width": 59,
+        "height": 41,
+        "x": 16,
+        "y": 492
+      },
+      {
+        "text": "+25",
+        "width": 59,
+        "height": 41,
+        "x": 83,
+        "y": 492
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 231,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 144,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-drag-knife",
+    "size": "compact",
+    "image": "settings-drag-knife-compact.png",
+    "width": 390,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Save preset\u2026",
+        "width": 102,
+        "height": 41,
+        "x": 258,
+        "y": 185
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 231,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 144,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-mat-setup",
+    "size": "compact",
+    "image": "settings-mat-setup-compact.png",
+    "width": 390,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Materials & tools\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 231,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 144,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-job-commands",
+    "size": "compact",
+    "image": "settings-job-commands-compact.png",
+    "width": 390,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Materials & tools\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 231,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 144,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-planning-defaults",
+    "size": "compact",
+    "image": "settings-planning-defaults-compact.png",
+    "width": 390,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Materials & tools\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 231,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 144,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-controller",
+    "size": "compact",
+    "image": "settings-controller-compact.png",
+    "width": 390,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Read controller settings",
+        "width": 207,
+        "height": 41,
+        "x": 28,
+        "y": 305
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 231,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 144,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-machine-control",
+    "size": "compact",
+    "image": "settings-machine-control-compact.png",
+    "width": 390,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Connection\u2026",
+        "width": 104,
+        "height": 41,
+        "x": 246,
+        "y": 169
+      },
+      {
+        "text": "Y +",
+        "width": 61,
+        "height": 41,
+        "x": 125,
+        "y": 313
+      },
+      {
+        "text": "X \u2212",
+        "width": 54,
+        "height": 41,
+        "x": 61,
+        "y": 360
+      },
+      {
+        "text": "X +",
+        "width": 54,
+        "height": 41,
+        "x": 196,
+        "y": 360
+      },
+      {
+        "text": "Y \u2212",
+        "width": 61,
+        "height": 41,
+        "x": 125,
+        "y": 407
+      },
+      {
+        "text": "Z +",
+        "width": 54,
+        "height": 41,
+        "x": 260,
+        "y": 313
+      },
+      {
+        "text": "Z \u2212",
+        "width": 54,
+        "height": 41,
+        "x": 260,
+        "y": 407
+      },
+      {
+        "text": "Stop",
+        "width": 61,
+        "height": 41,
+        "x": 125,
+        "y": 360
+      },
+      {
+        "text": "Home machine",
+        "width": 141,
+        "height": 41,
+        "x": 29,
+        "y": 455
+      },
+      {
+        "text": "Set XY origin",
+        "width": 123,
+        "height": 41,
+        "x": 176,
+        "y": 455
+      },
+      {
+        "text": "Release blade",
+        "width": 42,
+        "height": 41,
+        "x": 305,
+        "y": 455
+      },
+      {
+        "text": "Reset controller",
+        "width": 145,
+        "height": 40,
+        "x": 29,
+        "y": 500
+      },
+      {
+        "text": "Unlock after alarm",
+        "width": 165,
+        "height": 40,
+        "x": 180,
+        "y": 500
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 231,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 144,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "settings-language-and-support",
+    "size": "compact",
+    "image": "settings-language-and-support-compact.png",
+    "width": 390,
+    "height": 760,
+    "buttons": [
+      {
+        "text": "Show",
+        "width": 68,
+        "height": 41,
+        "x": 258,
+        "y": 253
+      },
+      {
+        "text": "Copy",
+        "width": 18,
+        "height": 41,
+        "x": 332,
+        "y": 253
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 342,
+        "height": 41,
+        "x": 24,
+        "y": 654
+      },
+      {
+        "text": "Apply settings",
+        "width": 135,
+        "height": 41,
+        "x": 231,
+        "y": 703
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 144,
+        "y": 703
+      }
+    ]
+  },
+  {
+    "name": "connection-usb",
+    "size": "compact",
+    "image": "connection-usb-compact.png",
+    "width": 390,
+    "height": 740,
+    "buttons": [
+      {
+        "text": "Refresh serial ports",
+        "width": 173,
+        "height": 41,
+        "x": 16,
+        "y": 361
+      },
+      {
+        "text": "Connect",
+        "width": 89,
+        "height": 41,
+        "x": 285,
+        "y": 687
+      },
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 210,
+        "y": 687
+      }
+    ]
+  },
+  {
+    "name": "connection-network",
+    "size": "compact",
+    "image": "connection-network-compact.png",
+    "width": 390,
+    "height": 740,
+    "buttons": [
+      {
+        "text": "Refresh serial ports",
+        "width": 173,
+        "height": 41,
+        "x": 16,
+        "y": 361
+      },
+      {
+        "text": "Connect",
+        "width": 89,
+        "height": 41,
+        "x": 285,
+        "y": 687
+      },
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 210,
+        "y": 687
+      }
+    ]
+  },
+  {
+    "name": "machine",
+    "size": "compact",
+    "image": "machine-compact.png",
+    "width": 390,
+    "height": 740,
+    "buttons": [
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 247,
+        "y": 12
+      },
+      {
+        "text": "Stop movement",
+        "width": 148,
+        "height": 41,
+        "x": 16,
+        "y": 687
+      },
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 307,
+        "y": 687
+      },
+      {
+        "text": "Y +",
+        "width": 53,
+        "height": 41,
+        "x": 161,
+        "y": 361
+      },
+      {
+        "text": "X \u2212",
+        "width": 54,
+        "height": 41,
+        "x": 99,
+        "y": 410
+      },
+      {
+        "text": "X +",
+        "width": 54,
+        "height": 41,
+        "x": 222,
+        "y": 410
+      },
+      {
+        "text": "Y \u2212",
+        "width": 53,
+        "height": 41,
+        "x": 161,
+        "y": 459
+      },
+      {
+        "text": "Home machine",
+        "width": 344,
+        "height": 41,
+        "x": 16,
+        "y": 520
+      },
+      {
+        "text": "Set XY origin",
+        "width": 344,
+        "height": 41,
+        "x": 16,
+        "y": 569
+      },
+      {
+        "text": "Release blade",
+        "width": 344,
+        "height": 41,
+        "x": 16,
+        "y": 618
+      },
+      {
+        "text": "Z +",
+        "width": 344,
+        "height": 41,
+        "x": 16,
+        "y": 667
+      },
+      {
+        "text": "Z \u2212",
+        "width": 344,
+        "height": 41,
+        "x": 16,
+        "y": 716
+      },
+      {
+        "text": "Reset controller",
+        "width": 344,
+        "height": 41,
+        "x": 16,
+        "y": 765
+      },
+      {
+        "text": "Unlock after inspection",
+        "width": 344,
+        "height": 41,
+        "x": 16,
+        "y": 814
+      }
+    ]
+  },
+  {
+    "name": "error",
+    "size": "compact",
+    "image": "error-compact.png",
+    "width": 390,
+    "height": 500,
+    "buttons": [
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 24,
+        "y": 431
+      },
+      {
+        "text": "Back to editing",
+        "width": 141,
+        "height": 41,
+        "x": 225,
+        "y": 431
+      }
+    ]
+  },
+  {
+    "name": "error-details",
+    "size": "compact",
+    "image": "error-details-compact.png",
+    "width": 390,
+    "height": 500,
+    "buttons": [
+      {
+        "text": "Hide details",
+        "width": 116,
+        "height": 41,
+        "x": 24,
+        "y": 431
+      },
+      {
+        "text": "Back to editing",
+        "width": 141,
+        "height": 41,
+        "x": 225,
+        "y": 431
+      }
+    ]
+  },
+  {
+    "name": "alarm",
+    "size": "compact",
+    "image": "alarm-compact.png",
+    "width": 390,
+    "height": 500,
+    "buttons": [
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 24,
+        "y": 431
+      },
+      {
+        "text": "Back to editing",
+        "width": 141,
+        "height": 41,
+        "x": 225,
+        "y": 431
+      }
+    ]
+  },
+  {
+    "name": "alarm-details",
+    "size": "compact",
+    "image": "alarm-details-compact.png",
+    "width": 390,
+    "height": 500,
+    "buttons": [
+      {
+        "text": "Hide details",
+        "width": 116,
+        "height": 41,
+        "x": 24,
+        "y": 431
+      },
+      {
+        "text": "Back to editing",
+        "width": 141,
+        "height": 41,
+        "x": 225,
+        "y": 431
+      }
+    ]
+  },
+  {
+    "name": "cut-running",
+    "size": "compact",
+    "image": "cut-running-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 467
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 517
+      },
+      {
+        "text": "Set origin here",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 573
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Pause",
+        "width": 71,
+        "height": 41,
+        "x": 295,
+        "y": 795
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "cut-paused",
+    "size": "compact",
+    "image": "cut-paused-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 467
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 517
+      },
+      {
+        "text": "Set origin here",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 573
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Resume",
+        "width": 88,
+        "height": 41,
+        "x": 278,
+        "y": 795
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "connection-lost",
+    "size": "compact",
+    "image": "connection-lost-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Reconnect plotter",
+        "width": 314,
+        "height": 41,
+        "x": 27,
+        "y": 559
+      },
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 27,
+        "y": 606
+      },
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 274,
+        "y": 606
+      },
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 762
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 812
+      },
+      {
+        "text": "Load mat",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 868
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Start cut",
+        "width": 92,
+        "height": 41,
+        "x": 282,
+        "y": 795
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "connection-lost",
+    "size": "desktop",
+    "image": "connection-lost-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Reconnect plotter",
+        "width": 266,
+        "height": 41,
+        "x": 965,
+        "y": 394
+      },
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 965,
+        "y": 441
+      },
+      {
+        "text": "Close",
+        "width": 67,
+        "height": 41,
+        "x": 1164,
+        "y": 441
+      },
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 597
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 647
+      },
+      {
+        "text": "Load mat",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 703
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Start cut",
+        "width": 92,
+        "height": 41,
+        "x": 1172,
+        "y": 851
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "cut-ended",
+    "size": "compact",
+    "image": "cut-ended-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 467
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 517
+      },
+      {
+        "text": "Load mat",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 573
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Start cut",
+        "width": 92,
+        "height": 41,
+        "x": 282,
+        "y": 795
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "cut-ended",
+    "size": "desktop",
+    "image": "cut-ended-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 302
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 352
+      },
+      {
+        "text": "Load mat",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 408
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Start cut",
+        "width": 92,
+        "height": 41,
+        "x": 1172,
+        "y": 851
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "cut-paused-connected",
+    "size": "compact",
+    "image": "cut-paused-connected-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 467
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 517
+      },
+      {
+        "text": "Load mat",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 573
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Resume",
+        "width": 88,
+        "height": 41,
+        "x": 278,
+        "y": 795
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "cut-paused-connected",
+    "size": "desktop",
+    "image": "cut-paused-connected-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 302
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 352
+      },
+      {
+        "text": "Load mat",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 408
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Resume",
+        "width": 88,
+        "height": 41,
+        "x": 1168,
+        "y": 851
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "cut-running-connected",
+    "size": "compact",
+    "image": "cut-running-connected-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 467
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 517
+      },
+      {
+        "text": "Load mat",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 573
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Pause",
+        "width": 71,
+        "height": 41,
+        "x": 295,
+        "y": 795
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "cut-running-connected",
+    "size": "desktop",
+    "image": "cut-running-connected-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 302
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 352
+      },
+      {
+        "text": "Load mat",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 408
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Pause",
+        "width": 71,
+        "height": 41,
+        "x": 1185,
+        "y": 851
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "cut-stopped",
+    "size": "compact",
+    "image": "cut-stopped-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 467
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 517
+      },
+      {
+        "text": "Load mat",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 573
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Start cut",
+        "width": 92,
+        "height": 41,
+        "x": 282,
+        "y": 795
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "cut-stopped",
+    "size": "desktop",
+    "image": "cut-stopped-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 302
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 352
+      },
+      {
+        "text": "Load mat",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 408
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Start cut",
+        "width": 92,
+        "height": 41,
+        "x": 1172,
+        "y": 851
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "file-import",
+    "size": "compact",
+    "image": "file-import-compact.png",
+    "width": 486,
+    "height": 279,
+    "buttons": [],
+    "measurement_note": "Image dimensions; button metrics not collected for supplementary capture."
+  },
+  {
+    "name": "file-import",
+    "size": "desktop",
+    "image": "file-import-desktop.png",
+    "width": 486,
+    "height": 279,
+    "buttons": [],
+    "measurement_note": "Image dimensions; button metrics not collected for supplementary capture."
+  },
+  {
+    "name": "layer-properties",
+    "size": "compact",
+    "image": "layer-properties-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 304,
+        "y": 627
+      },
+      {
+        "text": "Undo",
+        "width": 66,
+        "height": 41,
+        "x": 20,
+        "y": 627
+      },
+      {
+        "text": "Redo",
+        "width": 65,
+        "height": 41,
+        "x": 92,
+        "y": 627
+      },
+      {
+        "text": "+ Add layer",
+        "width": 116,
+        "height": 41,
+        "x": 240,
+        "y": 122
+      },
+      {
+        "text": "Select all objects",
+        "width": 164,
+        "height": 41,
+        "x": 20,
+        "y": 572
+      },
+      {
+        "text": "Select attached group",
+        "width": 164,
+        "height": 41,
+        "x": 192,
+        "y": 572
+      },
+      {
+        "text": "Rename layer",
+        "width": 316,
+        "height": 27,
+        "x": 30,
+        "y": 463
+      },
+      {
+        "text": "Apply material & tool",
+        "width": 316,
+        "height": 27,
+        "x": 30,
+        "y": 720
+      },
+      {
+        "text": "Apply layer color",
+        "width": 316,
+        "height": 27,
+        "x": 30,
+        "y": 913
+      },
+      {
+        "text": "Include",
+        "width": 154,
+        "height": 27,
+        "x": 30,
+        "y": 947
+      },
+      {
+        "text": "Exclude",
+        "width": 154,
+        "height": 27,
+        "x": 192,
+        "y": 947
+      },
+      {
+        "text": "Only this layer",
+        "width": 154,
+        "height": 27,
+        "x": 30,
+        "y": 980
+      },
+      {
+        "text": "All layers",
+        "width": 154,
+        "height": 27,
+        "x": 192,
+        "y": 980
+      },
+      {
+        "text": "Move layer up",
+        "width": 154,
+        "height": 27,
+        "x": 30,
+        "y": 1013
+      },
+      {
+        "text": "Move down",
+        "width": 154,
+        "height": 27,
+        "x": 192,
+        "y": 1013
+      },
+      {
+        "text": "Delete layer",
+        "width": 316,
+        "height": 27,
+        "x": 30,
+        "y": 1121
+      },
+      {
+        "text": "Rename object",
+        "width": 274,
+        "height": 27,
+        "x": 28,
+        "y": 420
+      },
+      {
+        "text": "Move to layer",
+        "width": 274,
+        "height": 27,
+        "x": 28,
+        "y": 529
+      },
+      {
+        "text": "Apply",
+        "width": 66,
+        "height": 27,
+        "x": 236,
+        "y": 568
+      },
+      {
+        "text": "Include objects",
+        "width": 133,
+        "height": 27,
+        "x": 28,
+        "y": 602
+      },
+      {
+        "text": "Exclude",
+        "width": 133,
+        "height": 27,
+        "x": 169,
+        "y": 602
+      },
+      {
+        "text": "Move up",
+        "width": 133,
+        "height": 27,
+        "x": 28,
+        "y": 635
+      },
+      {
+        "text": "Move down",
+        "width": 133,
+        "height": 27,
+        "x": 169,
+        "y": 635
+      },
+      {
+        "text": "Duplicate",
+        "width": 133,
+        "height": 27,
+        "x": 28,
+        "y": 668
+      },
+      {
+        "text": "Delete objects",
+        "width": 133,
+        "height": 27,
+        "x": 169,
+        "y": 668
+      },
+      {
+        "text": "Attach",
+        "width": 133,
+        "height": 27,
+        "x": 28,
+        "y": 701
+      },
+      {
+        "text": "Detach",
+        "width": 133,
+        "height": 27,
+        "x": 169,
+        "y": 701
+      },
+      {
+        "text": "Apply object color",
+        "width": 274,
+        "height": 27,
+        "x": 28,
+        "y": 809
+      }
+    ]
+  },
+  {
+    "name": "layer-properties",
+    "size": "desktop",
+    "image": "layer-properties-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 814,
+        "y": 627
+      },
+      {
+        "text": "Undo",
+        "width": 66,
+        "height": 41,
+        "x": 20,
+        "y": 627
+      },
+      {
+        "text": "Redo",
+        "width": 65,
+        "height": 41,
+        "x": 92,
+        "y": 627
+      },
+      {
+        "text": "+ Add layer",
+        "width": 116,
+        "height": 41,
+        "x": 406,
+        "y": 103
+      },
+      {
+        "text": "Select all objects",
+        "width": 247,
+        "height": 41,
+        "x": 20,
+        "y": 536
+      },
+      {
+        "text": "Select attached group",
+        "width": 247,
+        "height": 41,
+        "x": 275,
+        "y": 536
+      },
+      {
+        "text": "Rename layer",
+        "width": 294,
+        "height": 27,
+        "x": 562,
+        "y": 224
+      },
+      {
+        "text": "Apply material & tool",
+        "width": 294,
+        "height": 27,
+        "x": 562,
+        "y": 481
+      },
+      {
+        "text": "Apply layer color",
+        "width": 294,
+        "height": 27,
+        "x": 562,
+        "y": 674
+      },
+      {
+        "text": "Include",
+        "width": 143,
+        "height": 27,
+        "x": 562,
+        "y": 708
+      },
+      {
+        "text": "Exclude",
+        "width": 143,
+        "height": 27,
+        "x": 713,
+        "y": 708
+      },
+      {
+        "text": "Only this layer",
+        "width": 143,
+        "height": 27,
+        "x": 562,
+        "y": 741
+      },
+      {
+        "text": "All layers",
+        "width": 143,
+        "height": 27,
+        "x": 713,
+        "y": 741
+      },
+      {
+        "text": "Move layer up",
+        "width": 143,
+        "height": 27,
+        "x": 562,
+        "y": 774
+      },
+      {
+        "text": "Move down",
+        "width": 143,
+        "height": 27,
+        "x": 713,
+        "y": 774
+      },
+      {
+        "text": "Delete layer",
+        "width": 294,
+        "height": 27,
+        "x": 562,
+        "y": 882
+      },
+      {
+        "text": "Rename object",
+        "width": 274,
+        "height": 27,
+        "x": 560,
+        "y": 181
+      },
+      {
+        "text": "Move to layer",
+        "width": 274,
+        "height": 27,
+        "x": 560,
+        "y": 290
+      },
+      {
+        "text": "Apply",
+        "width": 66,
+        "height": 27,
+        "x": 768,
+        "y": 329
+      },
+      {
+        "text": "Include objects",
+        "width": 133,
+        "height": 27,
+        "x": 560,
+        "y": 363
+      },
+      {
+        "text": "Exclude",
+        "width": 133,
+        "height": 27,
+        "x": 701,
+        "y": 363
+      },
+      {
+        "text": "Move up",
+        "width": 133,
+        "height": 27,
+        "x": 560,
+        "y": 396
+      },
+      {
+        "text": "Move down",
+        "width": 133,
+        "height": 27,
+        "x": 701,
+        "y": 396
+      },
+      {
+        "text": "Duplicate",
+        "width": 133,
+        "height": 27,
+        "x": 560,
+        "y": 429
+      },
+      {
+        "text": "Delete objects",
+        "width": 133,
+        "height": 27,
+        "x": 701,
+        "y": 429
+      },
+      {
+        "text": "Attach",
+        "width": 133,
+        "height": 27,
+        "x": 560,
+        "y": 462
+      },
+      {
+        "text": "Detach",
+        "width": 133,
+        "height": 27,
+        "x": 701,
+        "y": 462
+      },
+      {
+        "text": "Apply object color",
+        "width": 274,
+        "height": 27,
+        "x": 560,
+        "y": 570
+      }
+    ]
+  },
+  {
+    "name": "library-pen",
+    "size": "compact",
+    "image": "library-pen-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 304,
+        "y": 627
+      },
+      {
+        "text": "Add",
+        "width": 83,
+        "height": 41,
+        "x": 36,
+        "y": 271
+      },
+      {
+        "text": "Duplicate",
+        "width": 125,
+        "height": 41,
+        "x": 123,
+        "y": 271
+      },
+      {
+        "text": "Delete",
+        "width": 102,
+        "height": 41,
+        "x": 252,
+        "y": 271
+      },
+      {
+        "text": "Save changes",
+        "width": 132,
+        "height": 41,
+        "x": 224,
+        "y": 508
+      },
+      {
+        "text": "Choose color\u2026",
+        "width": 138,
+        "height": 41,
+        "x": 34,
+        "y": 508
+      }
+    ]
+  },
+  {
+    "name": "library-pen",
+    "size": "desktop",
+    "image": "library-pen-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 814,
+        "y": 627
+      },
+      {
+        "text": "Add",
+        "width": 112,
+        "height": 41,
+        "x": 36,
+        "y": 530
+      },
+      {
+        "text": "Duplicate",
+        "width": 154,
+        "height": 41,
+        "x": 152,
+        "y": 530
+      },
+      {
+        "text": "Delete",
+        "width": 131,
+        "height": 41,
+        "x": 310,
+        "y": 530
+      },
+      {
+        "text": "Save changes",
+        "width": 132,
+        "height": 41,
+        "x": 734,
+        "y": 528
+      },
+      {
+        "text": "Choose color\u2026",
+        "width": 138,
+        "height": 41,
+        "x": 459,
+        "y": 528
+      }
+    ]
+  },
+  {
+    "name": "library-populated",
+    "size": "compact",
+    "image": "library-populated-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 304,
+        "y": 627
+      },
+      {
+        "text": "Add",
+        "width": 83,
+        "height": 41,
+        "x": 36,
+        "y": 271
+      },
+      {
+        "text": "Duplicate",
+        "width": 125,
+        "height": 41,
+        "x": 123,
+        "y": 271
+      },
+      {
+        "text": "Delete",
+        "width": 102,
+        "height": 41,
+        "x": 252,
+        "y": 271
+      },
+      {
+        "text": "Save changes",
+        "width": 132,
+        "height": 41,
+        "x": 224,
+        "y": 508
+      }
+    ]
+  },
+  {
+    "name": "library-populated",
+    "size": "desktop",
+    "image": "library-populated-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Done",
+        "width": 66,
+        "height": 41,
+        "x": 814,
+        "y": 627
+      },
+      {
+        "text": "Add",
+        "width": 112,
+        "height": 41,
+        "x": 36,
+        "y": 530
+      },
+      {
+        "text": "Duplicate",
+        "width": 154,
+        "height": 41,
+        "x": 152,
+        "y": 530
+      },
+      {
+        "text": "Delete",
+        "width": 131,
+        "height": 41,
+        "x": 310,
+        "y": 530
+      },
+      {
+        "text": "Save changes",
+        "width": 132,
+        "height": 41,
+        "x": 734,
+        "y": 528
+      }
+    ]
+  },
+  {
+    "name": "mat-auto",
+    "size": "compact",
+    "image": "mat-auto-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Disconnect",
+        "width": 201,
+        "height": 41,
+        "x": 17,
+        "y": 461
+      },
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 224,
+        "y": 461
+      },
+      {
+        "text": "Save\u2026",
+        "width": 78,
+        "height": 41,
+        "x": 273,
+        "y": 545
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 592
+      },
+      {
+        "text": "Pressure\u2026",
+        "width": 208,
+        "height": 41,
+        "x": 17,
+        "y": 714
+      },
+      {
+        "text": "Drag knife\u2026",
+        "width": 120,
+        "height": 41,
+        "x": 231,
+        "y": 714
+      },
+      {
+        "text": "New pressure & corner test",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 761
+      },
+      {
+        "text": "First-cut guide\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 805
+      },
+      {
+        "text": "Mat dimensions\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 1025
+      },
+      {
+        "text": "Load mat",
+        "width": 249,
+        "height": 41,
+        "x": 17,
+        "y": 1119
+      },
+      {
+        "text": "Unload",
+        "width": 79,
+        "height": 41,
+        "x": 272,
+        "y": 1119
+      },
+      {
+        "text": "Stop mat movement",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 1168
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Review job \u2192",
+        "width": 127,
+        "height": 41,
+        "x": 247,
+        "y": 795
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "mat-auto",
+    "size": "desktop",
+    "image": "mat-auto-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Disconnect",
+        "width": 153,
+        "height": 41,
+        "x": 955,
+        "y": 296
+      },
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 1114,
+        "y": 296
+      },
+      {
+        "text": "Save\u2026",
+        "width": 78,
+        "height": 41,
+        "x": 1163,
+        "y": 380
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 427
+      },
+      {
+        "text": "Pressure\u2026",
+        "width": 160,
+        "height": 41,
+        "x": 955,
+        "y": 549
+      },
+      {
+        "text": "Drag knife\u2026",
+        "width": 120,
+        "height": 41,
+        "x": 1121,
+        "y": 549
+      },
+      {
+        "text": "New pressure & corner test",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 596
+      },
+      {
+        "text": "First-cut guide\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 640
+      },
+      {
+        "text": "Mat dimensions\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 860
+      },
+      {
+        "text": "Load mat",
+        "width": 201,
+        "height": 41,
+        "x": 955,
+        "y": 954
+      },
+      {
+        "text": "Unload",
+        "width": 79,
+        "height": 41,
+        "x": 1162,
+        "y": 954
+      },
+      {
+        "text": "Stop mat movement",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 1003
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Review job \u2192",
+        "width": 127,
+        "height": 41,
+        "x": 1137,
+        "y": 851
+      },
+      {
+        "text": "\u2190 Back",
+        "width": 81,
+        "height": 41,
+        "x": 16,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "mat-loading",
+    "size": "compact",
+    "image": "mat-loading-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Disconnect",
+        "width": 201,
+        "height": 41,
+        "x": 17,
+        "y": 461
+      },
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 224,
+        "y": 461
+      },
+      {
+        "text": "Save\u2026",
+        "width": 78,
+        "height": 41,
+        "x": 273,
+        "y": 545
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 592
+      },
+      {
+        "text": "Pressure\u2026",
+        "width": 208,
+        "height": 41,
+        "x": 17,
+        "y": 714
+      },
+      {
+        "text": "Drag knife\u2026",
+        "width": 120,
+        "height": 41,
+        "x": 231,
+        "y": 714
+      },
+      {
+        "text": "New pressure & corner test",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 761
+      },
+      {
+        "text": "First-cut guide\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 805
+      },
+      {
+        "text": "Mat dimensions\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 1025
+      },
+      {
+        "text": "Load mat",
+        "width": 249,
+        "height": 41,
+        "x": 17,
+        "y": 1119
+      },
+      {
+        "text": "Unload",
+        "width": 79,
+        "height": 41,
+        "x": 272,
+        "y": 1119
+      },
+      {
+        "text": "Stop mat movement",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 1168
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Stop movement",
+        "width": 148,
+        "height": 41,
+        "x": 24,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "mat-loading",
+    "size": "desktop",
+    "image": "mat-loading-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Disconnect",
+        "width": 153,
+        "height": 41,
+        "x": 955,
+        "y": 296
+      },
+      {
+        "text": "Connection\u2026",
+        "width": 127,
+        "height": 41,
+        "x": 1114,
+        "y": 296
+      },
+      {
+        "text": "Save\u2026",
+        "width": 78,
+        "height": 41,
+        "x": 1163,
+        "y": 380
+      },
+      {
+        "text": "Materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 427
+      },
+      {
+        "text": "Pressure\u2026",
+        "width": 160,
+        "height": 41,
+        "x": 955,
+        "y": 549
+      },
+      {
+        "text": "Drag knife\u2026",
+        "width": 120,
+        "height": 41,
+        "x": 1121,
+        "y": 549
+      },
+      {
+        "text": "New pressure & corner test",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 596
+      },
+      {
+        "text": "First-cut guide\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 640
+      },
+      {
+        "text": "Mat dimensions\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 860
+      },
+      {
+        "text": "Load mat",
+        "width": 201,
+        "height": 41,
+        "x": 955,
+        "y": 954
+      },
+      {
+        "text": "Unload",
+        "width": 79,
+        "height": 41,
+        "x": 1162,
+        "y": 954
+      },
+      {
+        "text": "Stop mat movement",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 1003
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Stop movement",
+        "width": 148,
+        "height": 41,
+        "x": 24,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "text-spacing",
+    "size": "compact",
+    "image": "text-spacing-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 255,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 170,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "text-spacing",
+    "size": "desktop",
+    "image": "text-spacing-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 765,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 680,
+        "y": 623
+      }
+    ]
+  },
+  {
+    "name": "tool-exchange",
+    "size": "compact",
+    "image": "tool-exchange-compact.png",
+    "width": 390,
+    "height": 844,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 467
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 334,
+        "height": 41,
+        "x": 17,
+        "y": 517
+      },
+      {
+        "text": "Continue with this tool",
+        "width": 314,
+        "height": 41,
+        "x": 27,
+        "y": 741
+      },
+      {
+        "text": "Cancel sequence",
+        "width": 314,
+        "height": 41,
+        "x": 27,
+        "y": 790
+      },
+      {
+        "text": "Select",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 93
+      },
+      {
+        "text": "Pan",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 93
+      },
+      {
+        "text": "Move",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 93
+      },
+      {
+        "text": "Fit mat",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 93
+      },
+      {
+        "text": "Undo",
+        "width": 87,
+        "height": 41,
+        "x": 15,
+        "y": 138
+      },
+      {
+        "text": "Redo",
+        "width": 87,
+        "height": 41,
+        "x": 106,
+        "y": 138
+      },
+      {
+        "text": "Grid",
+        "width": 87,
+        "height": 41,
+        "x": 197,
+        "y": 138
+      },
+      {
+        "text": "Hide panel",
+        "width": 87,
+        "height": 41,
+        "x": 288,
+        "y": 138
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 289,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 205,
+        "y": 8
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 795
+      },
+      {
+        "text": "1  Design",
+        "width": 123,
+        "height": 41,
+        "x": 15,
+        "y": 740
+      },
+      {
+        "text": "2  Prepare",
+        "width": 128,
+        "height": 41,
+        "x": 144,
+        "y": 740
+      },
+      {
+        "text": "3  Cut",
+        "width": 97,
+        "height": 41,
+        "x": 278,
+        "y": 740
+      }
+    ]
+  },
+  {
+    "name": "tool-exchange",
+    "size": "desktop",
+    "image": "tool-exchange-desktop.png",
+    "width": 1280,
+    "height": 900,
+    "buttons": [
+      {
+        "text": "Preview cut sequence\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 302
+      },
+      {
+        "text": "Layers, materials & tools\u2026",
+        "width": 286,
+        "height": 41,
+        "x": 955,
+        "y": 352
+      },
+      {
+        "text": "Continue with this tool",
+        "width": 266,
+        "height": 41,
+        "x": 965,
+        "y": 576
+      },
+      {
+        "text": "Cancel sequence",
+        "width": 266,
+        "height": 41,
+        "x": 965,
+        "y": 625
+      },
+      {
+        "text": "Select",
+        "width": 150,
+        "height": 41,
+        "x": 23,
+        "y": 146
+      },
+      {
+        "text": "Pan",
+        "width": 151,
+        "height": 41,
+        "x": 177,
+        "y": 146
+      },
+      {
+        "text": "Move",
+        "width": 151,
+        "height": 41,
+        "x": 332,
+        "y": 146
+      },
+      {
+        "text": "Fit mat",
+        "width": 151,
+        "height": 41,
+        "x": 487,
+        "y": 146
+      },
+      {
+        "text": "Undo",
+        "width": 150,
+        "height": 41,
+        "x": 642,
+        "y": 146
+      },
+      {
+        "text": "Redo",
+        "width": 151,
+        "height": 41,
+        "x": 796,
+        "y": 146
+      },
+      {
+        "text": "Grid",
+        "width": 151,
+        "height": 41,
+        "x": 951,
+        "y": 146
+      },
+      {
+        "text": "Hide panel",
+        "width": 151,
+        "height": 41,
+        "x": 1106,
+        "y": 146
+      },
+      {
+        "text": "Machine",
+        "width": 89,
+        "height": 41,
+        "x": 1171,
+        "y": 8
+      },
+      {
+        "text": "More \u25be",
+        "width": 76,
+        "height": 41,
+        "x": 1087,
+        "y": 8
+      },
+      {
+        "text": "Projects",
+        "width": 85,
+        "height": 41,
+        "x": 990,
+        "y": 8
+      },
+      {
+        "text": "Stop job",
+        "width": 89,
+        "height": 41,
+        "x": 24,
+        "y": 851
+      },
+      {
+        "text": "1  Design",
+        "width": 419,
+        "height": 41,
+        "x": 15,
+        "y": 63
+      },
+      {
+        "text": "2  Prepare",
+        "width": 425,
+        "height": 41,
+        "x": 440,
+        "y": 63
+      },
+      {
+        "text": "3  Cut",
+        "width": 394,
+        "height": 41,
+        "x": 871,
+        "y": 63
+      }
+    ]
+  },
+  {
+    "name": "trace-refine",
+    "size": "compact",
+    "image": "trace-refine-compact.png",
+    "width": 390,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 255,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 170,
+        "y": 623
+      },
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 24,
+        "y": 623
+      },
+      {
+        "text": "Choose image\u2026",
+        "width": 323,
+        "height": 41,
+        "x": 24,
+        "y": 312
+      },
+      {
+        "text": "Basics",
+        "width": 157,
+        "height": 41,
+        "x": 26,
+        "y": 363
+      },
+      {
+        "text": "Refine",
+        "width": 158,
+        "height": 41,
+        "x": 187,
+        "y": 363
+      }
+    ]
+  },
+  {
+    "name": "trace-refine",
+    "size": "desktop",
+    "image": "trace-refine-desktop.png",
+    "width": 900,
+    "height": 680,
+    "buttons": [
+      {
+        "text": "Add to mat",
+        "width": 111,
+        "height": 41,
+        "x": 765,
+        "y": 623
+      },
+      {
+        "text": "Cancel",
+        "width": 77,
+        "height": 41,
+        "x": 680,
+        "y": 623
+      },
+      {
+        "text": "Show details",
+        "width": 123,
+        "height": 41,
+        "x": 24,
+        "y": 623
+      },
+      {
+        "text": "Choose image\u2026",
+        "width": 291,
+        "height": 41,
+        "x": 566,
+        "y": 152
+      },
+      {
+        "text": "Basics",
+        "width": 141,
+        "height": 41,
+        "x": 568,
+        "y": 203
+      },
+      {
+        "text": "Refine",
+        "width": 142,
+        "height": 41,
+        "x": 713,
+        "y": 203
+      }
+    ]
+  },
+  {
+    "name": "unsaved-confirmation",
+    "size": "desktop",
+    "image": "unsaved-confirmation-desktop.png",
+    "width": 450,
+    "height": 117,
+    "buttons": [],
+    "measurement_note": "Image dimensions; button metrics not collected for supplementary capture."
+  }
+]
