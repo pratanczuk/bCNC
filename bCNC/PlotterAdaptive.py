@@ -24,6 +24,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self._fit_pending = None
         self._fit_requested = False
         self._fit_geometry = None
+        self._fit_canvas_size = None
         self.layout = None
         self.inspector_mode = 'Properties'
         self.selection_signature = None
@@ -91,7 +92,9 @@ class AdaptiveWorkflow(PlotterWorkflow):
             self._fit_pending = self.app.after_idle(self.apply_pending_fit)
 
     def fit_when_visible(self, event=None):
-        if self._fit_requested:
+        canvas = self.app.canvas
+        size = (canvas.winfo_width(), canvas.winfo_height())
+        if self._fit_requested or size != self._fit_canvas_size:
             self.fit_mat()
 
     def apply_pending_fit(self):
@@ -100,6 +103,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
         if not canvas.winfo_ismapped() or min(canvas.winfo_width(), canvas.winfo_height()) < 10:
             return
         self._fit_requested = False
+        self._fit_canvas_size = (canvas.winfo_width(), canvas.winfo_height())
         super().fit_mat()
 
     def resize_header(self, event):

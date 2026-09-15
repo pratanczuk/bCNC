@@ -263,8 +263,9 @@ class DesignDialog(WorkspacePage):
         self.app.editor.select([(index, None)], clear=True)
         self.app.selectionChange()
         self.workflow.update_state()
-        self.app.after_idle(self.workflow.fit_mat)
         self.destroy()
+        # Restore the workspace first; fit against its final canvas size.
+        self.workflow.fit_mat()
         return True
 
     def destroy(self):
@@ -459,6 +460,7 @@ class TextDialog(DesignDialog):
             blocks=list(self.app.gcode.blocks); blocks[i]=block
             commit(self.app.gcode,blocks,'Edit text')
             self.app.refresh(); self.workflow.confirmed.set(False); self.workflow.update_state(); self.destroy()
+            self.workflow.fit_mat()
             success=True
         if success:
             Utils.addSection('TextInsertion')

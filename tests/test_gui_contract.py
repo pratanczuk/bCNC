@@ -265,6 +265,31 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_added_shapes_and_text_refit_the_whole_mat(self):
+        self.w._cut_started = False; self.w.clear_notice(); self.w.show_step(0)
+        for size in ('1280x900', '390x844'):
+            self.app.geometry(size); self.app.update()
+            for kind in ('ShapeDialog', 'TextDialog'):
+                self.w.select_none()
+                canvas = self.app.canvas
+                canvas.zoomCanvas(100, 100, 3); self.app.update()
+                page = self.w.design_dialog(kind); self.app.update()
+                if kind == 'TextDialog':
+                    page.text.delete('1.0', 'end'); page.text.insert('1.0', 'Test')
+                before = len(self.app.gcode.blocks)
+                self.assertTrue(page.insert())
+                self.app.update()
+                self.assertEqual(len(self.app.gcode.blocks), before+1)
+                self.assertFalse(page.winfo_exists())
+                x0,y0,x1,y1 = canvas.bbox('CuttingMat')
+                self.assertGreaterEqual(x0-canvas.canvasx(0), -2)
+                self.assertGreaterEqual(y0-canvas.canvasy(0), -2)
+                self.assertLessEqual(x1-canvas.canvasx(0), canvas.winfo_width()+2)
+                self.assertLessEqual(y1-canvas.canvasy(0), canvas.winfo_height()+2)
+                zoom = canvas.zoom
+                self.w.update_state(); self.app.update()
+                self.assertEqual(canvas.zoom, zoom)
+
     def test_auto_fit_waits_for_canvas_and_back_has_clear_navigation(self):
         from PlotterWorkflow import PlotterWorkflow
         from PlotterTheme import SOFT, BG
