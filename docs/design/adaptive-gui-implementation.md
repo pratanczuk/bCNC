@@ -35,4 +35,6 @@ The gate writes application and GUI JSON reports to `artifacts/coverage/` and th
 
 ## Final automated result
 
-**278 tests passed. GUI line coverage: 92.52% (3,837 / 4,147 statements). Complete application line coverage: 74.83%.** The GUI report has 0 excluded lines. Syntax compilation and `git diff --check` passed.
+**280 tests passed. GUI line coverage: 92.55% (3,853 / 4,163 statements). Complete application line coverage: 74.86%.** The GUI report has 0 excluded lines. Syntax compilation and `git diff --check` passed.
+
+[Inspector flicker and performance fix](inspector-performance-fix.md) documents the idle-update regression, fix and measurements.

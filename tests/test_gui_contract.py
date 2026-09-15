@@ -160,3 +160,43 @@ class VisualContractTest(unittest.TestCase):
         self.assertFalse(button._disabled_cover.winfo_ismapped())
         button.invoke();command.assert_called_once()
         page.destroy()
+
+    def test_idle_inspector_does_not_repaint_reflow_or_disappear(self):
+        from PIL import ImageTk
+        for size in ('1280x900','840x700','390x844'):
+            self.app.geometry(size);self.app.update()
+            for selected in (False,True):
+                (self.w.select_all if selected else self.w.select_none)()
+                self.w.update_state();self.app.update()
+                self.w.scroll.yview_moveto(1);self.app.update()
+                controls=self.w.selection_actions+[self.w.more_tools]
+                before=[(c.winfo_x(),c.winfo_y(),c.winfo_width(),c.winfo_height()) for c in controls]
+                view=self.w.scroll.yview()
+                callbacks=len(self.w.stop_button._tclCommands)
+                images=self.app.tk.call('image','names')
+                with patch('PlotterUI.ImageTk.PhotoImage',wraps=ImageTk.PhotoImage) as paint:
+                    for _ in range(100):
+                        self.w.update_state();self.app.update()
+                    paint.assert_not_called()
+                self.assertEqual(callbacks,len(self.w.stop_button._tclCommands))
+                self.assertLessEqual(set(self.app.tk.call('image','names')),set(images))
+                self.assertEqual(view,self.w.scroll.yview())
+                self.assertEqual(before,[(c.winfo_x(),c.winfo_y(),c.winfo_width(),c.winfo_height()) for c in controls])
+                for control in controls:self.assertTrue(control.winfo_ismapped())
+                for control in self.w.selection_actions:
+                    self.assertEqual(control.cget('state'),'normal' if selected else 'disabled')
+
+    def test_repeated_command_configuration_keeps_one_callback(self):
+        from PlotterPages import WorkspacePage
+        from unittest.mock import Mock
+        page=WorkspacePage(self.app);first=Mock();second=Mock()
+        button=RoundedButton(page,text='Action',command=first);button.pack();fit_dialog(page,self.app)
+        count=len(button._tclCommands)
+        for _ in range(100):button.configure(command=first,text='Action')
+        self.assertEqual(count,len(button._tclCommands))
+        button.invoke();first.assert_called_once()
+        button.configure(command=second);button.invoke();second.assert_called_once()
+        count=len(button._tclCommands)
+        for _ in range(100):button.configure(command=second)
+        self.assertEqual(count,len(button._tclCommands))
+        page.destroy()

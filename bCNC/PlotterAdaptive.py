@@ -149,6 +149,9 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self.more_tools.set('More editing tools…')
         self.more_tools.pack(fill='x', pady=8)
         self.more_tools.bind('<<ComboboxSelected>>', self.choose_tool)
+        # Selection controls have a stricter policy than generic editing actions.
+        # Only update them once per poll, after selection and busy state are known.
+        self.edit_widgets[:] = [b for b in self.edit_widgets if b not in self.selection_actions]
         self.show_inspector('Properties')
 
     def show_inspector(self, name):
@@ -369,17 +372,21 @@ class AdaptiveWorkflow(PlotterWorkflow):
             self.back_button.pack(side='left')
         self.update_project_title()
         self.update_job_presentation()
-        self.stop_button.configure(command=self.stop, text='Stop job')
         if self.app.mat_handling.active:
             self.stop_button.configure(command=self.app.mat_handling.cancel, text='Stop movement')
             self.stop_button.pack(side='left', padx=8)
+        else:
+            self.stop_button.configure(command=self.stop, text='Stop job')
         if self.app.tool_sequence.active and not self.app.sender.running:
-            self.stop_button.configure(text='Stop job')
             self.stop_button.pack(side='left', padx=8)
 
     def update_project_title(self):
         project_name = self.filename.cget('text') or 'Untitled'
         save_state = 'Unsaved changes' if self.app.gcode.isModified() else 'Saved' if str(self.app.gcode.filename).endswith('.foil') else 'Not saved as project'
+        signature = (project_name, save_state, self.app.winfo_width())
+        if signature == getattr(self, '_project_title_signature', None):
+            return
+        self._project_title_signature = signature
         from tkinter import font
         from PlotterTk import Balloon
         full = project_name

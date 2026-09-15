@@ -190,9 +190,13 @@ class PlotterWorkflow:
         row = tk.Frame(parent, bg=PANEL)
         row.pack(fill=tk.X, pady=3)
         buttons = [self.button(row, title, action, edit=edit) for title, action in actions]
+        last_columns = None
         def arrange(event):
+            nonlocal last_columns
             if event.widget is not row: return
             columns = len(buttons) if sum(button.winfo_reqwidth()+8 for button in buttons) <= event.width else 1
+            if columns == last_columns: return
+            last_columns = columns
             for column in range(len(buttons)):
                 row.columnconfigure(column, weight=1 if column < columns else 0, uniform="actions" if column < columns else '')
             for index, button in enumerate(buttons):

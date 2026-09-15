@@ -184,6 +184,7 @@ class RoundedButton(tk.Button):
         self._minimum_height = options.pop('minimum_height', 48)
         self._icon = None
         self._label = options.get('text', '')
+        self._command = options.get('command')
         self._hover = self._focus = False
         self._image_key = None
         self._geometry_key = None
@@ -213,6 +214,17 @@ class RoundedButton(tk.Button):
         if isinstance(cnf, str):
             return super().configure(cnf)
         options = dict(cnf or {}, **options)
+        if 'command' in options:
+            if options['command'] == self._command:
+                options.pop('command')
+            else:
+                self._command = options['command']
+        # A Tk configure is not free: it schedules display/layout work, and
+        # registering an unchanged Python command leaks another Tcl callback.
+        stable = {'state', 'text', 'bg', 'fg', 'activebackground', 'disabledforeground'}
+        if self._geometry_key is not None and self._image_key is not None and set(options) <= stable:
+            if all(str(self.cget(key)) == str(value) for key, value in options.items()):
+                return None
         if 'text' in options:
             self._label = options['text']
         if 'icon' in options:
