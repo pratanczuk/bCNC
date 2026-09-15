@@ -16,7 +16,7 @@ setup(
     name="bCNC",
     version="0.9.17",
     license="GPLv2",
-    description="Swiss army knife for all your CNC/g-code needs",
+    description="Foil and vinyl cutting workspace for GRBL plotters",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_namespace_packages(),
@@ -33,11 +33,7 @@ setup(
         "pyserial ; sys_platform != 'win32'",
         "pyserial<=3.0.1 ; sys_platform == 'win32'",
         "numpy>=1.12",
-        "scipy>=1.10",
-        "numpy-stl>=3.0",
-        "ply>=3.11",
         "svgelements>=1,<2",
-        "shxparser>=0.0.2",
         "fonttools>=4.0",
         "shapely>=2.0",
         "Pillow>=4.0",
@@ -46,7 +42,6 @@ setup(
         "opencv-python>=4.10 ; "
         + "(\"arm\" not in platform_machine) and "
         + "(\"aarch64\" not in platform_machine)",
-	"tkinter-gl>=1.0"
     ],
     entry_points={
         "console_scripts": [

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180mm" height="180mm" viewBox="0 0 180 180">
+  <title>Leaf decals — example cutting artwork</title>
+  <g fill="none" stroke="#176b5b" stroke-width="0.4">
+    <path d="M15 75 C-4 30 27 6 70 10 C79 52 53 83 15 75 Z"/>
+    <path d="M100 75 C81 30 112 6 155 10 C164 52 138 83 100 75 Z"/>
+    <path d="M15 160 C-4 115 27 91 70 95 C79 137 53 168 15 160 Z"/>
+    <path d="M100 160 C81 115 112 91 155 95 C164 137 138 168 100 160 Z"/>
+  </g>
+</svg>

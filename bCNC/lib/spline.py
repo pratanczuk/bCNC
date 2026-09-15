@@ -4,70 +4,12 @@
 
 import sys
 
-import bmath
 from Helpers import to_zip
 
 
 # =============================================================================
 # Cardinal cubic spline class
 # =============================================================================
-class CardinalSpline:
-    def __init__(self, A=0.5):
-        # The default matrix is the Catmull-Rom splin
-        # which is equal to Cardinal matrix
-        # for A = 0.5
-        #
-        # Note: Vasilis
-        #       The A parameter should be the fraction in t where
-        #       the second derivative is zero
-        self.setMatrix(A)
-
-    # -----------------------------------------------------------------------
-    # Set the matrix according to Cardinal
-    # -----------------------------------------------------------------------
-    def setMatrix(self, A=0.5):
-        self.M = []
-        self.M.append([-A, 2.0 - A, A - 2.0, A])
-        self.M.append([2.0 * A, A - 3.0, 3.0 - 2.0 * A, -A])
-        self.M.append([-A, 0.0, A, 0.0])
-        self.M.append([0.0, 1.0, 0, 0.0])
-
-    # -----------------------------------------------------------------------
-    # Evaluate Cardinal spline at position t
-    # @param P  list or tuple with 4 points y positions
-    # @param t  [0..1] fraction of interval from points 1..2
-    # @param k  index of starting 4 elements in P
-    # @return   spline evaluation
-    # -----------------------------------------------------------------------
-    def __call__(self, P, t, k=1):
-        T = [t * t * t, t * t, t, 1.0]
-        R = [0.0] * 4
-        for i in range(4):
-            for j in range(4):
-                R[i] += T[j] * self.M[j][i]
-        y = 0.0
-        for i in range(4):
-            y += R[i] * P[k + i - 1]
-
-        return y
-
-    # -----------------------------------------------------------------------
-    # Return the coefficients of a 3rd degree polynomial
-    #     f(x) = a t^3 + b t^2 + c t + d
-    # @return [a, b, c, d]
-    # -----------------------------------------------------------------------
-    def coefficients(self, P, k=1):
-        C = [0.0] * 4
-        for i in range(4):
-            for j in range(4):
-                C[i] += self.M[i][j] * P[k + j - 1]
-        return C
-
-    # -----------------------------------------------------------------------
-    # Evaluate the value of the spline using the coefficients
-    # -----------------------------------------------------------------------
-    def evaluate(self, C, t):
-        return ((C[0] * t + C[1]) * t + C[2]) * t + C[3]
 
 
 # =============================================================================
@@ -78,89 +20,6 @@ class CardinalSpline:
 # Option 1: assume zero as second derivative on both ends
 # Option 2: assume the same as the next or previous one
 # =============================================================================
-class CubicSpline:
-    def __init__(self, X, Y):
-        self.X = X
-        self.Y = Y
-        self.n = len(X)
-
-        # Option #1
-        s1 = 0.0  # zero based = s0
-        sN = 0.0  # zero based = sN-1
-
-        # Construct the tri-diagonal matrix
-        A = []
-        B = [0.0] * (self.n - 2)
-        for i in range(self.n - 2):
-            A.append([0.0] * (self.n - 2))
-
-        for i in range(1, self.n - 1):
-            hi = self.h(i)
-            Hi = 2.0 * (self.h(i - 1) + hi)
-            j = i - 1
-            A[j][j] = Hi
-            if i + 1 < self.n - 1:
-                A[j][j + 1] = A[j + 1][j] = hi
-
-            if i == 1:
-                B[j] = 6.0 * (self.d(i) - self.d(j)) - hi * s1
-            elif i < self.n - 2:
-                B[j] = 6.0 * (self.d(i) - self.d(j))
-            else:
-                B[j] = 6.0 * (self.d(i) - self.d(j)) - hi * sN
-
-        self.s = bmath.gauss(A, B)
-        self.s.insert(0, s1)
-        self.s.append(sN)
-
-    # -----------------------------------------------------------------------
-    def h(self, i):
-        return self.X[i + 1] - self.X[i]
-
-    # -----------------------------------------------------------------------
-    def d(self, i):
-        return (self.Y[i + 1] - self.Y[i]) / (self.X[i + 1] - self.X[i])
-
-    # -----------------------------------------------------------------------
-    def coefficients(self, i):
-        """return coefficients of cubic spline for interval i
-        a*x**3+b*x**2+c*x+d"""
-        hi = self.h(i)
-        si = self.s[i]
-        si1 = self.s[i + 1]
-        xi = self.X[i]
-        xi1 = self.X[i + 1]
-        fi = self.Y[i]
-        fi1 = self.Y[i + 1]
-
-        a = 1.0 / (6.0 * hi) * (
-            si * xi1**3 - si1 * xi**3 + 6.0 * (fi * xi1 - fi1 * xi)
-        ) + hi / 6.0 * (si1 * xi - si * xi1)
-        b = 1.0 / (2.0 * hi) * (
-            si1 * xi**2 - si * xi1**2 + 2 * (fi1 - fi)
-        ) + hi / 6.0 * (si - si1)
-        c = 1.0 / (2.0 * hi) * (si * xi1 - si1 * xi)
-        d = 1.0 / (6.0 * hi) * (si1 - si)
-
-        return [d, c, b, a]
-
-    # -----------------------------------------------------------------------
-    def __call__(self, i, x):
-        # FIXME should interpolate to find the interval
-        C = self.coefficients(i)
-        return ((C[0] * x + C[1]) * x + C[2]) * x + C[3]
-
-    # -----------------------------------------------------------------------
-    # @return evaluation of cubic spline at x using coefficients C
-    # -----------------------------------------------------------------------
-    def evaluate(self, C, x):
-        return ((C[0] * x + C[1]) * x + C[2]) * x + C[3]
-
-    # -----------------------------------------------------------------------
-    # Return evaluated derivative at x using coefficients C
-    # -----------------------------------------------------------------------
-    def derivative(self, C, x):
-        return (3.0 * C[0] * x + 2.0 * C[1]) * x + C[2]
 
 
 # -----------------------------------------------------------------------------
@@ -444,18 +303,3 @@ def _rbsplinu(npts, k, p1, b, h, p, x=None):
 
 
 # =============================================================================
-if __name__ == "__main__":
-    SPLINE_SEGMENTS = 20
-    from .dxf import DXF
-    dxf = DXF(sys.argv[1], "r")
-    dxf.readFile()
-    dxf.close()
-    for name, layer in dxf.layers.items():
-        for entity in layer.entities:
-            if entity.type == "SPLINE":
-                x, y = spline2Polyline(
-                    to_zip(entity[10], entity[20]),
-                    int(entity[71]),
-                    True,
-                    SPLINE_SEGMENTS,
-                )

@@ -1055,11 +1055,6 @@ class DXF:
         return tag, value
 
     # ----------------------------------------------------------------------
-    def peek(self):
-        """peek the next tag,value pair"""
-        tag, value = self.read()
-        self.push(tag, value)
-        return tag, value
 
     # ----------------------------------------------------------------------
     def push(self, tag, value):
@@ -1308,13 +1303,6 @@ class DXF:
         self.writeVector(1, x1, y1)
 
     # ----------------------------------------------------------------------
-    def circle(self, x, y, r, name=None):
-        """Write a line (x,y),r as name"""
-        self.write(0, "CIRCLE")
-        if name:
-            self.write(8, name)
-        self.writeVector(0, x, y)
-        self.write(40, r)
 
     # ----------------------------------------------------------------------
     def arc(self, x, y, r, start, end, name=None):
@@ -1328,17 +1316,6 @@ class DXF:
         self.write(51, end)
 
     # ----------------------------------------------------------------------
-    def polyline(self, pts, flag=0, name=None):
-        """Write an polyline from a list of points pts"""
-        self.write(0, "LWPOLYLINE")
-        if name:
-            self.write(8, name)
-        self.write(100, "AcDbEntity")
-        self.write(90, len(pts))
-        self.write(70, flag)  # bit mask flag? 0=default, 1=closed, 128=plinegen
-        self.write(43, 0)  # constant width
-        for x, y in pts:
-            self.writeVector(0, x, y)
 
     # ----------------------------------------------------------------------
     def sort(self):

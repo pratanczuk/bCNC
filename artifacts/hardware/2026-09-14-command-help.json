@@ -1,0 +1,17 @@
+[
+  {
+    "time": 1789386186.4348397,
+    "kind": "tx",
+    "value": "b'$HELP=Commands\\n'"
+  },
+  {
+    "time": 1789386186.4451864,
+    "kind": "rx",
+    "value": "N/A"
+  },
+  {
+    "time": 1789386186.445434,
+    "kind": "rx",
+    "value": "ok"
+  }
+]

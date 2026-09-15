@@ -39,10 +39,8 @@ if [[ ${BCNC_SYSTEM_NATIVE_DEPS:-0} == 1 ]]; then
         --no-deps \
         --target "$package_root/opt/bcnc/lib" \
         "$repo_dir" \
-        "svgelements>=1,<2" \
-        "shxparser>=0.0.2" \
-        "tkinter-gl>=1.0"
-    runtime_dependencies+=", python3-numpy, python3-scipy, python3-stl, python3-ply, python3-serial, python3-pil, python3-fonttools, python3-shapely, python3-opencv"
+        "svgelements>=1,<2"
+    runtime_dependencies+=", python3-numpy, python3-serial, python3-pil, python3-fonttools, python3-shapely, python3-opencv"
 else
     "$python_bin" -m pip install \
         --disable-pip-version-check \

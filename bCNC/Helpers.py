@@ -27,7 +27,3 @@ if getattr(sys, "frozen", False):
 
 def to_zip(*args, **kwargs):
     return list(zip(*args, **kwargs))
-
-
-def N_(message):
-    return message

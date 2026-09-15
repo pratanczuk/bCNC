@@ -1,0 +1,182 @@
+[
+  {
+    "time": 1789386161.366137,
+    "kind": "tx",
+    "value": "b'?'"
+  },
+  {
+    "time": 1789386161.4253998,
+    "kind": "rx",
+    "value": "<Idle|MPos:0.000,0.000,0.000|Bf:100,1024|FS:0,0|Pn:YZ>"
+  },
+  {
+    "time": 1789386161.8764913,
+    "kind": "tx",
+    "value": "b'$HELP\\n'"
+  },
+  {
+    "time": 1789386161.8909984,
+    "kind": "rx",
+    "value": "Help topics:"
+  },
+  {
+    "time": 1789386161.9075387,
+    "kind": "rx",
+    "value": "Commands"
+  },
+  {
+    "time": 1789386161.9077547,
+    "kind": "rx",
+    "value": "Settings"
+  },
+  {
+    "time": 1789386161.9078279,
+    "kind": "rx",
+    "value": "Axis"
+  },
+  {
+    "time": 1789386161.907877,
+    "kind": "rx",
+    "value": "Control signals"
+  },
+  {
+    "time": 1789386161.907924,
+    "kind": "rx",
+    "value": "Coolant"
+  },
+  {
+    "time": 1789386161.9080355,
+    "kind": "rx",
+    "value": "General"
+  },
+  {
+    "time": 1789386161.9081137,
+    "kind": "rx",
+    "value": "Homing"
+  },
+  {
+    "time": 1789386161.9082024,
+    "kind": "rx",
+    "value": "Jogging"
+  },
+  {
+    "time": 1789386161.9082963,
+    "kind": "rx",
+    "value": "Limits"
+  },
+  {
+    "time": 1789386161.9083805,
+    "kind": "rx",
+    "value": "Parking/Safety door"
+  },
+  {
+    "time": 1789386161.9085245,
+    "kind": "rx",
+    "value": "Probing"
+  },
+  {
+    "time": 1789386161.9085789,
+    "kind": "rx",
+    "value": "Spindle"
+  },
+  {
+    "time": 1789386161.9086306,
+    "kind": "rx",
+    "value": "Stepper"
+  },
+  {
+    "time": 1789386161.9086843,
+    "kind": "rx",
+    "value": "Tool change"
+  },
+  {
+    "time": 1789386161.9087565,
+    "kind": "rx",
+    "value": "X-axis"
+  },
+  {
+    "time": 1789386161.9088495,
+    "kind": "rx",
+    "value": "Y-axis"
+  },
+  {
+    "time": 1789386161.9089727,
+    "kind": "rx",
+    "value": "Z-axis"
+  },
+  {
+    "time": 1789386161.9090922,
+    "kind": "rx",
+    "value": "ok"
+  },
+  {
+    "time": 1789386162.0596085,
+    "kind": "tx",
+    "value": "b'$I+\\n'"
+  },
+  {
+    "time": 1789386162.072358,
+    "kind": "rx",
+    "value": "[VER:1.1f.20260206:]"
+  },
+  {
+    "time": 1789386162.0726109,
+    "kind": "rx",
+    "value": "[OPT:VNMHSL,100,1024,3,0]"
+  },
+  {
+    "time": 1789386162.0727046,
+    "kind": "rx",
+    "value": "[AXS:3:XYZ]"
+  },
+  {
+    "time": 1789386162.0772674,
+    "kind": "rx",
+    "value": "[NEWOPT:ENUMS,RT+,HOME,EXPR,TC,SED]"
+  },
+  {
+    "time": 1789386162.077512,
+    "kind": "rx",
+    "value": "[FIRMWARE:grblHAL]"
+  },
+  {
+    "time": 1789386162.0817978,
+    "kind": "rx",
+    "value": "[SIGNALS:P]"
+  },
+  {
+    "time": 1789386162.0820348,
+    "kind": "rx",
+    "value": "[NVS STORAGE:*FLASH]"
+  },
+  {
+    "time": 1789386162.0821414,
+    "kind": "rx",
+    "value": "[DRIVER:STM32F103RC]"
+  },
+  {
+    "time": 1789386162.0860329,
+    "kind": "rx",
+    "value": "[DRIVER VERSION:260122]"
+  },
+  {
+    "time": 1789386162.086295,
+    "kind": "rx",
+    "value": "[BOARD:GRBLFilmCut]"
+  },
+  {
+    "time": 1789386162.0864158,
+    "kind": "rx",
+    "value": "ok"
+  },
+  {
+    "time": 1789386162.2367098,
+    "kind": "tx",
+    "value": "b'?'"
+  },
+  {
+    "time": 1789386162.2646282,
+    "kind": "rx",
+    "value": "<Idle|MPos:0.000,0.000,0.000|Bf:100,1024|FS:0,0|Pn:YZ>"
+  }
+]

@@ -6,7 +6,6 @@ import time
 
 from CNC import CNC, WCS
 
-import Utils
 
 # GRBLv1
 SPLITPAT = re.compile(r"[:,]")
@@ -24,51 +23,69 @@ TLOPAT = re.compile(r"^\[(...):([+\-]?\d*\.\d*)\]$")
 DOLLARPAT = re.compile(r"^\[G\d* .*\]$")
 
 # Only used in this file
-VARPAT = re.compile(r"^\$(\d+)=(\d*\.?\d*) *\(?.*")
+VARPAT = re.compile(r"^\$(\d+)=(.*?)\s*(?:\(.*\))?$")
 
 
 class _GenericController:
-    def test(self):
-        print("test supergen")
+    def firmware(self):
+        from PlotterProtocol import Firmware
+        if not hasattr(self.master, 'firmware') or self.master.firmware is None:
+            self.master.firmware = Firmware()
+        return self.master.firmware
 
-    def initController(self):
-        text = Utils.getStr("CNC","init")
-        if text:
-            # Deal with a device in feedhold from prior session
-            self.master.serial_write("%~\n")
-            time.sleep(1)
-            # And write out the firmware config
-            self.master.serial_write(text)
+    def parseStatus(self, line, cline):
+        from PlotterProtocol import status_report
+        firmware = self.firmware()
+        self.master.sio_status = False
+        try:
+            values = status_report(line, firmware)
+        except (ValueError, IndexError) as error:
+            self.master.log.put((self.master.MSG_RECEIVE, f'Invalid status report: {error}'))
+            return
+        state = values.pop('state')
+        CNC.vars.update(values)
+        self.master._status_sequence = getattr(self.master, '_status_sequence', 0) + 1
+        self.displayState(state)
+        self.master._posUpdate = True
+        self.master._pause = state.startswith('Hold')
+        self.has_override = firmware.overrides
+        for command in firmware.queries_due(state): self.master.sendGCode(command)
+        if self.master.sio_wait and not cline and state.split(':')[0] == 'Idle':
+            self.master.sio_wait = False
+            self.master._gcount += 1
 
-    def setTLO(self, tlo):
-        self.master.sendGCode(f"G43.1Z{tlo}")    
+    def parseInformation(self, line):
+        if not line.endswith(']'): return
+        body = line[1:-1]
+        if body.startswith('G') and ':' not in body:
+            CNC.vars['G'] = body.split()
+            CNC.updateG(); self.master._gUpdate = True
+            return
+        key, separator, value = body.partition(':')
+        if not separator: return
+        if key == 'GC':
+            CNC.vars['G'] = value.split(); CNC.updateG()
+            self.master._gUpdate = True
+        elif key == 'TLO':
+            CNC.vars[key] = value.split(',')[0]; self.master._gUpdate = True
+        elif key in ('PRB', 'G92', 'G28', 'G30', 'G54', 'G55', 'G56', 'G57', 'G58', 'G59'):
+            try:
+                coords = [float(v) for v in value.split(':')[0].split(',')]
+                if len(coords) < 2: return
+                if len(coords) == 2: coords.append(0.0)
+                CNC.vars[key] = coords
+                for axis, coordinate in zip('XYZABC', coords):
+                    CNC.vars[('prb'+axis.lower()) if key == 'PRB' else key+axis] = coordinate
+                self.master._gUpdate = True
+            except ValueError:
+                self.master.log.put((self.master.MSG_RECEIVE, 'Invalid coordinate report: '+line))
+        else:
+            CNC.vars[key] = value.split(':')
 
-    def executeCommand(self, oline, line, cmd):
-        return False
-
-    def hardResetPre(self):
-        pass
-
-    def hardResetAfter(self):
-        pass
-
-    def viewStartup(self):
-        pass
-
-    def checkGcode(self):
-        pass
 
     def viewSettings(self):
         pass
 
-    def grblRestoreSettings(self):
-        pass
-
-    def grblRestoreWCS(self):
-        pass
-
-    def grblRestoreAll(self):
-        pass
 
     def purgeControllerExtra(self):
         pass
@@ -76,23 +93,18 @@ class _GenericController:
     def overrideSet(self):
         pass
 
-    def hardReset(self):
-        self.master.busy()
-        if self.master.serial is not None:
-            self.hardResetPre()
-            self.master.openClose()
-            self.hardResetAfter()
-        self.master.openClose()
-        self.master.stopProbe()
-        self.master._alarm = False
-        CNC.vars["_OvChanged"] = True  # force a feed change if any
-        self.master.notBusy()
 
     # ----------------------------------------------------------------------
     def softReset(self, clearAlarm=True):
+        # A reset can originate outside the Tk thread. Let the UI consume this
+        # invalidation instead of touching its BooleanVar from serial callbacks.
+        for key in list(CNC.vars):
+            if key.startswith("grbl_"):
+                del CNC.vars[key]
+        CNC.vars["mat_loaded"] = False
+        CNC.vars["mat_confirmation_invalid"] = True
         if self.master.serial:
             self.master.serial_write(b"\030")
-        self.master.stopProbe()
         if clearAlarm:
             self.master._alarm = False
         CNC.vars["_OvChanged"] = True  # force a feed change if any
@@ -115,7 +127,7 @@ class _GenericController:
             self.master.sendGCode("G90G0X0Y0")
 
     def viewStatusReport(self):
-        self.master.serial_write(b"?")
+        self.master.serial_write(b"\x80" if self.firmware().extended else b"?")
         self.master.sio_status = True
 
     def viewParameters(self):
@@ -125,65 +137,7 @@ class _GenericController:
         self.master.sendGCode("$G")
 
     # ----------------------------------------------------------------------
-    def jog(self, direction):
-        self.master.sendGCode(f"G91G0{direction}")
-        self.master.sendGCode("G90")
-
-    # ----------------------------------------------------------------------
-    def goto(self, x=None, y=None, z=None, a=None, b=None, c=None):
-        cmd = "G90G0"
-        if x is not None:
-            cmd += f"X{x:g}"
-        if y is not None:
-            cmd += f"Y{y:g}"
-        if z is not None:
-            cmd += f"Z{z:g}"
-        if a is not None:
-            cmd += f"A{a:g}"
-        if b is not None:
-            cmd += f"B{b:g}"
-        if c is not None:
-            cmd += f"C{c:g}"
-        self.master.sendGCode(f"{cmd}")
-
-    # ----------------------------------------------------------------------
-    def _wcsSet(self, x, y, z, a=None, b=None, c=None):
-        p = WCS.index(CNC.vars["WCS"])
-        if p < 6:
-            cmd = "G10L20P%d" % (p + 1)
-        elif p == 6:
-            cmd = "G28.1"
-        elif p == 7:
-            cmd = "G30.1"
-        elif p == 8:
-            cmd = "G92"
-
-        pos = ""
-        if x is not None and abs(float(x)) < 10000.0:
-            pos += "X" + str(x)
-        if y is not None and abs(float(y)) < 10000.0:
-            pos += "Y" + str(y)
-        if z is not None and abs(float(z)) < 10000.0:
-            pos += "Z" + str(z)
-        if a is not None and abs(float(a)) < 10000.0:
-            pos += "A" + str(a)
-        if b is not None and abs(float(b)) < 10000.0:
-            pos += "B" + str(b)
-        if c is not None and abs(float(c)) < 10000.0:
-            pos += "C" + str(c)
-        cmd += pos
-        self.master.sendGCode(cmd)
-        self.viewParameters()
-        self.master.event_generate(
-            "<<Status>>",
-            data=(_("Set workspace {} to {}").format(WCS[p], pos))
-        )
-        self.master.event_generate("<<CanvasFocus>>")
-
-    # ----------------------------------------------------------------------
     def feedHold(self, event=None):
-        if event is not None and not self.master.acceptKey(True):
-            return
         if self.master.serial is None:
             return
         self.master.serial_write(b"!")
@@ -192,8 +146,6 @@ class _GenericController:
 
     # ----------------------------------------------------------------------
     def resume(self, event=None):
-        if event is not None and not self.master.acceptKey(True):
-            return
         if self.master.serial is None:
             return
         self.master.serial_write(b"~")
@@ -229,7 +181,6 @@ class _GenericController:
         # running=False when $X is sent via sendGCode() inside
         # purgeControllerExtra(); sendGCode() is a no-op when running=True.
         self.master.runEnded()
-        self.master.stopProbe()
         self.purgeControllerExtra()
         if G:
             self.master.sendGCode(G)  # restore $G
@@ -241,12 +192,8 @@ class _GenericController:
     def displayState(self, state):
         state = state.strip()
 
-        # "error:X" strings are command-level error responses, NOT machine
-        # state changes.  Updating CNC.vars["state"] to "error:X" would make
-        # the next <Idle|...> status poll look like a new state transition and
-        # re-trigger controllerStateChange -> viewState() -> $G -> error: ->
-        # infinite loop.  The error is already logged to the terminal; leave
-        # the displayed machine state as-is.
+        # Command rejection is not a machine-state transition. Keep the actual
+        # Idle/Run/Alarm status and report the command error separately.
         if state.startswith("error:"):
             return
 
@@ -267,16 +214,20 @@ class _GenericController:
     def parseLine(self, line, cline, sline):
         if not line:
             return True
+        if line.lower().startswith(('grbl ', 'grblhal ')):
+            from PlotterProtocol import Firmware
+            self.master.firmware = Firmware(self.firmware().mode)
+        self.firmware().observe(line)
+        CNC.vars["version"] = self.firmware().version
 
-        elif line[0] == "<":
+        if line[0] == "<":
             if not self.master.sio_status:
                 self.master.log.put((self.master.MSG_RECEIVE, line))
-            else:
-                self.parseBracketAngle(line, cline)
+            self.parseBracketAngle(line, cline)
 
         elif line[0] == "[":
             self.master.log.put((self.master.MSG_RECEIVE, line))
-            self.parseBracketSquare(line)
+            self.parseInformation(line)
 
         elif "error:" in line or "ALARM:" in line:
             self.master.log.put((self.master.MSG_ERROR, line))
@@ -292,7 +243,7 @@ class _GenericController:
             if self.master.running:
                 self.master._stop = True
 
-        elif line.find("ok") >= 0:
+        elif line.strip() == "ok":
             self.master.log.put((self.master.MSG_OK, line))
             self.master._gcount += 1
             if cline:
@@ -304,30 +255,26 @@ class _GenericController:
             self.master.log.put((self.master.MSG_RECEIVE, line))
             pat = VARPAT.match(line)
             if pat:
-                CNC.vars[f"grbl_{pat.group(1)}"] = pat.group(2)
+                value = pat.group(2)
+                if self.firmware().family == 'grblHAL': value = line.split('=', 1)[1]
+                CNC.vars[f"grbl_{pat.group(1)}"] = value
+                annotation = re.search(r'\((.*)\)\s*$', line)
+                if annotation and self.firmware().version.startswith('0.'):
+                    self.firmware().settings[int(pat.group(1))] = {'name': annotation[1]}
 
-        elif line[:4] == "Grbl" or line[:13] == "CarbideMotion":
+
+        elif line.lower().startswith(('grbl ', 'grblhal ')):
             self.master.log.put((self.master.MSG_RECEIVE, line))
             self.master._stop = True
-            del cline[:]  # After reset clear the buffer counters
+            del cline[:]
             del sline[:]
+            CNC.vars['mat_confirmation_invalid'] = True
             if self.master.running:
-                # Controller self-reset mid-run (e.g. ALARM:1 hard limit).
-                # End the run cleanly and unlock without firing an additional
-                # soft reset via purgeController(), which would cascade into
-                # more errors (double-reset → $X dropped → state restore fails
-                # with error:24 on GrblHAL).
-                self.master.cleanAfter = False  # prevent jobDone()->purgeController()
+                self.master.emptyQueue()
                 self.master.runEnded()
-                # sendGCode() clears _stop so these are not eaten by emptyQueue
-                self.master.sendGCode("$X")  # unlock alarm state
-                self.viewState()
-                self.viewParameters()
-            CNC.vars["version"] = line.split()[1]
-            # Detect controller
-            if self.master.controller in ("GRBL0", "GRBL1"):
-                self.master.controllerSet(
-                    "GRBL%d" % (int(CNC.vars["version"][0])))
+                self.master.log.put((self.master.MSG_ERROR, 'Controller restarted during the cut. Inspect the mat and re-home before restarting.'))
+            self.firmware().observe(line)
+            CNC.vars['version'] = self.firmware().version
 
         else:
             # We return false in order to tell that we can't parse this line

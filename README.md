@@ -13,6 +13,23 @@ bCNC — Foil Cutting Plotter Edition
 
 ---
 
+## Foil Studio workspace
+
+The default GUI now provides **Design → Prepare → Cut**, a large mat preview,
+touch-sized editing controls, saved material presets, and a readiness review.
+Advanced controls remain under **Advanced settings**. The implementation
+continues to use the existing Python/Tkinter editor and GRBL sender.
+
+The [architecture assessment and implemented plan](docs/plotter-architecture.md)
+describes service boundaries, legacy adapters, and remaining migration candidates.
+
+See the [workflow guide](docs/foil-studio-workflow.md) for loading profiles,
+test cuts, compatibility limits, and validation. Manual positioning is the
+default; select the grblHAL automatic loader only for firmware that implements
+this fork's material-loading commands.
+
+![Foil Studio workspace](docs/screenshots/foil-studio-design.png)
+
 ## ✂️ What makes this fork different?
 
 This fork extends the original bCNC with features specifically designed
@@ -41,26 +58,17 @@ for **drag-knife / foil cutting plotters** running **grblHAL**:
 
 ---
 
-## Apple/MacOS warning! We are working on new release and it seems to be broken on Mac, but have no way to test.
-## If you use MacOS, plese contact us [HERE](https://github.com/vlachoudis/bCNC/issues/591) so we can keep Mac support!
+## Development checks
 
-GrblHAL (formerly GRBL) CNC command sender, autoleveler, g-code editor, digitizer, CAM
-and swiss army knife for all your CNC needs.
+Run the current test suite with:
 
-An advanced fully featured g-code sender for grblHAL (formerly GRBL). bCNC is a cross platform program (Windows, Linux, Mac) written in python. The sender is robust and fast able to work nicely with old or slow hardware like [Raspberry Pi](http://www.openbuilds.com/threads/bcnc-and-the-raspberry-pi.3038/) (As it was validated by the GRBL maintainer on heavy testing).
+```sh
+xvfb-run -a python -W ignore::ResourceWarning -m unittest discover -s tests
+```
 
-## IMPORTANT! If you have any troubles using bCNC, please read [WIKI](https://github.com/vlachoudis/bCNC/wiki) and [DISCUSS](https://github.com/vlachoudis/bCNC/discussions) it first. Only create new [issues](https://github.com/vlachoudis/bCNC/issues) when you are certain there is a problem with actual bCNC code.
-
-[![Build Status](https://travis-ci.com/vlachoudis/bCNC.svg?branch=master)](https://travis-ci.com/vlachoudis/bCNC)
-[![CodeFactor](https://www.codefactor.io/repository/github/vlachoudis/bcnc/badge)](https://www.codefactor.io/repository/github/vlachoudis/bcnc)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/vlachoudis/bCNC)
-
-All pull requests that do change GUI should have attached screenshots of GUI before and after the changes.
-Please note that all pull requests should pass the Travis-CI build in order to get merged.https://github.com/Harvie/cnc-simulator
-Most pull requests should also pass CodeFactor checks if there is not good reason for failure.
-Before making pull request, please test your code on ~~both python2 and~~ python3.
-
-![bCNC screenshot](https://raw.githubusercontent.com/vlachoudis/bCNC/doc/Screenshots/bCNC.png)
+The [regression workflow](.github/workflows/tests.yml) runs these checks without
+physical hardware. Include screenshots when changing the GUI. Native installer
+and physical cutter validation still require the corresponding platforms.
 
 # Installation (using pip = recommended!)
 
@@ -96,9 +104,8 @@ You will need the following packages to run bCNC
 - pyserial or under the name python-serial, python-pyserial
 - numpy
 - Optionally:
-- python-imaging-tk: the PIL libraries for autolevel height map
-- python-opencv: for webcam streaming on web pendant
-- scipy: for 100 times faster 3D mesh slicing
+- python-imaging-tk: image previews and tracing
+- python-opencv: for bitmap tracing
 
 Expand the directory or download it from github
 and run the bCNC command
@@ -134,26 +141,19 @@ please check first if that bug occurs even when running directly in python (with
 Automated Windows 11 and Ubuntu installer builds, including tagged GitHub Release
 publishing, are documented in [packaging/README.md](packaging/README.md).
 
-# IMPORTANT! Motion controller configuration
-- We strongly recommend you to use 32b microcontroller with FluidNC https://github.com/bdring/FluidNC http://wiki.fluidnc.com firmware for the new machine builds.
-- In case you are using grblHAL https://github.com/grblHAL (Original GRBL firmware is still supported, but it is currently reaching the end-of-life due to limitations of 8b microcontrollers)
-- GRBL should be configured to use **MPos** rather than **Wpos**. This means that `$10=` should be set to odd number. As of GRBL 1.1 we recommend setting `$10=3`. If you have troubles communicating with your machine, you can try to set failsafe value `$10=1`.
-- CADs, bCNC and GRBL all work in millimeters by default. Make sure that `$13=0` is set in GRBL, if you experience strange behavior. (unless you've configured your CAD and bCNC to use inches)
-- Before filing bug please make sure you use latest stable official release of GRBL. Older and unofficial releases might work, but we frequently see cases where they don't. So please upgrade firmware in your Arduinos to reasonably recent version if you can.
-- Also read about all possible GRBL settings and make sure your setup is correct: https://github.com/gnea/grbl/wiki/Grbl-v1.1-Configuration
-- GrblHAL also has "Compatibility level" settings which have to be correctly configured during firmware compilation: https://github.com/grblHAL/core/wiki/Compatibility-level
-
 # Configuration
-You can modify most of the parameters from the "CAM -> Config/Controller" page.
-You can also enable (up to) 6-axis mode in Config section,
-but bCNC restart is required for changes to take place.
-Only the changes/differences from the default configuration
-file will be saved in your home directory ${HOME}/.bCNC  or ~/.bCNC
 
-The default configuration is stored on bCNC.ini in the
-installation directory.
+Use **Advanced settings** for application configuration, controller settings,
+manual movement, System information, and job header/footer editing. The fork
+supports GRBL0, GRBL1 and compatible grblHAL plotters with X/Y movement and Z
+blade lift; camera alignment, six-axis controls and milling are not included.
 
-*PLEASE DO NOT CHANGE THIS FILE, IT'S GOING TO BE OVERWRITTEN ON EACH UPGRADE OF BCNC*
+User preferences are saved in `~/.bCNC`. System defaults are supplied in
+`bCNC/bCNC.ini`; use the settings interface rather than editing installed defaults.
+The [architecture assessment and implemented plan](docs/plotter-architecture.md)
+describes service boundaries, legacy adapters, and remaining migration candidates.
+
+See the [workflow guide](docs/foil-studio-workflow.md) for setup and limitations.
 
 ## External vector editors
 
@@ -180,47 +180,23 @@ The tool supports four trace modes:
 
 Use the automatic edge-background removal for artwork on a consistent
 background. Tune its tolerance, threshold, minimum area, and smoothing until
-the preview matches the intended cut. Click **Generate G-code** to insert the
+the preview matches the intended cut. Click **Add to mat** in Foil Studio to insert the
 traced paths into the current job; the generated outline can then use the
 existing drag-knife compensation workflow.
 
-# Features:
-- simple and intuitive interface for small screens
-- 3-axis and 6-axis GUI modes
-- import/export **g-code**, **dxf** and **svg** files
-- 3D mesh slicing **stl** and **ply** files
-- fast g-code sender (works nicely on RPi and old hardware)
-- workspace configuration (G54..G59 commands)
-- user configurable buttons
-- g-code **function evaluation** with run time expansion
-- feed override during the running for fine tuning
-- Easy probing:
-  - simple probing
-  - center finder with a probing ring
-  - **auto leveling**, Z-probing and auto leveling by altering the g-code during
-    sending (or permanently autoleveling the g-code file).
-  - height color map display
-  - create g-code by jogging and recording points (can even use camera for this)
-  - **manual tool change** expansion and automatic tool length probing
-  - **canned cycles** expansion
-- Various Tools:
-  - user configurable database of materials, endmills, stock
-  - properties database of materials, stock, end mills etc..
-  - basic **CAM** features (profiling, pocketing, drilling, flat/helical/ramp cutting, thread milling, cutout tabs, drag knife)
-  - User g-code plugins:
-    - bowl generator
-    - finger joint box generator
-    - simple spur gear generator
-    - spirograph generator
-    - surface flatten
-    - play melody from MIDI file using stepper motor frequency
-    - ...
-- G-Code editor and display
-    - graphical display of the g-code, and workspace
-    - graphically moving and editing g-code
-    - reordering code and **rapid motion optimization**
-    - moving, rotating, mirroring the g-code
-- Web pendant to be used via smart phones
+# Supported plotter features
+
+- Design → Prepare → Cut workspace with mat preview and GRBL/grblHAL streaming.
+- SVG, DXF and G-code artwork; vector text, bitmap tracing and basic shapes.
+- Arrange, weld, difference, intersection, exclusion, concatenation and undo.
+- Material pressure/speed presets, drag-knife offset/overcut and calibration cuts.
+- Advanced editable job header/footer, with optional defaults for new designs.
+- Friendly connection, alarm and internal-error handling with technical details.
+- Machine diagnostics retains the raw editor and shared machine controls.
+
+Non-GRBL controllers, 3D slicing and retired generators have been removed.
+See the [core cleanup analysis and plan](docs/plotter-core-cleanup.md) for the
+removal inventory and the remaining shared-core dependencies.
 
 # Debugging
 You can log serial communication by changing the port to something like:

@@ -1,0 +1,26 @@
+[
+  {
+    "query": "?",
+    "response": "<Hold:0|MPos:0.000,0.000,0.000|Bf:100,451|FS:0,0|Pn:YZ>\r\n"
+  },
+  {
+    "query": "$I",
+    "response": ""
+  },
+  {
+    "query": "$G",
+    "response": ""
+  },
+  {
+    "query": "$$",
+    "response": ""
+  },
+  {
+    "query": "$#",
+    "response": ""
+  },
+  {
+    "query": "?",
+    "response": "<Hold:0|MPos:0.000,0.000,0.000|Bf:100,439|FS:0,0|Pn:YZ>\r\n"
+  }
+]

@@ -44,34 +44,11 @@ from tkinter import (
 )
 import tkinter
 
-import bmath
-import Camera
-import tkExtra
 import Utils
 from CNC import CNC
 
-# Probe mapping we need PIL and numpy
-try:
-    from PIL import Image, ImageTk
-    import numpy
-
-    # Resampling image based on PIL library and converting to RGB.
-    # options possible: NEAREST, BILINEAR, BICUBIC, ANTIALIAS
-    RESAMPLE = Image.NEAREST  # resize type
-except Exception:
-    from tkinter import Image
-    numpy = None
-    RESAMPLE = None
-
 ANTIALIAS_CHEAP = False
 
-VIEW_XY = 0
-VIEW_XZ = 1
-VIEW_YZ = 2
-VIEW_ISO1 = 3
-VIEW_ISO2 = 4
-VIEW_ISO3 = 5
-VIEWS = ["X-Y", "X-Z", "Y-Z", "ISO1", "ISO2", "ISO3"]
 
 INSERT_WIDTH2 = 3
 GANTRY_R = 4
@@ -88,13 +65,12 @@ BOX_SELECT = "Cyan"
 TAB_COLOR = "DarkOrange"
 TABS_COLOR = "Orange"
 WORK_COLOR = "Orange"
-CAMERA_COLOR = "Cyan"
 CANVAS_COLOR = "White"
 
 # ── Cutting-mat visual styling (Req A) ───────────────────────────────────────
-MAT_COLOR        = "#ccffcc"   # mat background fill
-MAT_GRID_COLOR   = "#88cc88"   # 10 mm grid lines inside mat
-MAT_BORDER_COLOR = "#009900"   # mat perimeter outline
+MAT_COLOR        = "#ffffff"   # mat background fill
+MAT_GRID_COLOR   = "#d8e3de"   # 10 mm grid lines inside mat
+MAT_BORDER_COLOR = "#7da997"   # mat perimeter outline
 MAT_WARN_COLOR   = "#ff4444"   # boundary-overflow warning outline
 
 ENABLE_COLOR = "Black"
@@ -105,7 +81,6 @@ PROCESS_COLOR = "Green"
 
 MOVE_COLOR = "DarkCyan"
 RULER_COLOR = "Green"
-PROBE_TEXT_COLOR = "Green"
 
 INFO_COLOR = "Gold"
 
@@ -121,12 +96,9 @@ ACTION_ORIGIN = 11
 
 ACTION_MOVE = 20
 ACTION_ROTATE = 21
-ACTION_GANTRY = 22
-ACTION_WPOS = 23
 ACTION_MAT_DRAG = 25   # Req B – click-and-drag gcode positioning on mat
 
 ACTION_RULER = 30
-ACTION_ADDORIENT = 31
 
 SHIFT_MASK = 1
 CONTROL_MASK = 4
@@ -136,8 +108,6 @@ CLOSE_DISTANCE = 5
 MAXDIST = 10000
 ZOOM = 1.25
 
-S60 = math.sin(math.radians(60))
-C60 = math.cos(math.radians(60))
 
 DEF_CURSOR = ""
 MOUSE_CURSOR = {
@@ -147,10 +117,7 @@ MOUSE_CURSOR = {
     ACTION_ORIGIN: "cross",
     ACTION_MOVE: "hand1",
     ACTION_ROTATE: "exchange",
-    ACTION_GANTRY: "target",
-    ACTION_WPOS: "diamond_cross",
     ACTION_RULER: "tcross",
-    ACTION_ADDORIENT: "tcross",
     ACTION_MAT_DRAG: "fleur",   # Req B
 }
 
@@ -175,14 +142,12 @@ class CNCCanvas(Canvas):
         Canvas.__init__(self, master, *kw, **kwargs)
 
         # Global variables
-        self.view = 0
         self.app = app
         self.cnc = app.cnc
         self.gcode = app.gcode
         self.actionVar = IntVar()
 
         # Canvas binding
-        self.bind("<Configure>", self.configureEvent)
         self.bind("<Motion>", self.motion)
 
         self.bind("<Button-1>", self.click)
@@ -209,7 +174,6 @@ class CNCCanvas(Canvas):
         self.bind("<Escape>", self.actionCancel)
         self.bind("<Key>", self.handleKey)
 
-        self.bind("<Control-Key-S>", self.cameraSave)
         self.bind("<Control-Key-t>", self.__test)
 
         self.bind("<Control-Key-equal>", self.menuZoomIn)
@@ -239,35 +203,10 @@ class CNCCanvas(Canvas):
         self._lastActive = None
         self._lastGantry = None
 
-        self._probeImage = None
-        self._probeTkImage = None
-        self._probe = None
-
-        self.camera = Camera.Camera("aligncam")
-        self.cameraAnchor = CENTER  # Camera anchor location "" for gantry
-        self.cameraRotation = 0.0  # camera Z angle
-        self.cameraXCenter = 0.0  # camera X center offset
-        self.cameraYCenter = 0.0  # camera Y center offset
-        self.cameraScale = 10.0  # camera pixels/unit
-        self.cameraEdge = False  # edge detection
-        self.cameraR = 1.5875  # circle radius in units (mm/inched)
-        self.cameraDx = 0  # camera shift vs gantry
-        self.cameraDy = 0
-        self.cameraZ = None  # if None it will not make any Z movement for the camera
-        self.cameraSwitch = False  # Look at spindle(False) or camera(True)
-        self._cameraAfter = None  # Camera anchor location "" for gantry
-        self._cameraMaxWidth = 640  # on zoom over this size crop the image
-        self._cameraMaxHeight = 480
-        self._cameraImage = None
-        self._cameraHori = None  # cross hair items
-        self._cameraVert = None
-        self._cameraCircle = None
-        self._cameraCircle2 = None
 
         self.draw_axes = True  # Drawing flags
         self.draw_grid = True
         self.draw_margin = True
-        self.draw_probe = True
         self.draw_workarea = True
         self.draw_paths = True
         self.draw_rapid = True  # draw rapid motions
@@ -282,7 +221,6 @@ class CNCCanvas(Canvas):
         self._vx0 = self._vy0 = self._vz0 = 0  # vector move coordinates
         self._vx1 = self._vy1 = self._vz1 = 0  # vector move coordinates
 
-        self._orientSelected = None
 
         self.reset()
         self.initPosition()
@@ -367,7 +305,7 @@ class CNCCanvas(Canvas):
         elif event.char == "f":
             self.fit2Screen()
         elif event.char == "g":
-            self.setActionGantry()
+            self.app.workflow.open_diagnostics()
         elif event.char == "l":
             self.event_generate("<<EnableToggle>>")
         elif event.char == "m":
@@ -423,89 +361,9 @@ class CNCCanvas(Canvas):
         self.status(_("Move graphically objects"))
 
     # ----------------------------------------------------------------------
-    def setActionGantry(self, event=None):
-        self.setAction(ACTION_GANTRY)
-        self.config(background="seashell")
-        self.status(_("Move CNC gantry to mouse location"))
-
-    # ----------------------------------------------------------------------
-    def setActionWPOS(self, event=None):
-        self.setAction(ACTION_WPOS)
-        self.config(background="ivory")
-        self.status(
-            _("Set mouse location as current machine position (X/Y only)"))
-
-    # ----------------------------------------------------------------------
     def setActionRuler(self, event=None):
         self.setAction(ACTION_RULER)
         self.status(_("Drag a ruler to measure distances"))
-
-    # ----------------------------------------------------------------------
-    def setActionAddMarker(self, event=None):
-        self.setAction(ACTION_ADDORIENT)
-        self.status(_("Add an orientation marker"))
-
-    # ----------------------------------------------------------------------
-    # Convert canvas cx,cy coordinates to machine space
-    # ----------------------------------------------------------------------
-    def canvas2Machine(self, cx, cy):
-        u = cx / self.zoom
-        v = cy / self.zoom
-
-        if self.view == VIEW_XY:
-            return u, -v, None
-
-        elif self.view == VIEW_XZ:
-            return u, None, -v
-
-        elif self.view == VIEW_YZ:
-            return None, u, -v
-
-        elif self.view == VIEW_ISO1:
-            return 0.5 * (u / S60 + v / C60), 0.5 * (u / S60 - v / C60), None
-
-        elif self.view == VIEW_ISO2:
-            return 0.5 * (u / S60 - v / C60), -0.5 * (u / S60 + v / C60), None
-
-        elif self.view == VIEW_ISO3:
-            return -0.5 * (u / S60 + v / C60), -0.5 * (u / S60 - v / C60), None
-
-    # ----------------------------------------------------------------------
-    # Image (pixel) coordinates to machine
-    # ----------------------------------------------------------------------
-    def image2Machine(self, x, y):
-        return self.canvas2Machine(self.canvasx(x), self.canvasy(y))
-
-    # ----------------------------------------------------------------------
-    # Move gantry to mouse location
-    # ----------------------------------------------------------------------
-    def actionGantry(self, x, y):
-        u, v, w = self.image2Machine(x, y)
-        self.app.goto(u, v, w)
-        self.setAction(ACTION_SELECT)
-
-    # ----------------------------------------------------------------------
-    # Set the work coordinates to mouse location
-    # ----------------------------------------------------------------------
-    def actionWPOS(self, x, y):
-        u, v, w = self.image2Machine(x, y)
-        self.app.mcontrol._wcsSet(u, v, w)
-        self.setAction(ACTION_SELECT)
-
-    # ----------------------------------------------------------------------
-    # Add an orientation marker at mouse location
-    # ----------------------------------------------------------------------
-    def actionAddOrient(self, x, y):
-        cx, cy = self.snapPoint(self.canvasx(x), self.canvasy(y))
-        u, v, w = self.canvas2Machine(cx, cy)
-        if u is None or v is None:
-            self.status(
-                _("ERROR: Cannot set X-Y marker  with the current view"))
-            return
-        self._orientSelected = len(self.gcode.orient)
-        self.gcode.orient.add(CNC.vars["wx"], CNC.vars["wy"], u, v)
-        self.event_generate("<<OrientSelect>>", data=self._orientSelected)
-        self.setAction(ACTION_SELECT)
 
     # ----------------------------------------------------------------------
     # Find item selected
@@ -516,7 +374,7 @@ class CNCCanvas(Canvas):
         self._y = self._yp = event.y
 
         if event.state & CONTROLSHIFT_MASK == CONTROLSHIFT_MASK:
-            self.actionGantry(event.x, event.y)
+            self.app.workflow.open_diagnostics()
             return
 
         elif self.action == ACTION_SELECT:
@@ -597,25 +455,13 @@ class CNCCanvas(Canvas):
             # Delegate to ACTION_MOVE so buttonMotion/release handle it
             self._mouseAction = ACTION_MOVE
 
-        # Move gantry to position
-        elif self.action == ACTION_GANTRY:
-            self.actionGantry(event.x, event.y)
-
-        # Move gantry to position
-        elif self.action == ACTION_WPOS:
-            self.actionWPOS(event.x, event.y)
-
-        # Add orientation marker
-        elif self.action == ACTION_ADDORIENT:
-            self.actionAddOrient(event.x, event.y)
-
         # Set coordinate origin
         elif self.action == ACTION_ORIGIN:
             i = self.canvasx(event.x)
             j = self.canvasy(event.y)
             x, y, z = self.canvas2xyz(i, j)
-            self.app.insertCommand(_("origin {:g} {:g} {:g}").format(x, y, z),
-                                   True)
+            self.app.editor.selectAll()
+            self.app.workflow.transform("MOVE", -x, -y, -z)
             self.setActionSelect()
 
         elif self.action == ACTION_PAN:
@@ -725,9 +571,6 @@ class CNCCanvas(Canvas):
                         items.append(self._items[i])
                     except KeyError:
                         tags = self.gettags(i)
-                        if "Orient" in tags:
-                            self.selectMarker(i)
-                            return
                         pass
             if not items:
                 return
@@ -747,7 +590,7 @@ class CNCCanvas(Canvas):
             dy = self._vy1 - self._vy0
             dz = self._vz1 - self._vz0
             self.status(_("Move by {:g}, {:g}, {:g}").format(dx, dy, dz))
-            self.app.insertCommand(("move %g %g %g") % (dx, dy, dz), True)
+            self.app.workflow.transform("MOVE", dx, dy, dz)
 
         elif self._mouseAction == ACTION_PAN:
             self.panRelease(event)
@@ -769,48 +612,6 @@ class CNCCanvas(Canvas):
         x, y, z = self.canvas2xyz(i, j)
 
     # ----------------------------------------------------------------------
-    # Snap to the closest point if any
-    # ----------------------------------------------------------------------
-    def snapPoint(self, cx, cy):
-        xs, ys = None, None
-        if CNC.inch:
-            dmin = (self.zoom / 25.4) ** 2  # 1mm maximum distance ...
-        else:
-            dmin = (self.zoom) ** 2
-        dmin = (CLOSE_DISTANCE * self.zoom) ** 2
-
-        # ... and if we are closer than 5pixels
-        for item in self.find_closest(cx, cy, CLOSE_DISTANCE):
-            try:
-                bid, lid = self._items[item]
-            except KeyError:
-                continue
-
-            # Very cheap and inaccurate approach :)
-            coords = self.coords(item)
-            x = coords[0]  # first
-            y = coords[1]  # point
-            d = (cx - x) ** 2 + (cy - y) ** 2
-            if d < dmin:
-                dmin = d
-                xs, ys = x, y
-
-            x = coords[-2]  # last
-            y = coords[-1]  # point
-            d = (cx - x) ** 2 + (cy - y) ** 2
-            if d < dmin:
-                dmin = d
-                xs, ys = x, y
-
-            # I need to check the real code and if
-            # an arc check also the center?
-
-        if xs is not None:
-            return xs, ys
-        else:
-            return cx, cy
-
-    # ----------------------------------------------------------------------
     # Get margins of selected items
     # ----------------------------------------------------------------------
     def getMargins(self):
@@ -823,28 +624,9 @@ class CNCCanvas(Canvas):
         return dx, dy
 
     # ----------------------------------------------------------------------
-    def xview(self, *args):
-        ret = Canvas.xview(self, *args)
-        if args:
-            self.cameraPosition()
-        return ret
-
-    # ----------------------------------------------------------------------
-    def yview(self, *args):
-        ret = Canvas.yview(self, *args)
-        if args:
-            self.cameraPosition()
-        return ret
-
-    # ----------------------------------------------------------------------
-    def configureEvent(self, event):
-        self.cameraPosition()
-
-    # ----------------------------------------------------------------------
     def pan(self, event):
         if self._mouseAction == ACTION_PAN:
             self.scan_dragto(event.x, event.y, gain=1)
-            self.cameraPosition()
 
         else:
             self.config(cursor=mouseCursor(ACTION_PAN))
@@ -914,11 +696,6 @@ class CNCCanvas(Canvas):
         self.scan_mark(0, 0)
         self.scan_dragto(int(round(dx - x0)), int(round(dy - y0)), 1)
 
-        # Resize probe image if any
-        if self._probe:
-            self._projectProbeImage()
-            self.itemconfig(self._probe, image=self._probeTkImage)
-        self.cameraUpdate()
 
     # ----------------------------------------------------------------------
     # Return selected objects bounding box
@@ -969,10 +746,11 @@ class CNCCanvas(Canvas):
         except Exception:
             return
 
-        if zx > 0.98:
-            self.__tzoom = min(zx, zy)
-        else:
-            self.__tzoom = max(zx, zy)
+        # Fit both dimensions when zooming out as well as when zooming in.
+        # Using max while zooming out crops a tall mat on a wide viewport.
+        self.__tzoom = min(zx, zy)
+        if self.__tzoom <= 0:
+            return
 
         self._tx = self._ty = 0
         self._zoomCanvas()
@@ -993,47 +771,6 @@ class CNCCanvas(Canvas):
         d = (b - a) / 2.0
         self.yview_moveto(midy - d)
 
-        self.cameraPosition()
-
-    def fit2Screen_old(self, event=None):
-        bb = self.selBbox()
-        if bb is None:
-            return
-        x1, y1, x2, y2 = bb
-
-        try:
-            zx = float(self.winfo_width()) / (x2 - x1)
-        except Exception:
-            return
-        try:
-            zy = float(self.winfo_height()) / (y2 - y1)
-        except Exception:
-            return
-        if zx > 1.0:
-            self.__tzoom = min(zx, zy)
-        else:
-            self.__tzoom = max(zx, zy)
-
-        self._tx = self._ty = 0
-        self._zoomCanvas()
-
-        # Find position of new selection
-        x1, y1, x2, y2 = self.selBbox()
-        xm = (x1 + x2) // 2
-        ym = (y1 + y2) // 2
-        sx1, sy1, sx2, sy2 = map(float, self.cget("scrollregion").split())
-        midx = float(xm - sx1) / (sx2 - sx1)
-        midy = float(ym - sy1) / (sy2 - sy1)
-
-        a, b = self.xview()
-        d = (b - a) / 2.0
-        self.xview_moveto(midx - d)
-
-        a, b = self.yview()
-        d = (b - a) / 2.0
-        self.yview_moveto(midy - d)
-
-        self.cameraPosition()
 
     # ----------------------------------------------------------------------
     def menuZoomIn(self, event=None):
@@ -1083,8 +820,6 @@ class CNCCanvas(Canvas):
     def gantry(self, wx, wy, wz, mx, my, mz):
         self._lastGantry = (wx, wy, wz)
         self._drawGantry(*self.plotCoords([(wx, wy, wz)])[0])
-        if self._cameraImage and self.cameraAnchor == NONE:
-            self.cameraPosition()
 
         dx = wx - mx
         dy = wy - my
@@ -1177,35 +912,6 @@ class CNCCanvas(Canvas):
         self.drawMargin()
 
     # ----------------------------------------------------------------------
-    # Select orientation marker
-    # ----------------------------------------------------------------------
-    def selectMarker(self, item):
-        # find marker
-        for i, paths in enumerate(self.gcode.orient.paths):
-            if item in paths:
-                self._orientSelected = i
-                for j in paths:
-                    self.itemconfig(j, width=2)
-                self.event_generate("<<OrientSelect>>", data=i)
-                return
-        self._orientSelected = None
-
-    # ----------------------------------------------------------------------
-    # Highlight marker that was selected
-    # ----------------------------------------------------------------------
-    def orientChange(self, marker):
-        self.itemconfig("Orient", width=1)
-        if marker >= 0:
-            self._orientSelected = marker
-            try:
-                for i in self.gcode.orient.paths[self._orientSelected]:
-                    self.itemconfig(i, width=2)
-            except IndexError:
-                self.drawOrient()
-        else:
-            self._orientSelected = None
-
-    # ----------------------------------------------------------------------
     # Display graphical information on selected blocks
     # ----------------------------------------------------------------------
     def showInfo(self, blocks):
@@ -1261,150 +967,10 @@ class CNCCanvas(Canvas):
                 tag="info",
             )
 
-    # -----------------------------------------------------------------------
-    def cameraOn(self, event=None):
-        if not self.camera.start():
-            return
-        self.cameraRefresh()
-
-    # -----------------------------------------------------------------------
-    def cameraOff(self, event=None):
-        self.delete(self._cameraImage)
-        self.delete(self._cameraHori)
-        self.delete(self._cameraVert)
-        self.delete(self._cameraCircle)
-        self.delete(self._cameraCircle2)
-
-        self._cameraImage = None
-        if self._cameraAfter:
-            self.after_cancel(self._cameraAfter)
-            self._cameraAfter = None
-        self.camera.stop()
-
-    # -----------------------------------------------------------------------
-    def cameraUpdate(self):
-        if not self.camera.isOn():
-            return
-        if self._cameraAfter:
-            self.after_cancel(self._cameraAfter)
-            self._cameraAfter = None
-        self.cameraRefresh()
-        self.cameraPosition()
-
-    # -----------------------------------------------------------------------
-    def cameraRefresh(self):
-        if not self.camera.read():
-            self.cameraOff()
-            return
-        self.camera.rotation = self.cameraRotation
-        self.camera.xcenter = self.cameraXCenter
-        self.camera.ycenter = self.cameraYCenter
-        if self.cameraEdge:
-            self.camera.canny(50, 200)
-        if self.cameraAnchor == NONE or self.zoom / self.cameraScale > 1.0:
-            self.camera.resize(
-                self.zoom / self.cameraScale,
-                self._cameraMaxWidth,
-                self._cameraMaxHeight,
-            )
-        if self._cameraImage is None:
-            self._cameraImage = self.create_image((0, 0), tag="CameraImage")
-            self.lower(self._cameraImage)
-            # create cross hair at dummy location we will correct latter
-            self._cameraHori = self.create_line(
-                0, 0, 1, 0, fill=CAMERA_COLOR, tag="CrossHair"
-            )
-            self._cameraVert = self.create_line(
-                0, 0, 0, 1, fill=CAMERA_COLOR, tag="CrossHair"
-            )
-            self._cameraCircle = self.create_oval(
-                0, 0, 1, 1, outline=CAMERA_COLOR, tag="CrossHair"
-            )
-            self._cameraCircle2 = self.create_oval(
-                0, 0, 1, 1, outline=CAMERA_COLOR, dash=(3, 3), tag="CrossHair"
-            )
-            self.cameraPosition()
-        try:
-            self.itemconfig(self._cameraImage, image=self.camera.toTk())
-        except Exception:
-            pass
-        self._cameraAfter = self.after(100, self.cameraRefresh)
-
-    # -----------------------------------------------------------------------
-    def cameraFreeze(self, freeze):
-        if self.camera.isOn():
-            self.camera.freeze(freeze)
-
-    # -----------------------------------------------------------------------
-    def cameraSave(self, event=None):
-        try:
-            self._count += 1
-        except Exception:
-            self._count = 1
-        self.camera.save("camera%02d.png" % (self._count))
-
-    # ----------------------------------------------------------------------
-    # Reposition camera and crosshair
-    # ----------------------------------------------------------------------
-    def cameraPosition(self):
-        if self._cameraImage is None:
-            return
-        w = self.winfo_width()
-        h = self.winfo_height()
-        hc, wc = self.camera.image.shape[:2]
-        wc //= 2
-        hc //= 2
-        x = w // 2  # everything on center
-        y = h // 2
-        if self.cameraAnchor is NONE:
-            if self._lastGantry is not None:
-                x, y = self.plotCoords([self._lastGantry])[0]
-            else:
-                x = y = 0
-            if not self.cameraSwitch:
-                x += self.cameraDx * self.zoom
-                y -= self.cameraDy * self.zoom
-            r = self.cameraR * self.zoom
-        else:
-            if self.cameraAnchor != CENTER:
-                if N in self.cameraAnchor:
-                    y = hc
-                elif S in self.cameraAnchor:
-                    y = h - hc
-                if W in self.cameraAnchor:
-                    x = wc
-                elif E in self.cameraAnchor:
-                    x = w - wc
-            x = self.canvasx(x)
-            y = self.canvasy(y)
-            if self.zoom / self.cameraScale > 1.0:
-                r = self.cameraR * self.zoom
-            else:
-                r = self.cameraR * self.cameraScale
-
-        self.coords(self._cameraImage, x, y)
-        self.coords(self._cameraHori, x - wc, y, x + wc, y)
-        self.coords(self._cameraVert, x, y - hc, x, y + hc)
-        self.coords(self._cameraCircle, x - r, y - r, x + r, y + r)
-        self.coords(
-            self._cameraCircle2, x - r * 2, y - r * 2, x + r * 2, y + r * 2)
-
-    # ----------------------------------------------------------------------
-    # Crop center of camera and search it in subsequent movements
-    # ----------------------------------------------------------------------
-    def cameraMakeTemplate(self, r):
-        if self._cameraImage is None:
-            return
-        self._template = self.camera.getCenterTemplate(r)
-
-    # ----------------------------------------------------------------------
-    def cameraMatchTemplate(self):
-        return self.camera.matchTemplate(self._template)
-
     # ----------------------------------------------------------------------
     # Parse and draw the file from the editor to g-code commands
     # ----------------------------------------------------------------------
-    def draw(self, view=None):
+    def draw(self):
         if self._inDraw:
             return
         self._inDraw = True
@@ -1415,8 +981,6 @@ class CNCCanvas(Canvas):
             self.canvasy(self.winfo_height() / 2)
         )
 
-        if view is not None:
-            self.view = view
 
         self._last = (0.0, 0.0, 0.0)
         self.initPosition()
@@ -1426,8 +990,6 @@ class CNCCanvas(Canvas):
         self.drawGrid()
         self.drawMargin()
         self.drawWorkarea()
-        self.drawProbe()
-        self.drawOrient()
         self.drawAxes()
         if self._gantry1:
             self.tag_raise(self._gantry1)
@@ -1449,31 +1011,11 @@ class CNCCanvas(Canvas):
     def initPosition(self):
         self.configure(background=CANVAS_COLOR)
         self.delete(ALL)
-        self._cameraImage = None
         gr = max(3, int(CNC.vars["diameter"] / 2.0 * self.zoom))
-        if self.view == VIEW_XY:
-            self._gantry1 = self.create_oval(
-                (-gr, -gr), (gr, gr), width=2, outline=GANTRY_COLOR
-            )
-            self._gantry2 = None
-        else:
-            gx = gr
-            gy = gr // 2
-            gh = 3 * gr
-            if self.view in (VIEW_XZ, VIEW_YZ):
-                self._gantry1 = None
-                self._gantry2 = self.create_line(
-                    (-gx, -gh, 0, 0, gx, -gh, -gx, -gh),
-                    width=2, fill=GANTRY_COLOR
-                )
-            else:
-                self._gantry1 = self.create_oval(
-                    (-gx, -gh - gy, gx, -gh + gy), width=2,
-                    outline=GANTRY_COLOR
-                )
-                self._gantry2 = self.create_line(
-                    (-gx, -gh, 0, 0, gx, -gh), width=2, fill=GANTRY_COLOR
-                )
+        self._gantry1 = self.create_oval(
+            (-gr, -gr), (gr, gr), width=2, outline=GANTRY_COLOR
+        )
+        self._gantry2 = None
 
         self._lastInsert = None
         self._lastActive = None
@@ -1513,8 +1055,8 @@ class CNCCanvas(Canvas):
         if not self.draw_axes:
             return
 
-        dx = CNC.vars["axmax"] - CNC.vars["axmin"]
-        dy = CNC.vars["aymax"] - CNC.vars["aymin"]
+        dx = self.cnc.bounds["axmax"] - self.cnc.bounds["axmin"]
+        dy = self.cnc.bounds["aymax"] - self.cnc.bounds["aymin"]
         d = min(dx, dy)
         try:
             s = math.pow(10.0, int(math.log10(d)))
@@ -1553,61 +1095,31 @@ class CNCCanvas(Canvas):
         if not self.draw_margin:
             return
 
-        if CNC.isMarginValid():
+        if self.cnc.isMarginValid():
             xyz = [
-                (CNC.vars["xmin"], CNC.vars["ymin"], 0.0),
-                (CNC.vars["xmax"], CNC.vars["ymin"], 0.0),
-                (CNC.vars["xmax"], CNC.vars["ymax"], 0.0),
-                (CNC.vars["xmin"], CNC.vars["ymax"], 0.0),
-                (CNC.vars["xmin"], CNC.vars["ymin"], 0.0),
+                (self.cnc.bounds["xmin"], self.cnc.bounds["ymin"], 0.0),
+                (self.cnc.bounds["xmax"], self.cnc.bounds["ymin"], 0.0),
+                (self.cnc.bounds["xmax"], self.cnc.bounds["ymax"], 0.0),
+                (self.cnc.bounds["xmin"], self.cnc.bounds["ymax"], 0.0),
+                (self.cnc.bounds["xmin"], self.cnc.bounds["ymin"], 0.0),
             ]
             self._margin = self.create_line(self.plotCoords(xyz),
                                             fill=MARGIN_COLOR)
             self.tag_lower(self._margin)
 
-        if not CNC.isAllMarginValid():
+        if not self.cnc.isAllMarginValid():
             return
         xyz = [
-            (CNC.vars["axmin"], CNC.vars["aymin"], 0.0),
-            (CNC.vars["axmax"], CNC.vars["aymin"], 0.0),
-            (CNC.vars["axmax"], CNC.vars["aymax"], 0.0),
-            (CNC.vars["axmin"], CNC.vars["aymax"], 0.0),
-            (CNC.vars["axmin"], CNC.vars["aymin"], 0.0),
+            (self.cnc.bounds["axmin"], self.cnc.bounds["aymin"], 0.0),
+            (self.cnc.bounds["axmax"], self.cnc.bounds["aymin"], 0.0),
+            (self.cnc.bounds["axmax"], self.cnc.bounds["aymax"], 0.0),
+            (self.cnc.bounds["axmin"], self.cnc.bounds["aymax"], 0.0),
+            (self.cnc.bounds["axmin"], self.cnc.bounds["aymin"], 0.0),
         ]
         self._amargin = self.create_line(
             self.plotCoords(xyz), dash=(3, 2), fill=MARGIN_COLOR
         )
         self.tag_lower(self._amargin)
-
-    # ----------------------------------------------------------------------
-    # Change rectangle coordinates
-    # ----------------------------------------------------------------------
-    def _rectCoords(self, rect, xmin, ymin, xmax, ymax, z=0.0):
-        self.coords(
-            rect,
-            tkinter._flatten(
-                self.plotCoords(
-                    [
-                        (xmin, ymin, z),
-                        (xmax, ymin, z),
-                        (xmax, ymax, z),
-                        (xmin, ymax, z),
-                        (xmin, ymin, z),
-                    ]
-                )
-            ),
-        )
-
-    # ----------------------------------------------------------------------
-    # Draw a 3D path
-    # ----------------------------------------------------------------------
-    def _drawPath(self, path, z=0.0, **kwargs):
-        xyz = []
-        for segment in path:
-            xyz.append((segment.A[0], segment.A[1], z))
-            xyz.append((segment.B[0], segment.B[1], z))
-        rect = (self.create_line(self.plotCoords(xyz), **kwargs),)
-        return rect
 
     # ----------------------------------------------------------------------
     # Draw a 3D rectangle
@@ -1660,8 +1172,6 @@ class CNCCanvas(Canvas):
         self._matWarning = None
 
         if not self.draw_cutting_mat:
-            return
-        if self.view not in (VIEW_XY, VIEW_ISO1, VIEW_ISO2, VIEW_ISO3):
             return
 
         mat_w = CNC.vars.get("mat_width",  300.0)
@@ -1718,12 +1228,12 @@ class CNCCanvas(Canvas):
         self.tag_lower("CuttingMat")
 
         # ── Req D boundary-overflow warning ─────────────────────────────
-        if CNC.isMarginValid():
+        if self.cnc.isMarginValid():
             out = (
-                CNC.vars["xmin"] < -0.01
-                or CNC.vars["xmax"] > mat_w + 0.01
-                or CNC.vars["ymin"] < -0.01
-                or CNC.vars["ymax"] > mat_h + 0.01
+                self.cnc.bounds["xmin"] < -0.01
+                or self.cnc.bounds["xmax"] > mat_w + 0.01
+                or self.cnc.bounds["ymin"] < -0.01
+                or self.cnc.bounds["ymax"] > mat_h + 0.01
             )
             if out:
                 warn_item = self.create_polygon(
@@ -1760,278 +1270,30 @@ class CNCCanvas(Canvas):
         self.delete("Grid")
         if not self.draw_grid:
             return
-        if self.view in (VIEW_XY, VIEW_ISO1, VIEW_ISO2, VIEW_ISO3):
-            xmin = (CNC.vars["axmin"] // 10) * 10
-            xmax = (CNC.vars["axmax"] // 10 + 1) * 10
-            ymin = (CNC.vars["aymin"] // 10) * 10
-            ymax = (CNC.vars["aymax"] // 10 + 1) * 10
-            for i in range(
-                int(CNC.vars["aymin"] // 10), int(CNC.vars["aymax"] // 10) + 2
-            ):
-                y = i * 10.0
-                xyz = [(xmin, y, 0), (xmax, y, 0)]
-                self.create_line(
-                    self.plotCoords(xyz), tag="Grid",
-                    fill=GRID_COLOR, dash=(1, 3)
-                )
-
-            for i in range(
-                int(CNC.vars["axmin"] // 10), int(CNC.vars["axmax"] // 10) + 2
-            ):
-                x = i * 10.0
-                xyz = [(x, ymin, 0), (x, ymax, 0)]
-                self.create_line(
-                    self.plotCoords(xyz), fill=GRID_COLOR, tag="Grid", dash=(1, 3)
-                )
-            # Lower all grid items with one Tcl call (O(1) vs O(n))
-            self.tag_lower("Grid")
-
-    # ----------------------------------------------------------------------
-    # Display orientation markers
-    # ----------------------------------------------------------------------
-    def drawOrient(self, event=None):
-        self.delete("Orient")
-        if self.view in (VIEW_XZ, VIEW_YZ):
-            return
-
-        # Draw orient markers
-        if CNC.inch:
-            w = 0.1
-        else:
-            w = 2.5
-
-        self.gcode.orient.clearPaths()
-        for i, (xm, ym, x, y) in enumerate(self.gcode.orient.markers):
-            paths = []
-            # Machine position (cross)
-            item = self.create_line(
-                self.plotCoords([(xm - w, ym, 0.0), (xm + w, ym, 0.0)]),
-                tag="Orient",
-                fill="Green",
-            )
-            paths.append(item)
-
-            item = self.create_line(
-                self.plotCoords([(xm, ym - w, 0.0), (xm, ym + w, 0.0)]),
-                tag="Orient",
-                fill="Green",
-            )
-            paths.append(item)
-
-            # GCode position (cross)
-            item = self.create_line(
-                self.plotCoords([(x - w, y, 0.0), (x + w, y, 0.0)]),
-                tag="Orient",
-                fill="Red",
-            )
-            paths.append(item)
-
-            item = self.create_line(
-                self.plotCoords([(x, y - w, 0.0), (x, y + w, 0.0)]),
-                tag="Orient",
-                fill="Red",
-            )
-            paths.append(item)
-
-            # Draw error if any
-            try:
-                err = self.gcode.orient.errors[i]
-                item = self.create_oval(
-                    self.plotCoords(
-                        [(xm - err, ym - err, 0.0), (xm + err, ym + err, 0.0)]
-                    ),
-                    tag="Orient",
-                    outline="Red",
-                )
-                paths.append(item)
-
-                err = self.gcode.orient.errors[i]
-                item = self.create_oval(
-                    self.plotCoords([(x - err, y - err, 0.0),
-                                     (x + err, y + err, 0.0)]),
-                    tag="Orient",
-                    outline="Red",
-                )
-                paths.append(item)
-            except IndexError:
-                pass
-
-            # Connecting line
-            item = self.create_line(
-                self.plotCoords([(xm, ym, 0.0), (x, y, 0.0)]),
-                tag="Orient",
-                fill="Blue",
-                dash=(1, 1),
-            )
-            paths.append(item)
-
-            self.gcode.orient.addPath(paths)
-
-        # Lower all orient items with one Tcl call (O(1) vs O(n))
-        self.tag_lower("Orient")
-
-        if self._orientSelected is not None:
-            try:
-                for item in self.gcode.orient.paths[self._orientSelected]:
-                    self.itemconfig(item, width=2)
-            except (IndexError, TclError):
-                pass
-
-    # ----------------------------------------------------------------------
-    # Display probe
-    # ----------------------------------------------------------------------
-    def drawProbe(self):
-        self.delete("Probe")
-        if self._probe:
-            self.delete(self._probe)
-            self._probe = None
-        if not self.draw_probe:
-            return
-        if self.view in (VIEW_XZ, VIEW_YZ):
-            return
-
-        # Draw probe grid
-        probe = self.gcode.probe
-        for x in bmath.frange(probe.xmin, probe.xmax + 0.00001, probe.xstep()):
-            xyz = [(x, probe.ymin, 0.0), (x, probe.ymax, 0.0)]
-            self.create_line(
-                self.plotCoords(xyz), tag="Probe", fill="Yellow")
-
-        for y in bmath.frange(probe.ymin, probe.ymax + 0.00001, probe.ystep()):
-            xyz = [(probe.xmin, y, 0.0), (probe.xmax, y, 0.0)]
-            self.create_line(
-                self.plotCoords(xyz), tag="Probe", fill="Yellow")
-
-        # Draw probe points
-        for i, uv in enumerate(self.plotCoords(probe.points)):
-            self.create_text(
-                uv,
-                text=f"{probe.points[i][2]:.{CNC.digits}f}",
-                tag="Probe",
-                justify=CENTER,
-                fill=PROBE_TEXT_COLOR,
-            )
-        # Lower all probe items with one Tcl call (O(1) vs O(n))
-        self.tag_lower("Probe")
-
-        # Draw image map if numpy exists
-        if (
-            numpy is not None
-            and probe.matrix
-            and self.view in (VIEW_XY, VIEW_ISO1, VIEW_ISO2, VIEW_ISO3)
+        xmin = (self.cnc.bounds["axmin"] // 10) * 10
+        xmax = (self.cnc.bounds["axmax"] // 10 + 1) * 10
+        ymin = (self.cnc.bounds["aymin"] // 10) * 10
+        ymax = (self.cnc.bounds["aymax"] // 10 + 1) * 10
+        for i in range(
+            int(self.cnc.bounds["aymin"] // 10), int(self.cnc.bounds["aymax"] // 10) + 2
         ):
-            array = numpy.array(list(reversed(probe.matrix)), numpy.float32)
+            y = i * 10.0
+            xyz = [(xmin, y, 0), (xmax, y, 0)]
+            self.create_line(
+                self.plotCoords(xyz), tag="Grid",
+                fill=GRID_COLOR, dash=(1, 3)
+            )
 
-            lw = array.min()
-            hg = array.max()
-            mx = max(abs(hg), abs(lw))
-            # scale should be:
-            #  -mx   .. 0 .. mx
-            #  -127     0    127
-            # -127 = light-blue
-            #    0 = white
-            #  127 = light-red
-            dc = mx / 127.0  # step in colors
-            if abs(dc) < 1e-8:
-                return
-            palette = []
-            for x in bmath.frange(lw, hg + 1e-10, (hg - lw) / 255.0):
-                i = int(math.floor(x / dc))
-                j = i + i >> 1  # 1.5*i
-                if i < 0:
-                    palette.append(0xFF + j)
-                    palette.append(0xFF + j)
-                    palette.append(0xFF)
-                elif i > 0:
-                    palette.append(0xFF)
-                    palette.append(0xFF - j)
-                    palette.append(0xFF - j)
-                else:
-                    palette.append(0xFF)
-                    palette.append(0xFF)
-                    palette.append(0xFF)
-            array = numpy.floor((array - lw) / (hg - lw) * 255)
-            self._probeImage = Image.fromarray(
-                array.astype(numpy.int16)).convert("L")
-            self._probeImage.putpalette(palette)
-
-            # Add transparency for a possible composite operation latter on ISO*
-            self._probeImage = self._probeImage.convert("RGBA")
-
-            x, y = self._projectProbeImage()
-
-            self._probe = self.create_image(
-                x, y, image=self._probeTkImage, anchor="sw")
-            self.tag_lower(self._probe)
-
-    # ----------------------------------------------------------------------
-    # Create the tkimage for the current projection
-    # ----------------------------------------------------------------------
-    def _projectProbeImage(self):
-        probe = self.gcode.probe
-        size = (
-            int((probe.xmax - probe.xmin + probe._xstep) * self.zoom),
-            int((probe.ymax - probe.ymin + probe._ystep) * self.zoom),
-        )
-        marginx = int(probe._xstep / 2.0 * self.zoom)
-        marginy = int(probe._ystep / 2.0 * self.zoom)
-        crop = (marginx, marginy, size[0] - marginx, size[1] - marginy)
-
-        image = self._probeImage.resize((size), resample=RESAMPLE).crop(crop)
-
-        if self.view in (VIEW_ISO1, VIEW_ISO2, VIEW_ISO3):
-            w, h = image.size
-            size2 = (int(S60 * (w + h)), int(C60 * (w + h)))
-
-            if self.view == VIEW_ISO1:
-                transform = (
-                    0.5 / S60, 0.5 / C60, -h / 2, -0.5 / S60, 0.5 / C60, h / 2)
-                xy = self.plotCoords(
-                    [(probe.xmin, probe.ymin, 0.0),
-                     (probe.xmax, probe.ymin, 0.0)]
-                )
-                x = xy[0][0]
-                y = xy[1][1]
-
-            elif self.view == VIEW_ISO2:
-                transform = (
-                    0.5 / S60, -0.5 / C60, w / 2, 0.5 / S60, 0.5 / C60, -w / 2)
-
-                xy = self.plotCoords(
-                    [(probe.xmin, probe.ymax, 0.0),
-                     (probe.xmin, probe.ymin, 0.0)]
-                )
-                x = xy[0][0]
-                y = xy[1][1]
-            else:
-                transform = (
-                    -0.5 / S60,
-                    -0.5 / C60,
-                    w + h / 2,
-                    0.5 / S60,
-                    -0.5 / C60,
-                    h / 2,
-                )
-                xy = self.plotCoords(
-                    [(probe.xmax, probe.ymax, 0.0),
-                     (probe.xmin, probe.ymax, 0.0)]
-                )
-                x = xy[0][0]
-                y = xy[1][1]
-
-            affine = image.transform(
-                size2, Image.AFFINE, transform, resample=RESAMPLE)
-            # Super impose a white image
-            white = Image.new("RGBA", affine.size, (255,) * 4)
-            # compose the two images affine and white with mask the affine
-            image = Image.composite(affine, white, affine)
-            del white
-
-        else:
-            x, y = self.plotCoords([(probe.xmin, probe.ymin, 0.0)])[0]
-
-        self._probeTkImage = ImageTk.PhotoImage(image)
-        return x, y
+        for i in range(
+            int(self.cnc.bounds["axmin"] // 10), int(self.cnc.bounds["axmax"] // 10) + 2
+        ):
+            x = i * 10.0
+            xyz = [(x, ymin, 0), (x, ymax, 0)]
+            self.create_line(
+                self.plotCoords(xyz), fill=GRID_COLOR, tag="Grid", dash=(1, 3)
+            )
+        # Lower all grid items with one Tcl call (O(1) vs O(n))
+        self.tag_lower("Grid")
 
     # ----------------------------------------------------------------------
     # Draw the paths for the whole gcode file
@@ -2277,36 +1539,7 @@ class CNCCanvas(Canvas):
     # ----------------------------------------------------------------------
     def plotCoords(self, xyz):
         coords = None
-        if self.view == VIEW_XY:
-            coords = [(p[0] * self.zoom, -p[1] * self.zoom) for p in xyz]
-        elif self.view == VIEW_XZ:
-            coords = [(p[0] * self.zoom, -p[2] * self.zoom) for p in xyz]
-        elif self.view == VIEW_YZ:
-            coords = [(p[1] * self.zoom, -p[2] * self.zoom) for p in xyz]
-        elif self.view == VIEW_ISO1:
-            coords = [
-                (
-                    (p[0] * S60 + p[1] * S60) * self.zoom,
-                    (+p[0] * C60 - p[1] * C60 - p[2]) * self.zoom,
-                )
-                for p in xyz
-            ]
-        elif self.view == VIEW_ISO2:
-            coords = [
-                (
-                    (p[0] * S60 - p[1] * S60) * self.zoom,
-                    (-p[0] * C60 - p[1] * C60 - p[2]) * self.zoom,
-                )
-                for p in xyz
-            ]
-        elif self.view == VIEW_ISO3:
-            coords = [
-                (
-                    (-p[0] * S60 - p[1] * S60) * self.zoom,
-                    (-p[0] * C60 + p[1] * C60 - p[2]) * self.zoom,
-                )
-                for p in xyz
-            ]
+        coords = [(p[0] * self.zoom, -p[1] * self.zoom) for p in xyz]
         # Check limits
         for i, (x, y) in enumerate(coords):
             if abs(x) > MAXDIST or abs(y) > MAXDIST:
@@ -2325,41 +1558,15 @@ class CNCCanvas(Canvas):
     # Canvas to real coordinates
     # ----------------------------------------------------------------------
     def canvas2xyz(self, i, j):
-        if self.view == VIEW_XY:
-            x = i / self.zoom
-            y = -j / self.zoom
-            z = 0
-
-        elif self.view == VIEW_XZ:
-            x = i / self.zoom
-            y = 0
-            z = -j / self.zoom
-
-        elif self.view == VIEW_YZ:
-            x = 0
-            y = i / self.zoom
-            z = -j / self.zoom
-
-        elif self.view == VIEW_ISO1:
-            x = (i / S60 + j / C60) / self.zoom / 2
-            y = (i / S60 - j / C60) / self.zoom / 2
-            z = 0
-
-        elif self.view == VIEW_ISO2:
-            x = (i / S60 - j / C60) / self.zoom / 2
-            y = -(i / S60 + j / C60) / self.zoom / 2
-            z = 0
-
-        elif self.view == VIEW_ISO3:
-            x = -(i / S60 + j / C60) / self.zoom / 2
-            y = -(i / S60 - j / C60) / self.zoom / 2
-            z = 0
+        x = i / self.zoom
+        y = -j / self.zoom
+        z = 0
 
         return x, y, z
 
 
 # =============================================================================
-# Canvas Frame with toolbar
+# Canvas frame and view state
 # =============================================================================
 class CanvasFrame(Frame):
     def __init__(self, master, app, *kw, **kwargs):
@@ -2369,19 +1576,12 @@ class CanvasFrame(Frame):
         self.draw_axes = BooleanVar()
         self.draw_grid = BooleanVar()
         self.draw_margin = BooleanVar()
-        self.draw_probe = BooleanVar()
         self.draw_paths = BooleanVar()
         self.draw_rapid = BooleanVar()
         self.draw_workarea = BooleanVar()
-        self.draw_camera = BooleanVar()
-        self.view = StringVar()
 
         self.loadConfig()
 
-        self.view.trace("w", self.viewChange)
-
-        toolbar = Frame(self, relief=RAISED)
-        toolbar.grid(row=0, column=0, columnspan=2, sticky=EW)
 
         self.canvas = CNCCanvas(self, app, takefocus=True, background="White")
         # OpenGL context
@@ -2394,21 +1594,16 @@ class CanvasFrame(Frame):
         sb.grid(row=2, column=0, sticky=EW)
         self.canvas.config(xscrollcommand=sb.set)
 
-        self.createCanvasToolbar(toolbar)
 
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
     # ----------------------------------------------------------------------
-    def addWidget(self, widget):
-        self.app.widgets.append(widget)
-
-    # ----------------------------------------------------------------------
     def loadConfig(self):
+        global CANVAS_COLOR
         global INSERT_COLOR, GANTRY_COLOR, MARGIN_COLOR, GRID_COLOR
         global BOX_SELECT, ENABLE_COLOR, DISABLE_COLOR, SELECT_COLOR
         global SELECT2_COLOR, PROCESS_COLOR, MOVE_COLOR, RULER_COLOR
-        global CAMERA_COLOR, PROBE_TEXT_COLOR, CANVAS_COLOR
         global DRAW_TIME
 
         self.draw_axes.set(bool(int(Utils.getBool("Canvas", "axes", True))))
@@ -2419,7 +1614,6 @@ class CanvasFrame(Frame):
         self.draw_workarea.set(
             bool(int(Utils.getBool("Canvas", "workarea", True))))
 
-        self.view.set(Utils.getStr("Canvas", "view", VIEWS[0]))
 
         DRAW_TIME = Utils.getInt("Canvas", "drawtime", DRAW_TIME)
 
@@ -2435,241 +1629,23 @@ class CanvasFrame(Frame):
         PROCESS_COLOR = Utils.getStr("Color", "canvas.process", PROCESS_COLOR)
         MOVE_COLOR = Utils.getStr("Color", "canvas.move", MOVE_COLOR)
         RULER_COLOR = Utils.getStr("Color", "canvas.ruler", RULER_COLOR)
-        CAMERA_COLOR = Utils.getStr("Color", "canvas.camera", CAMERA_COLOR)
-        PROBE_TEXT_COLOR = Utils.getStr(
-            "Color", "canvas.probetext", PROBE_TEXT_COLOR)
         CANVAS_COLOR = Utils.getStr("Color", "canvas.background", CANVAS_COLOR)
 
     # ----------------------------------------------------------------------
     def saveConfig(self):
         Utils.setInt("Canvas", "drawtime", DRAW_TIME)
-        Utils.setStr("Canvas", "view", self.view.get())
         Utils.setBool("Canvas", "axes", self.draw_axes.get())
         Utils.setBool("Canvas", "grid", self.draw_grid.get())
         Utils.setBool("Canvas", "margin", self.draw_margin.get())
-        Utils.setBool("Canvas", "probe", self.draw_probe.get())
         Utils.setBool("Canvas", "paths", self.draw_paths.get())
         Utils.setBool("Canvas", "rapid", self.draw_rapid.get())
         Utils.setBool("Canvas", "workarea", self.draw_workarea.get())
-
-    # ----------------------------------------------------------------------
-    # Canvas toolbar FIXME XXX should be moved to CNCCanvas
-    # ----------------------------------------------------------------------
-    def createCanvasToolbar(self, toolbar):
-        b = OptionMenu(toolbar, self.view, *VIEWS)
-        b.config(padx=0, pady=1)
-        b.unbind("F10")
-        b.pack(side=LEFT)
-        tkExtra.Balloon.set(b, _("Change viewing angle"))
-
-        b = Button(
-            toolbar, image=Utils.icons["zoom_in"],
-            command=self.canvas.menuZoomIn
-        )
-        tkExtra.Balloon.set(b, _("Zoom In [Ctrl-=]"))
-        b.pack(side=LEFT)
-
-        b = Button(
-            toolbar, image=Utils.icons["zoom_out"],
-            command=self.canvas.menuZoomOut
-        )
-        tkExtra.Balloon.set(b, _("Zoom Out [Ctrl--]"))
-        b.pack(side=LEFT)
-
-        b = Button(
-            toolbar, image=Utils.icons["zoom_on"],
-            command=self.canvas.fit2Screen
-        )
-        tkExtra.Balloon.set(b, _("Fit to screen [F]"))
-        b.pack(side=LEFT)
-
-        Label(toolbar, text=_("Tool:"),
-              image=Utils.icons["sep"], compound=LEFT).pack(
-            side=LEFT, padx=2
-        )
-        # -----
-        # Tools
-        # -----
-        b = Radiobutton(
-            toolbar,
-            image=Utils.icons["select"],
-            indicatoron=FALSE,
-            variable=self.canvas.actionVar,
-            value=ACTION_SELECT,
-            command=self.canvas.setActionSelect,
-        )
-        tkExtra.Balloon.set(b, _("Select tool [S]"))
-        self.addWidget(b)
-        b.pack(side=LEFT)
-
-        b = Radiobutton(
-            toolbar,
-            image=Utils.icons["pan"],
-            indicatoron=FALSE,
-            variable=self.canvas.actionVar,
-            value=ACTION_PAN,
-            command=self.canvas.setActionPan,
-        )
-        tkExtra.Balloon.set(b, _("Pan viewport [X]"))
-        b.pack(side=LEFT)
-
-        b = Radiobutton(
-            toolbar,
-            image=Utils.icons["ruler"],
-            indicatoron=FALSE,
-            variable=self.canvas.actionVar,
-            value=ACTION_RULER,
-            command=self.canvas.setActionRuler,
-        )
-        tkExtra.Balloon.set(b, _("Ruler [R]"))
-        b.pack(side=LEFT)
-
-        # -----------
-        # Draw flags
-        # -----------
-        Label(toolbar, text=_("Draw:"), image=Utils.icons["sep"],
-              compound=LEFT).pack(
-            side=LEFT, padx=2
-        )
-
-        b = Checkbutton(
-            toolbar,
-            image=Utils.icons["axes"],
-            indicatoron=False,
-            variable=self.draw_axes,
-            command=self.drawAxes,
-        )
-        tkExtra.Balloon.set(b, _("Toggle display of axes"))
-        b.pack(side=LEFT)
-
-        b = Checkbutton(
-            toolbar,
-            image=Utils.icons["grid"],
-            indicatoron=False,
-            variable=self.draw_grid,
-            command=self.drawGrid,
-        )
-        tkExtra.Balloon.set(b, _("Toggle display of grid lines"))
-        b.pack(side=LEFT)
-
-        b = Checkbutton(
-            toolbar,
-            image=Utils.icons["margins"],
-            indicatoron=False,
-            variable=self.draw_margin,
-            command=self.drawMargin,
-        )
-        tkExtra.Balloon.set(b, _("Toggle display of margins"))
-        b.pack(side=LEFT)
-
-        b = Checkbutton(
-            toolbar,
-            text="P",
-            image=Utils.icons["measure"],
-            indicatoron=False,
-            variable=self.draw_probe,
-            command=self.drawProbe,
-        )
-        tkExtra.Balloon.set(b, _("Toggle display of probe"))
-        b.pack(side=LEFT)
-
-        b = Checkbutton(
-            toolbar,
-            image=Utils.icons["endmill"],
-            indicatoron=False,
-            variable=self.draw_paths,
-            command=self.toggleDrawFlag,
-        )
-        tkExtra.Balloon.set(b, _("Toggle display of paths (G1,G2,G3)"))
-        b.pack(side=LEFT)
-
-        b = Checkbutton(
-            toolbar,
-            image=Utils.icons["rapid"],
-            indicatoron=False,
-            variable=self.draw_rapid,
-            command=self.toggleDrawFlag,
-        )
-        tkExtra.Balloon.set(b, _("Toggle display of rapid motion (G0)"))
-        b.pack(side=LEFT)
-
-        b = Checkbutton(
-            toolbar,
-            image=Utils.icons["workspace"],
-            indicatoron=False,
-            variable=self.draw_workarea,
-            command=self.drawWorkarea,
-        )
-        tkExtra.Balloon.set(b, _("Toggle display of workarea"))
-        b.pack(side=LEFT)
-
-        b = Checkbutton(
-            toolbar,
-            image=Utils.icons["camera"],
-            indicatoron=False,
-            variable=self.draw_camera,
-            command=self.drawCamera,
-        )
-        tkExtra.Balloon.set(b, _("Toggle display of camera"))
-        b.pack(side=LEFT)
-        if Camera.cv is None:
-            b.config(state=DISABLED)
-
-        b = Button(toolbar, image=Utils.icons["refresh"],
-                   command=self.viewChange)
-        tkExtra.Balloon.set(b, _("Redraw display [Ctrl-R]"))
-        b.pack(side=LEFT)
-
-        # -----------
-        self.drawTime = tkExtra.Combobox(
-            toolbar, width=3, background="White", command=self.drawTimeChange
-        )
-        tkExtra.Balloon.set(self.drawTime, _("Draw timeout in seconds"))
-        self.drawTime.fill(
-            ["inf", "1", "2", "3", "5", "10", "20", "30", "60", "120"])
-        self.drawTime.set(DRAW_TIME)
-        self.drawTime.pack(side=RIGHT)
-        Label(toolbar, text=_("Timeout:")).pack(side=RIGHT)
-
-    # ----------------------------------------------------------------------
-    def redraw(self, event=None):
-        self.canvas.reset()
-        self.event_generate("<<ViewChange>>")
-
-    # ----------------------------------------------------------------------
-    def viewChange(self, a=None, b=None, c=None):
-        self.event_generate("<<ViewChange>>")
-
-    # ----------------------------------------------------------------------
-    def viewXY(self, event=None):
-        self.view.set(VIEWS[VIEW_XY])
-
-    # ----------------------------------------------------------------------
-    def viewXZ(self, event=None):
-        self.view.set(VIEWS[VIEW_XZ])
-
-    # ----------------------------------------------------------------------
-    def viewYZ(self, event=None):
-        self.view.set(VIEWS[VIEW_YZ])
-
-    # ----------------------------------------------------------------------
-    def viewISO1(self, event=None):
-        self.view.set(VIEWS[VIEW_ISO1])
-
-    # ----------------------------------------------------------------------
-    def viewISO2(self, event=None):
-        self.view.set(VIEWS[VIEW_ISO2])
-
-    # ----------------------------------------------------------------------
-    def viewISO3(self, event=None):
-        self.view.set(VIEWS[VIEW_ISO3])
 
     # ----------------------------------------------------------------------
     def toggleDrawFlag(self):
         self.canvas.draw_axes = self.draw_axes.get()
         self.canvas.draw_grid = self.draw_grid.get()
         self.canvas.draw_margin = self.draw_margin.get()
-        self.canvas.draw_probe = self.draw_probe.get()
         self.canvas.draw_paths = self.draw_paths.get()
         self.canvas.draw_rapid = self.draw_rapid.get()
         self.canvas.draw_workarea = self.draw_workarea.get()
@@ -2697,13 +1673,6 @@ class CanvasFrame(Frame):
         self.canvas.drawMargin()
 
     # ----------------------------------------------------------------------
-    def drawProbe(self, value=None):
-        if value is not None:
-            self.draw_probe.set(value)
-        self.canvas.draw_probe = self.draw_probe.get()
-        self.canvas.drawProbe()
-
-    # ----------------------------------------------------------------------
     def drawWorkarea(self, value=None):
         if value is not None:
             self.draw_workarea.set(value)
@@ -2711,19 +1680,3 @@ class CanvasFrame(Frame):
         self.canvas.drawWorkarea()
 
     # ----------------------------------------------------------------------
-    def drawCamera(self, value=None):
-        if value is not None:
-            self.draw_camera.set(value)
-        if self.draw_camera.get():
-            self.canvas.cameraOn()
-        else:
-            self.canvas.cameraOff()
-
-    # ----------------------------------------------------------------------
-    def drawTimeChange(self):
-        global DRAW_TIME
-        try:
-            DRAW_TIME = int(self.drawTime.get())
-        except ValueError:
-            DRAW_TIME = 5 * 60
-        self.viewChange()

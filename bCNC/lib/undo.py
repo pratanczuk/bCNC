@@ -134,20 +134,5 @@ class UndoRedo:
         return bool(self.redoList)
 
     # -----------------------------------------------------------------------
-    def undoText(self):
-        u = self.undoList[-1]
-        if isinstance(u[0], str):
-            return u[0]
-        else:
-            return "undo"
 
     # -----------------------------------------------------------------------
-    def undoTextList(self):
-        lst = []
-        for u in self.undoList:
-            if isinstance(u[0], str):
-                lst.append(u[0])
-            else:
-                lst.append("undo")
-        lst.reverse()
-        return lst

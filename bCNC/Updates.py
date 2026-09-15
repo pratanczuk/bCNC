@@ -29,7 +29,7 @@ from tkinter import (
     LabelFrame,
 )
 
-import tkExtra
+import PlotterTk
 import Utils
 
 __author__ = "Vasilis Vlachoudis"
@@ -62,21 +62,21 @@ class CheckUpdateDialog(Toplevel):
 
         la = Label(frame, text=version, anchor=W)
         la.grid(row=0, column=1, sticky=EW)
-        tkExtra.Balloon.set(la, _("Running version of bCNC"))
+        PlotterTk.Balloon.set(la, _("Running version of bCNC"))
 
         la = Label(frame, text=_("Latest PyPI Version:"))
         la.grid(row=1, column=0, sticky=E, pady=1)
 
         self.webversion = Label(frame, anchor=W)
         self.webversion.grid(row=1, column=1, sticky=EW)
-        tkExtra.Balloon.set(self.webversion,
+        PlotterTk.Balloon.set(self.webversion,
                             _("Latest release version on PyPI"))
         la = Label(frame, text=_("Published at:"))
         la.grid(row=2, column=0, sticky=E, pady=1)
 
         self.published = Label(frame, anchor=W)
         self.published.grid(row=2, column=1, sticky=EW)
-        tkExtra.Balloon.set(
+        PlotterTk.Balloon.set(
             self.published, _("Published date of the latest PyPI release")
         )
 
@@ -98,7 +98,7 @@ class CheckUpdateDialog(Toplevel):
 
         la = Label(frame, text=lastCheckStr, anchor=W)
         la.grid(row=0, column=1, sticky=EW)
-        tkExtra.Balloon.set(la, _("Date last checked"))
+        PlotterTk.Balloon.set(la, _("Date last checked"))
 
         la = Label(frame, text=_("Interval (days):"))
         la.grid(row=1, column=0, sticky=E, pady=1)
@@ -112,11 +112,11 @@ class CheckUpdateDialog(Toplevel):
             text=self.checkInterval,
             from_=0,
             to_=365,
-            background=tkExtra.GLOBAL_CONTROL_BACKGROUND,
+            background=PlotterTk.GLOBAL_CONTROL_BACKGROUND,
         )
         s.grid(row=1, column=1, sticky=EW)
         frame.grid_columnconfigure(1, weight=1)
-        tkExtra.Balloon.set(s, _("Days-interval to remind again for checking"))
+        PlotterTk.Balloon.set(s, _("Days-interval to remind again for checking"))
 
         # ----
         frame = Frame(self)
@@ -138,7 +138,7 @@ class CheckUpdateDialog(Toplevel):
             command=self.check,
         )
         self.checkButton.pack(side=RIGHT)
-        tkExtra.Balloon.set(
+        PlotterTk.Balloon.set(
             self.checkButton, _("Check the web site for new versions of bCNC")
         )
 
@@ -184,7 +184,7 @@ class CheckUpdateDialog(Toplevel):
                     text=_("Download"), background="LightYellow",
                     command=self.download
                 )
-                tkExtra.Balloon.set(
+                PlotterTk.Balloon.set(
                     self.checkButton, _("Open web browser to download bCNC")
                 )
             else:

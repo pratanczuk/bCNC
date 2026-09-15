@@ -24,11 +24,8 @@ docker run --rm \
             python3-opencv \
             python3-pil \
             python3-pip \
-            python3-ply \
-            python3-scipy \
             python3-serial \
             python3-shapely \
-            python3-stl \
             python3-tk
         BCNC_ARTIFACT_ARCH=armv7 \
         BCNC_SYSTEM_NATIVE_DEPS=1 \
@@ -39,8 +36,8 @@ docker run --rm \
         dpkg-deb --extract "$package" "$package_root"
         cd /tmp
         PYTHONPATH="$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
-            "import bCNC, numpy, ply, serial, shapely, shxparser, stl, svgelements, tkinter_gl"
+            "import bCNC, numpy, serial, shapely, svgelements"
         PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib" /usr/bin/python3 -c \
-            "import meshcut, stl; assert meshcut.USE_SCIPY"
+            "import imagetrace, path_boolean"
         chown "$HOST_UID:$HOST_GID" "$package"
     '

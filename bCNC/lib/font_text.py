@@ -164,64 +164,92 @@ def _contours_paths(contours, scale, x_offset, y_offset, name):
 
 
 def text_to_paths(text, font_filename, height, tolerance=0.02,
-                  line_spacing=1.2):
-    """Create welded closed paths for text rendered from a TTF/OTF font."""
+                  line_spacing=1.2, letter_spacing=0, alignment='Left', radius=0):
+    """Render Unicode glyph outlines with kerning, spacing and optional circular layout.
+
+    Circular layout rotates each glyph rigidly, preserving its counters. Complex
+    script shaping is not provided; unsupported glyphs are reported explicitly.
+    """
+    import math
     if not text:
         raise ValueError("Enter text to insert")
-    if height <= 0:
-        raise ValueError("Text height must be greater than zero")
-
-    font = TTFont(font_filename, lazy=False)
-    try:
-        glyph_set = font.getGlyphSet()
-        cmap = font.getBestCmap() or {}
-        units_per_em = font["head"].unitsPerEm
-        scale = float(height) / units_per_em
-        tolerance_units = float(tolerance) / scale
-        metrics = font["hmtx"].metrics
-        fallback = ".notdef" if ".notdef" in glyph_set else None
-
-        geometries = []
-        fallback_paths = []
-        y_offset = 0.0
-        for line in text.split("\n"):
-            x_offset = 0.0
-            previous = None
+    from PlotterEditing import number
+    height=number(height,.01,1000)
+    line_spacing=number(line_spacing,.2,10)
+    letter_spacing=number(letter_spacing,-100,100)
+    radius=number(radius,0,10000)
+    if alignment not in ('Left','Center','Right'): raise ValueError('Choose text alignment.')
+    if radius and '\n' in text: raise ValueError('Circular text uses one line. Remove line breaks or use a zero radius.')
+    if unary_union is None:
+        return _unwelded_text(text,font_filename,height,tolerance,line_spacing,letter_spacing,alignment,radius)
+    from shapely.affinity import rotate
+    with TTFont(font_filename, lazy=False) as font:
+        glyph_set=font.getGlyphSet(); cmap=font.getBestCmap() or {}
+        missing=sorted(set(c for c in text if c not in '\n\r' and ord(c) not in cmap))
+        if missing:
+            raise ValueError('This font does not contain: '+ ' '.join(missing[:12])+'. Choose another font.')
+        scale=height/font['head'].unitsPerEm
+        metrics=font['hmtx'].metrics
+        lines=[]
+        for line in text.split('\n'):
+            glyphs=[]; cursor=0; previous=None
             for character in line:
-                glyph_name = cmap.get(ord(character), fallback)
-                if glyph_name is None:
-                    continue
-                if previous is not None:
-                    x_offset += _kerning(font, previous, glyph_name) * scale
-
-                pen = _FlattenPen(glyph_set, tolerance_units)
-                glyph_set[glyph_name].draw(pen)
-                pen._finish(False)
-                if unary_union is None:
-                    fallback_paths.extend(_contours_paths(
-                        pen.contours,
-                        scale,
-                        x_offset,
-                        y_offset,
-                        glyph_name,
-                    ))
+                name=cmap[ord(character)]
+                if previous is not None: cursor+=_kerning(font,previous,name)*scale+letter_spacing
+                pen=_FlattenPen(glyph_set,tolerance/scale)
+                glyph_set[name].draw(pen); pen._finish(False)
+                geometry=_contours_geometry(pen.contours,scale)
+                advance=metrics.get(name,(font['head'].unitsPerEm,0))[0]*scale
+                glyphs.append((geometry,cursor,advance))
+                cursor+=advance; previous=name
+            lines.append((glyphs,cursor))
+        maxwidth=max((width for _,width in lines),default=0)
+        if radius and maxwidth>2*math.pi*radius:
+            raise ValueError('The text wraps beyond a full circle. Increase the radius or reduce text size.')
+        geometries=[]
+        for row,(glyphs,width) in enumerate(lines):
+            shift=0 if alignment=='Left' else (maxwidth-width)/(2 if alignment=='Center' else 1)
+            for geometry,x,advance in glyphs:
+                if geometry.is_empty: continue
+                if radius:
+                    theta=(x+advance/2-width/2)/radius
+                    geometry=translate(geometry,xoff=-advance/2)
+                    geometry=rotate(geometry,-math.degrees(theta),origin=(0,0))
+                    geometry=translate(geometry,xoff=radius*math.sin(theta),yoff=radius*math.cos(theta)-radius)
                 else:
-                    glyph_geometry = _contours_geometry(pen.contours, scale)
-                    if not glyph_geometry.is_empty:
-                        geometries.append(translate(
-                            glyph_geometry, xoff=x_offset, yoff=y_offset
-                        ))
-                x_offset += metrics.get(glyph_name, (units_per_em, 0))[0] * scale
-                previous = glyph_name
-            y_offset -= float(height) * line_spacing
+                    geometry=translate(geometry,xoff=x+shift,yoff=-row*height*line_spacing)
+                geometries.append(geometry)
+        if not geometries: return []
+        return _geometry_paths(unary_union(geometries))
 
-        if unary_union is None:
-            return fallback_paths
-        if not geometries:
-            return []
-        welded = unary_union(geometries)
-        if not welded.is_valid:
-            welded = welded.buffer(0)
-        return _geometry_paths(welded)
-    finally:
-        font.close()
+
+def _unwelded_text(text, filename, height, tolerance, line_spacing, spacing, alignment, radius):
+    """Optional-dependency fallback preserves outlines without automatic welding."""
+    import math
+    from PlotterEditing import transform
+    with TTFont(filename,lazy=False) as font:
+        glyphs=font.getGlyphSet(); cmap=font.getBestCmap() or {}; scale=height/font['head'].unitsPerEm
+        lines=[]
+        for line in text.split('\n'):
+            cursor=0; previous=None; parts=[]
+            for char in line:
+                if ord(char) not in cmap: raise ValueError('This font does not contain '+char+'. Choose another font.')
+                name=cmap[ord(char)]
+                if previous: cursor+=_kerning(font,previous,name)*scale+spacing
+                pen=_FlattenPen(glyphs,tolerance/scale); glyphs[name].draw(pen); pen._finish(False)
+                advance=font['hmtx'].metrics[name][0]*scale
+                parts.append((_contours_paths(pen.contours,scale,0,0,name),cursor,advance))
+                cursor+=advance; previous=name
+            lines.append((parts,cursor))
+        width=max(w for _,w in lines)
+        if radius and width>2*math.pi*radius: raise ValueError('Increase the circle radius to fit this text.')
+        result=[]
+        for row,(parts,w) in enumerate(lines):
+            shift=0 if alignment=='Left' else (width-w)/(2 if alignment=='Center' else 1)
+            for paths,x,advance in parts:
+                if radius:
+                    theta=(x+advance/2-w/2)/radius; c=math.cos(theta); s=math.sin(theta)
+                    matrix=[c,-s,s,c,radius*s-c*advance/2,radius*c-radius+s*advance/2]
+                else: matrix=[1,0,0,1,x+shift,-row*height*line_spacing]
+                result.extend(transform(paths,matrix))
+        return result

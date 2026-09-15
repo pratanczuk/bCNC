@@ -1,0 +1,23 @@
+name: Plotter regression tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install virtual display and application
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth python3-tk libgl1 fonts-dejavu-core
+          python -m pip install .
+      - name: Test the plotter workflow without hardware
+        run: xvfb-run -a python -W ignore::ResourceWarning -m unittest discover -s tests

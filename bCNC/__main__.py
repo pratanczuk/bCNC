@@ -12,7 +12,6 @@ if sys.stderr is None:
 PRGPATH = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(PRGPATH)
 sys.path.append(os.path.join(PRGPATH, "lib"))
-sys.path.append(os.path.join(PRGPATH, "plugins"))
 sys.path.append(os.path.join(PRGPATH, "controllers"))
 
 # -----------------------------------------------------------------------------
@@ -27,15 +26,11 @@ def usage(rc):
     wrt("Usage: [options] [filename...]\n\n")
     wrt("Options:\n")
     wrt("\t-b # | --baud #\t\tSet the baud rate\n")
-    wrt("\t-d\t\t\tEnable developer features\n")
-    wrt("\t-D\t\t\tDisable developer features\n")
     wrt("\t-f | --fullscreen\tEnable fullscreen mode\n")
     wrt("\t-g #\t\t\tSet the default geometry\n")
     wrt("\t-h | -? | --help\tThis help page\n")
     wrt("\t-i # | --ini #\t\tAlternative ini file for testing\n")
     wrt("\t-l | --list\t\tList all recently opened files\n")
-    wrt("\t-p # | --pendant #\tOpen pendant to specified port\n")
-    wrt("\t-P\t\t\tDo not start pendant\n")
     wrt("\t-r | --recent\t\tLoad the most recent file opened\n")
     wrt("\t-R #\t\t\tLoad the recent file matching the argument\n")
     wrt("\t-s # | --serial #\tOpen serial port specified\n")
@@ -49,10 +44,8 @@ def usage(rc):
 def main():
     import Helpers
     import bmain
-    import tkExtra
     import Utils
     import Updates
-    from CNC import CNC
     try:
         import serial
     except ImportError:
@@ -63,14 +56,13 @@ def main():
     try:
         optlist, args = getopt.getopt(
             sys.argv[1:],
-            "?b:dDfhi:g:rlpPSs:",
+            "?b:fhi:g:rlR:Ss:",
             [
                 "help",
                 "ini=",
                 "fullscreen",
                 "recent",
                 "list",
-                "pendant=",
                 "serial=",
                 "baud=",
                 "run",
@@ -84,16 +76,27 @@ def main():
     run = False
     fullscreen = False
     package_smoke_test = False
+    geometry = None
     for opt, val in optlist:
         if opt in ("-h", "-?", "--help"):
             usage(0)
         elif opt in ("-i", "--ini"):
             Utils.iniUser = val
             Utils.loadConfiguration()
-        elif opt == "-d":
-            CNC.developer = True
-        elif opt == "-D":
-            CNC.developer = False
+        elif opt in ("-s", "--serial"):
+            Utils.setStr('Connection', 'port', val)
+            Utils.setBool('Connection', 'openserial', True)
+        elif opt == "-S":
+            Utils.setBool('Connection', 'openserial', False)
+        elif opt in ("-b", "--baud"):
+            try:
+                baud = int(val)
+                if baud <= 0: raise ValueError
+            except ValueError:
+                sys.exit('Baud rate must be a positive integer.')
+            Utils.setInt('Connection', 'baud', baud)
+        elif opt == "-g":
+            geometry = val
         elif opt in ("-r", "-R", "--recent", "-l", "--list"):
             if opt in ("-r", "--recent"):
                 r = 0
@@ -145,15 +148,6 @@ def main():
         elif opt in ("-f", "--fullscreen"):
             fullscreen = True
 
-        elif opt == "-p":
-            pass  # startPendant()
-
-        elif opt == "-P":
-            pass  # stopPendant()
-
-        elif opt == "--pendant":
-            pass  # startPendant on port
-
         elif opt == "--run":
             run = True
 
@@ -171,8 +165,8 @@ def main():
             sys.exit("Missing bundled resources: " + ", ".join(missing_paths))
         if not Utils.config.has_section("Error"):
             sys.exit(f"Missing [Error] section in bundled config: {Utils.iniSystem}")
-        from simpleArc import SimpleArc
-        from simpleRectangle import SimpleRectangle
+        from PlotterShapes import SimpleArc
+        from PlotterShapes import SimpleRectangle
         if not SimpleArc("smoke").calc(0, 0, 10, 0, 360):
             sys.exit("Bundled circle generator failed")
         if not SimpleRectangle("smoke").calc(0, 0, 10, 10, 0, True):
@@ -183,7 +177,6 @@ def main():
 
     palette = {"background": application.cget("background")}
 
-    color_count = 0
     custom_color_count = 0
     for color_name in (
         "background",
@@ -197,19 +190,16 @@ def main():
         "selectForeground",
     ):
         color2 = Utils.getStr("Color", "global." + color_name.lower(), None)
-        color_count += 1
         if (color2 is not None) and (color2.strip() != ""):
             palette[color_name] = color2.strip()
             custom_color_count += 1
 
-            if color_count == 0:
-                tkExtra.GLOBAL_CONTROL_BACKGROUND = color2
-            elif color_count == 1:
-                tkExtra.GLOBAL_FONT_COLOR = color2
-
     if custom_color_count > 0:
         print("Changing palette")
         application.tk_setPalette(**palette)
+
+    if geometry:
+        application.geometry(geometry)
 
     if fullscreen:
         application.attributes("-fullscreen", True)
@@ -238,18 +228,4 @@ def main():
     Utils.saveConfiguration()
 
 if __name__ == "__main__":
-	sys.stdout.write("=" * 80 + "\n")
-	sys.stdout.write(
-		"WARNING: bCNC was recently ported to only support \n"
-		+ "python3.8 and newer.\n"
-	)
-	sys.stdout.write(
-		"Most things seem to work reasonably well.\n"
-	)
-	sys.stdout.write(
-		"Please report any issues to: "
-		+ "https://github.com/vlachoudis/bCNC/issues\n"
-	)
-	sys.stdout.write("=" * 80 + "\n")
-
-	main()
+    main()

@@ -2,6 +2,6 @@ pyserial>=3.5
 numpy>=1.12
 Pillow>=4.0
 opencv-python>=4.10
-shxparser>=0.0.2
 fonttools>=4.0
 shapely>=2.0
+svgelements>=1,<2

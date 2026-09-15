@@ -22,7 +22,6 @@
       "buildsystem": "simple",
       "build-commands": [
         "pip3 install --prefix=${FLATPAK_DEST} pyserial",
-        "pip3 install --prefix=${FLATPAK_DEST} shxparser",
         "pip3 install --prefix=${FLATPAK_DEST} svgelements",
         "pip3 install --prefix=${FLATPAK_DEST} Pillow",
         "pip3 install --prefix=${FLATPAK_DEST} numpy",

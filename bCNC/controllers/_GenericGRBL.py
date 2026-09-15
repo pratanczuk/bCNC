@@ -219,32 +219,10 @@ for e1, e0 in (
 
 
 class _GenericGRBL(_GenericController):
-    def test(self):
-        print("test supergen grbl")
 
     def viewSettings(self):
         self.master.sendGCode("$$")
 
-    def viewBuild(self):
-        self.master.sendGCode("$I")
-
-    def viewStartup(self):
-        self.master.sendGCode("$N")
-
-    def checkGcode(self):
-        self.master.sendGCode("$C")
-
-    def grblHelp(self):
-        self.master.sendGCode("$")
-
-    def grblRestoreSettings(self):
-        self.master.sendGCode("$RST=$")
-
-    def grblRestoreWCS(self):
-        self.master.sendGCode("$RST=#")
-
-    def grblRestoreAll(self):
-        self.master.sendGCode("$RST=#")
 
     def purgeControllerExtra(self):
         time.sleep(1)

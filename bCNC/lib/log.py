@@ -39,23 +39,6 @@ __author__ = "Vasilis Vlachoudis"
 __email__ = "Vasilis.Vlachoudis@cern.ch"
 
 
-# -----------------------------------------------------------------------------
-_log = None
-
-
-def set_(li):
-    global _log
-    _log = li
-
-
-def say(*kw):
-    global _log
-    txt = " ".join(map(str, kw))
-    if _log:
-        _log(txt)
-    else:
-        sys.stdout.write(f"{txt}\n")
-
-
-def null(*kw):
-    pass
+def say(*values):
+    """Write application diagnostics to standard output."""
+    print(*values)
