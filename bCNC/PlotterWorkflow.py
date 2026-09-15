@@ -945,16 +945,18 @@ class PlotterWorkflow:
             self._sequence_phase = phase
             self.tool_confirmed.set(False)
         if sequence.active:
-            self.cut_mat_controls.pack_forget()
-            self.sequence_panel.pack(fill=tk.X, before=self.cut_setup, pady=(8,12))
+            if not getattr(self, 'adaptive_ready', False):
+                self.cut_mat_controls.pack_forget()
+                self.sequence_panel.pack(fill=tk.X, before=self.cut_setup, pady=(8,12))
             self.sequence_message.config(text=sequence.message)
             waiting = sequence.phase=='waiting'
             self.tool_check.config(state=tk.NORMAL if waiting else tk.DISABLED)
             self.tool_continue.config(state=tk.NORMAL if waiting and self.tool_confirmed.get() else tk.DISABLED)
             self.cut_message.config(text=sequence.message)
         else:
-            self.sequence_panel.pack_forget()
-            self.cut_mat_controls.pack(fill=tk.X, before=self.cut_setup, pady=(0,8))
+            if not getattr(self, 'adaptive_ready', False):
+                self.sequence_panel.pack_forget()
+                self.cut_mat_controls.pack(fill=tk.X, before=self.cut_setup, pady=(0,8))
             if sequence.phase in ('complete', 'cancelled') and self._cut_started:
                 self.cut_message.config(text=sequence.message)
         self._was_running = running

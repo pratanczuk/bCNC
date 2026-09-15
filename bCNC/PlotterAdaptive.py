@@ -65,6 +65,8 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self.preview_button = self.button(self.toolbar, 'Show preview', self.toggle_preview)
         for button in (self.pause_button, self.stop_button, self.next_button, self.tool_continue, self.tool_cancel):
             button.configure(minimum_height=56)
+        self.connection_status = self.label(app, 'Disconnected', size=10, bg=PANEL)
+        self.connection_status.pack(side='top', fill='x', before=app.paned)
         self.adaptive_ready = True
         app.widgets[:] = [w for w in app.widgets if w.winfo_exists()]
         app.minsize(320, 540)
@@ -336,8 +338,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
     def update_state(self):
         # Toolbar replacement destroys original registered edit buttons.
         self.edit_widgets[:] = [w for w in self.edit_widgets if w.winfo_exists()]
-        if self.adaptive_ready and not self.cut_setup.winfo_manager():
-            self.cut_setup.pack(fill='x')
+        self.machine_widgets[:] = [w for w in self.machine_widgets if w.winfo_exists()]
         super().update_state()
         if not self.adaptive_ready:
             return
@@ -360,17 +361,19 @@ class AdaptiveWorkflow(PlotterWorkflow):
         for index, button in enumerate(self.tabs):
             button.configure(bg=SOFT if index == self.step else PANEL)
         pages_open = bool(getattr(self.app, 'workspace_pages', []))
-        if pages_open and not busy:
+        finished = self.step == 2 and self._cut_started and not busy
+        if (pages_open or finished) and not busy:
             self.action_area.pack_forget()
         elif not self.action_area.winfo_manager():
             self.action_area.pack(side='bottom', fill='x', before=self.app.paned)
-        if busy or pages_open:
+        if busy or pages_open or finished:
             self.next_button.pack_forget()
             self.back_button.pack_forget()
         else:
             self.next_button.pack(side='right')
             self.back_button.pack(side='left')
         self.update_project_title()
+        self.update_connection_status()
         self.update_job_presentation()
         if self.app.mat_handling.active:
             self.stop_button.configure(command=self.app.mat_handling.cancel, text='Stop movement')
@@ -379,6 +382,13 @@ class AdaptiveWorkflow(PlotterWorkflow):
             self.stop_button.configure(command=self.stop, text='Stop job')
         if self.app.tool_sequence.active and not self.app.sender.running:
             self.stop_button.pack(side='left', padx=8)
+
+    def update_connection_status(self):
+        sender = self.app.sender
+        state = str(CNC.vars.get('state', 'Not connected'))
+        text = f'Connected · {state}' if sender.serial is not None else 'Disconnected'
+        if self.connection_status.cget('text') != text:
+            self.connection_status.configure(text=text, fg=ACCENT if sender.serial is not None else MUTED)
 
     def update_project_title(self):
         project_name = self.filename.cget('text') or 'Untitled'
@@ -415,6 +425,7 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self.job_state = None
         self.reconnect_button = self.button(parent, 'Connection setup', self.connection_settings)
         self.another_job_button = self.button(parent, 'Prepare another job', self.prepare_another_job)
+        self.finished_unload = self.button(parent, 'Unload mat', self.unload_mat, primary=True, machine=True)
 
     def prepare_another_job(self):
         self._cut_started = self._stopped = False
@@ -422,11 +433,26 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self.show_step(1)
         self.update_state()
 
+    def show_finished_page(self):
+        """Keep the unload action reachable above an open utility page."""
+        from PlotterPages import WorkspacePage
+        page = WorkspacePage(self.app)
+        page.configure(padx=24, pady=20)
+        page.title('Job ended')
+        self.label(page, 'Job ended', size=20, bold=True).pack(fill='x', pady=12)
+        self.label(page, 'Inspect the result, then unload the mat. Wait for the plotter to be idle before unloading.', muted=True).pack(fill='x', pady=12)
+        def unload():
+            self.unload_mat()
+            page.destroy()
+        self.button(page, 'Unload mat', unload, primary=True, machine=True).pack(fill='x', pady=8)
+        self.button(page, 'Back', page.destroy).pack(fill='x', pady=8)
+        fit_dialog(page, self.app)
+
     def update_job_presentation(self):
         a = self.app
         sequence = a.tool_sequence
         phase = ('Tool change' if sequence.active and sequence.phase == 'waiting' else
-                 'Loading mat' if a.mat_handling.active else
+                 ('Loading mat' if a.mat_handling.loading else 'Unloading mat') if a.mat_handling.active else
                  'Paused' if a.sender.running and a.sender._pause else
                  'Running' if a.sender.running else
                  'Connection lost' if self._cut_started and a.sender.serial is None else
@@ -435,28 +461,41 @@ class AdaptiveWorkflow(PlotterWorkflow):
         self.job_heading.configure(text=phase)
         changed = phase != self.job_state
         self.job_state = phase
-        for widget in self.review_widgets:
-            widget.pack_forget()
-        if phase == 'Review job':
-            for widget in self.review_widgets[2:]:
-                if widget in self.review_layout:
-                    widget.pack(**self.review_layout[widget])
-        if phase == 'Tool change':
-            self.cut_message.pack_forget()
-        else:
-            self.cut_message.pack(fill='x', after=self.job_heading, pady=12)
-        self.cut_message.configure(font=('DejaVu Sans', 11 if phase == 'Review job' else 14))
-        self.reconnect_button.pack_forget()
-        self.another_job_button.pack_forget()
+        if changed:
+            for widget in self.review_widgets + [self.sequence_panel, self.reconnect_button,
+                                                self.another_job_button, self.finished_unload]:
+                widget.pack_forget()
+            if phase == 'Review job':
+                for widget in self.review_widgets[2:]:
+                    if widget in self.review_layout:
+                        widget.pack(**self.review_layout[widget])
+            if phase == 'Tool change':
+                self.cut_message.pack_forget()
+                self.sequence_panel.pack(fill='x', after=self.job_heading, pady=(8,12))
+            else:
+                self.cut_message.pack(fill='x', after=self.job_heading, pady=12)
+            self.cut_message.configure(font=('DejaVu Sans', 11 if phase == 'Review job' else 14))
+            if phase == 'Connection lost':
+                self.reconnect_button.pack(fill='x', pady=8)
+            if phase in ('Stopped', 'Job ended'):
+                self.finished_unload.pack(fill='x', after=self.cut_message, pady=8)
+            if phase in ('Stopped', 'Job ended', 'Connection lost'):
+                self.another_job_button.pack(fill='x', pady=8)
+            # A preview selected during the cut must not hide its finish controls.
+            if phase in ('Stopped', 'Job ended') and self.step == 2 and self.preview_visible:
+                self.preview_visible = False
+                self.layout = None
+                self.resize_workspace()
+        if phase in ('Job ended', 'Stopped'):
+            self.cut_message.configure(text='Inspect the result, then unload the mat.' if phase == 'Job ended' else 'Cut stopped. Inspect the material before unloading.')
         if phase == 'Connection lost':
             self.cut_message.configure(text='The connection was lost. The physical job state is unknown. Check the plotter and material before reconnecting or preparing another job.')
-            self.reconnect_button.pack(fill='x', pady=8)
-        if phase in ('Stopped', 'Job ended', 'Connection lost'):
-            self.another_job_button.pack(fill='x', pady=8)
-        if phase == 'Loading mat':
+        if phase in ('Loading mat', 'Unloading mat'):
             self.cut_message.configure(text=a.mat_handling.message)
         if self.step == 2 and changed:
             self.scroll.yview_moveto(0)
+        if changed and phase == 'Job ended' and (getattr(a, 'workspace_pages', []) or self.notice.winfo_manager()):
+            self.show_finished_page()
 
     def open_menu(self):
         from PlotterPages import WorkspacePage

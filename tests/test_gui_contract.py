@@ -265,6 +265,83 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_cut_mat_layout_stays_mapped_during_idle_polling(self):
+        from CNC import CNC
+        self.w._cut_started = False
+        self.w.show_step(2)
+        self.app.sender.serial = object(); CNC.vars['state'] = 'Idle'
+        self.w.update_state(); self.app.update()
+        changes = []
+        self.w.cut_mat_controls.bind('<Unmap>', lambda e: changes.append('hidden'), add='+')
+        self.w.cut_mat_controls.bind('<Map>', lambda e: changes.append('shown'), add='+')
+        layout = self.w.cut_mat_controls.pack_info()
+        for _ in range(30):
+            self.w.update_state(); self.app.update()
+        self.assertEqual(changes, [])
+        self.assertEqual(self.w.cut_mat_controls.pack_info(), layout)
+        self.assertTrue(self.w.cut_mat_controls.winfo_ismapped())
+
+    def test_finished_cut_exposes_unload_after_phone_preview(self):
+        from CNC import CNC
+        self.w.clear_notice()
+        self.app.geometry('320x600'); self.w.show_step(2)
+        self.app.sender.serial = object(); CNC.vars['state'] = 'Run'
+        self.app.sender.running = True; self.w._cut_started = True
+        self.w.update_state(); self.w.toggle_preview(); self.app.update()
+        self.app.sender.running = False; CNC.vars['state'] = 'Idle'
+        self.w.update_state(); self.app.update()
+        self.assertEqual(self.w.job_state, 'Job ended')
+        self.assertFalse(self.w.preview_visible)
+        self.assertTrue(self.w.finished_unload.winfo_ismapped())
+        self.assertLessEqual(self.w.finished_unload.winfo_rooty()+self.w.finished_unload.winfo_height(), self.w.scroll.winfo_rooty()+self.w.scroll.winfo_height())
+        self.assertFalse(self.w.next_button.winfo_ismapped())
+        self.assertFalse(self.w.cut_setup.winfo_ismapped())
+        with patch.object(self.app, 'unloadMat') as unload:
+            self.w.finished_unload.invoke(); unload.assert_called_once()
+        self.assertFalse(self.w.confirmed.get())
+        with patch.object(self.app.mat_handling, 'active', True), patch.object(self.app.mat_handling, 'loading', False):
+            self.w.update_state(); self.app.update()
+            self.assertEqual(self.w.job_heading.cget('text'), 'Unloading mat')
+            self.assertTrue(self.w.stop_button.winfo_ismapped())
+
+    def test_finished_cut_appears_above_open_page_without_losing_it(self):
+        from CNC import CNC
+        self.app.sender.serial = object(); CNC.vars['state'] = 'Idle'
+        self.w._cut_started = False; self.w.update_state()
+        draft = self.w.settings('Appearance'); self.app.update()
+        self.w._cut_started = True; self.w.update_state(); self.app.update()
+        page = self.app.workspace_pages[-1]
+        self.assertIsNot(page, draft)
+        self.assertEqual(page.title(), 'Job ended')
+        self.assertTrue(draft.winfo_exists())
+        button = next(w for w in descendants(page) if isinstance(w, RoundedButton) and w.cget('text') == 'Unload mat')
+        with patch.object(self.app, 'unloadMat') as unload:
+            button.invoke(); unload.assert_called_once()
+        self.assertIs(self.app.workspace_pages[-1], draft)
+        draft.destroy()
+        self.w.update_state()
+        self.w.report_error('Connection interrupted', 'Disconnected')
+        self.w._cut_started = True; self.w.update_state(); self.app.update()
+        page = self.app.workspace_pages[-1]
+        self.assertEqual(page.title(), 'Job ended')
+        self.assertTrue(self.w.notice.winfo_manager())
+        page.destroy()
+
+    def test_connection_status_visible_on_phone_desktop_and_pages(self):
+        from CNC import CNC
+        self.w._cut_started = False
+        for size in ('320x600', '1280x900'):
+            self.app.geometry(size); self.app.sender.serial = None
+            self.w.update_state(); self.app.update()
+            self.assertEqual(self.w.connection_status.cget('text'), 'Disconnected')
+            self.app.sender.serial = object(); CNC.vars['state'] = 'Idle'
+            self.w.update_state(); page = self.w.open_menu(); self.app.update()
+            status = self.w.connection_status
+            self.assertEqual(status.cget('text'), 'Connected · Idle')
+            self.assertTrue(status.winfo_ismapped())
+            self.assertLessEqual(status.winfo_rooty()+status.winfo_height(), page.winfo_rooty())
+            page.destroy()
+
     def test_connection_loss_never_claims_physical_completion(self):
         self.w.show_step(2);self.w._cut_started=True
         self.app.sender.serial=None;self.w.update_state();self.app.update()
