@@ -21,6 +21,9 @@ EDIT_TOOLS = {
 class AdaptiveWorkflow(PlotterWorkflow):
     def __init__(self, app):
         self.adaptive_ready = False
+        self._fit_pending = None
+        self._fit_requested = False
+        self._fit_geometry = None
         self.layout = None
         self.inspector_mode = 'Properties'
         self.selection_signature = None
@@ -73,11 +76,31 @@ class AdaptiveWorkflow(PlotterWorkflow):
         app.widgets[:] = [w for w in app.widgets if w.winfo_exists()]
         app.minsize(320, 540)
         self.resize_binding = app.bind('<Configure>', self.resize_workspace, add='+')
+        app.canvas.bind('<Map>', self.fit_when_visible, add='+')
+        app.canvas.bind('<Configure>', self.fit_when_visible, add='+')
         self.resize_workspace()
         polish(app)
         from PlotterAppearance import apply_appearance
         apply_appearance(app)
         self.update_state()
+
+    def fit_mat(self):
+        """Coalesce fit requests and wait for the canvas's final layout."""
+        self._fit_requested = True
+        if self._fit_pending is None:
+            self._fit_pending = self.app.after_idle(self.apply_pending_fit)
+
+    def fit_when_visible(self, event=None):
+        if self._fit_requested:
+            self.fit_mat()
+
+    def apply_pending_fit(self):
+        self._fit_pending = None
+        canvas = self.app.canvas
+        if not canvas.winfo_ismapped() or min(canvas.winfo_width(), canvas.winfo_height()) < 10:
+            return
+        self._fit_requested = False
+        super().fit_mat()
 
     def resize_header(self, event):
         # The adaptive workspace owns the compact header; no subtitle reappears.
@@ -360,6 +383,12 @@ class AdaptiveWorkflow(PlotterWorkflow):
             button.configure(state='normal' if ids and not busy else 'disabled')
         self.more_tools.configure(state='readonly' if ids and not busy else 'disabled')
         self.update_tool_selection()
+        geometry = (CNC.vars.get('mat_width', 300), CNC.vars.get('mat_height', 300))
+        if geometry != self._fit_geometry:
+            self._fit_geometry = geometry
+            self.fit_mat()
+        self.back_button.configure(text=('← Back', '← Design', '← Prepare')[self.step],
+                                   bg=SOFT if self.step > 0 and not busy else BG)
         for index, button in enumerate(self.tabs):
             button.configure(bg=SOFT if index == self.step else PANEL)
         pages_open = bool(getattr(self.app, 'workspace_pages', []))

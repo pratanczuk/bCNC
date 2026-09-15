@@ -719,6 +719,7 @@ class Application(Tk):
         self.editor.fill()
         self.draw()
         self.title(f"Foil Studio {__version__} {__platform_fingerprint__}")
+        self.workflow.fit_mat()
 
     # -----------------------------------------------------------------------
     # load dialog
@@ -895,7 +896,7 @@ class Application(Tk):
             del gcode
             self.editor.fill()
             self.draw()
-            self.canvas.fit2Screen()
+            self.workflow.fit_mat()
             # Note: drag-knife compensation is applied at send time (run()),
             # not on import, so the original design remains editable.
             return inserted

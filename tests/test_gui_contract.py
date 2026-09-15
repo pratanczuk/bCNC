@@ -265,6 +265,44 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_auto_fit_waits_for_canvas_and_back_has_clear_navigation(self):
+        from PlotterWorkflow import PlotterWorkflow
+        from PlotterTheme import SOFT, BG
+        self.w._cut_started = False; self.w.clear_notice()
+        self.app.geometry('390x844'); self.w.show_step(1); self.app.update()
+        self.assertEqual(self.w.back_button.cget('state'), 'normal')
+        self.assertEqual(self.w.back_button.cget('text'), '← Design')
+        self.assertEqual(self.w.back_button.cget('bg'), SOFT)
+        with patch.object(PlotterWorkflow, 'fit_mat') as fit:
+            self.w.fit_mat(); self.w.fit_mat(); self.app.update()
+            fit.assert_not_called()
+            self.w.back_button.invoke(); self.app.update()
+            fit.assert_called_once()
+        self.assertEqual(self.w.step, 0)
+        self.assertEqual(self.w.back_button.cget('state'), 'disabled')
+        self.assertEqual(self.w.back_button.cget('bg'), BG)
+        self.w.show_step(2); self.app.update()
+        self.assertEqual(self.w.back_button.cget('text'), '← Prepare')
+        self.w.back_button.invoke(); self.assertEqual(self.w.step, 1)
+
+    def test_new_and_imported_documents_request_mat_fit(self):
+        self.w._cut_started = False; self.w.show_step(0); self.app.update()
+        path = os.path.join(self.temp.name, 'fit-import.ngc')
+        with open(path, 'w') as stream:
+            stream.write('G0 X5 Y5\nG1 X15 Y15\n')
+        with patch.object(self.w, 'fit_mat') as fit:
+            self.app.importFile(path, skip_header_footer=True)
+            fit.assert_called()
+        with patch.object(self.w, 'fit_mat') as fit, patch.object(self.app, 'fileModified', return_value=False):
+            self.app.newFile(); fit.assert_called()
+        self.w.fit_mat(); self.app.update()
+        c = self.app.canvas
+        x0,y0,x1,y1 = c.bbox('CuttingMat')
+        self.assertGreaterEqual(x0-c.canvasx(0), -2)
+        self.assertGreaterEqual(y0-c.canvasy(0), -2)
+        self.assertLessEqual(x1-c.canvasx(0), c.winfo_width()+2)
+        self.assertLessEqual(y1-c.canvasy(0), c.winfo_height()+2)
+
     def test_window_title_uses_product_name_for_new_loaded_and_saved_files(self):
         self.assertTrue(self.app.title().startswith('Foil Studio'))
         path = os.path.join(self.temp.name, 'window-title.ngc')

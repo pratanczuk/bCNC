@@ -155,7 +155,7 @@ class PlotterWorkflow:
         self.set_workspace()
         self.refresh_library()
         self.show_step(0)
-        self.app.after(400, self.fit_mat)
+        self.app.after_idle(self.fit_mat)
         from PlotterProjectUI import ProjectSession
         self.project = ProjectSession(self)
         if self.project.recoveries():
@@ -450,7 +450,7 @@ class PlotterWorkflow:
             self.import_filename = os.path.basename(path)
             self.update_state()
             self._cut_started = False
-            self.app.after(300, self.fit_mat)
+            self.fit_mat()
 
     def add_text(self):
         return self.design_dialog('TextDialog')
