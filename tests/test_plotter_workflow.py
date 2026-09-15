@@ -479,13 +479,12 @@ class WorkflowGUITest(unittest.TestCase):
                 for child in widget.winfo_children():
                     yield child
                     yield from children(child)
-            button = next(w for w in children(d) if w.winfo_class() == 'Button' and w.cget('text') == 'Apply object color')
+            d.controls.select(1)
+            d.sections['Objects'].select(2); a.update()
+            button = d.object_color_button
             self.assertTrue(button.winfo_ismapped())
-            # Comfortable controls may need scrolling; the last action stays reachable.
-            button.master.master.yview_moveto(1); a.update()
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(), d.insert_button.winfo_rooty())
             d.geometry('880x620'); a.update()
-            button.master.master.yview_moveto(1); a.update()
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(), d.insert_button.winfo_rooty())
             a.gcode.blocks[1]._name = 'Changed elsewhere'
             d.object_name.set('Stale rename'); self.assertFalse(d.rename_object())

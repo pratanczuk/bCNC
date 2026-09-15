@@ -37,13 +37,18 @@ class LayersDialog(WorkspacePage):
         self.material_profile = tk.StringVar(self, 'Current settings')
         self.saved_process = None
         self.delete_mode = tk.StringVar(self, 'Keep objects in Default')
-        top = tk.Frame(self, bg=PANEL, padx=20, pady=16)
+        self.context = tk.IntVar(self, 0)
+        top = tk.Frame(self, bg=PANEL, padx=20, pady=8)
         top.pack(fill='x')
+        from PlotterUI import ChoiceButton
+        for index, name in reversed(list(enumerate(('Layer', 'Objects')))):
+            ChoiceButton(top, text=name, variable=self.context, value=index,
+                         command=lambda:self.controls.select(self.context.get())).pack(side='right', padx=3)
         title = workflow.label(top, 'Layers & objects', size=20, bold=True)
-        title.config(wraplength=700); title.pack(anchor='w')
-        subtitle = workflow.label(top, 'Organize artwork, choose what cuts, and keep changes undoable.', muted=True)
-        subtitle.config(wraplength=800); subtitle.pack(anchor='w', pady=(4,0))
-        footer = tk.Frame(self, bg=PANEL, padx=20, pady=12)
+        title.config(wraplength=700); title.pack(side='left')
+        subtitle = workflow.label(top, 'Choose what cuts and how.', muted=True)
+        subtitle.config(wraplength=380); subtitle.pack(side='left', padx=20)
+        footer = tk.Frame(self, bg=PANEL, padx=20, pady=8)
         footer.pack(side='bottom', fill='x')
         self.insert_button = workflow.button(footer, 'Done', self.destroy, primary=True)
         self.insert_button.pack(side='right')
@@ -56,70 +61,75 @@ class LayersDialog(WorkspacePage):
         body.columnconfigure(0, weight=1)
         body.columnconfigure(1, minsize=310)
         body.rowconfigure(0, weight=1)
-        from PlotterUI import ScrollFrame
-        list_shell = ScrollFrame(body)
+        self.scrollers = []
+        list_shell = tk.Frame(body, bg=PANEL)
         list_shell.grid(row=0, column=0, sticky='nsew', padx=(0,16))
-        left = list_shell.body
+        left = list_shell
         tools = tk.Frame(left, bg=PANEL); tools.pack(fill='x', pady=(0,8))
-        workflow.button(tools, '+ Add layer', self.add_layer, primary=True).pack(side='right', padx=(8,0))
-        search = ttk.Entry(tools, textvariable=self.search, font=('DejaVu Sans',11))
-        search.pack(side='left', fill='x', expand=True)
-        search.insert(0, '')
-        workflow.label(left, 'Search layers or objects', size=10, muted=True).pack(anchor='w')
-        holder = tk.Frame(left, bg=PANEL); holder.pack(fill='both', expand=True, pady=6)
+        workflow.button(tools, '+ Layer', self.add_layer, primary=True).pack(side='right', padx=(8,0))
+        workflow.label(tools, 'Find', size=10).pack(side='left', padx=(0,8))
+        ttk.Entry(tools, textvariable=self.search, width=12).pack(side='left', fill='both', expand=True)
+        selection = tk.Frame(left, bg=PANEL); selection.pack(side='bottom', fill='x', pady=(8,0))
+        workflow.button_grid(selection, [('Select all', self.select_all), ('Select group', self.select_group)])
+        holder = tk.Frame(left, bg=PANEL); holder.pack(fill='both', expand=True)
         holder.columnconfigure(0, weight=1); holder.rowconfigure(0, weight=1)
         style = ttk.Style(self)
-        style.configure('FoilObjects.Treeview', rowheight=31, font=('DejaVu Sans',11), background=PANEL, fieldbackground=PANEL)
+        style.configure('FoilObjects.Treeview', rowheight=44, font=('DejaVu Sans',11), background=PANEL, fieldbackground=PANEL)
         style.configure('FoilObjects.Treeview.Heading', font=('DejaVu Sans',10,'bold'))
-        self.tree = ttk.Treeview(holder, columns=('included','kind','passes'), selectmode='extended', style='FoilObjects.Treeview')
+        self.tree = ttk.Treeview(holder, height=4, columns=('included','kind','passes'), selectmode='extended', style='FoilObjects.Treeview')
         self.tree.heading('#0', text='Layer / object')
-        self.tree.column('#0', width=220, minwidth=120, stretch=True)
-        for key, label, width in [('included','Cut',75),('kind','Type',92),('passes','Passes',55)]:
+        self.tree.column('#0', width=190, minwidth=110, stretch=True)
+        for key, label, width in [('included','Cut',60),('kind','Type',82),('passes','Passes',65)]:
             self.tree.heading(key, text=label); self.tree.column(key, width=width, minwidth=width, stretch=False)
         self.tree.grid(row=0, column=0, sticky='nsew')
-        bar = ttk.Scrollbar(holder, command=self.tree.yview); bar.grid(row=0, column=1, sticky='ns')
-        self.tree.configure(yscrollcommand=bar.set)
-        workflow.button_grid(left, [('Select all objects', self.select_all), ('Select attached group', self.select_group)])
-        hint = workflow.label(left, 'Drag objects onto a layer, or before another object. Moving and duplicating includes attached group members.', size=10, muted=True)
-        hint.config(wraplength=530); hint.pack(fill='x', pady=8)
+        self.tree_bar = ttk.Scrollbar(holder, command=self.tree.yview)
+        self.tree.configure(yscrollcommand=lambda first,last:self.scrollbar(self.tree_bar,first,last))
         self.detail_shell = tk.Frame(body, bg=PANEL)
-        self.controls = ttk.Notebook(self.detail_shell)
+        style.layout('LayerContext.TNotebook.Tab', [])
+        self.controls = ttk.Notebook(self.detail_shell, style='LayerContext.TNotebook')
+        self.controls.bind('<<NotebookTabChanged>>', lambda e:self.context.set(self.controls.index('current')))
         self.controls.pack(fill='both', expand=True)
-        layer_page = self.scroll_page('Layer')
-        object_page = self.scroll_page('Objects')
-        self.entry(layer_page, 'Layer name', self.layer)
-        self.layer_rename = self.button(layer_page, 'Rename layer', self.rename_layer)
-        self.operation_combo = self.combo(layer_page, 'Operation', self.operation, ['Current settings','Cut','Draw'])
+        self.sections = {}
+        for title in ('Layer', 'Objects'):
+            group = ttk.Notebook(self.controls)
+            self.controls.add(group, text=title)
+            self.sections[title] = group
+        setup = self.scroll_page('Cut setup', self.sections['Layer'])
+        layer_style = self.scroll_page('Layer options', self.sections['Layer'])
+        manage = self.scroll_page('Manage', self.sections['Layer'])
+        pair = tk.Frame(setup, bg=PANEL); pair.pack(fill='x')
+        pair.columnconfigure(0, weight=1, uniform='setup'); pair.columnconfigure(1, weight=1, uniform='setup')
+        operation_box = tk.Frame(pair, bg=PANEL); operation_box.grid(row=0,column=0,sticky='ew',padx=(0,6))
+        tool_box = tk.Frame(pair, bg=PANEL); tool_box.grid(row=0,column=1,sticky='ew',padx=(6,0))
+        self.operation_combo = self.combo(operation_box, 'Operation', self.operation, ['Current settings','Cut','Draw'])
         self.operation_combo.bind('<<ComboboxSelected>>', lambda e:self.process_choices())
-        self.tool_combo = self.combo(layer_page, 'Tool', self.tool_profile, [])
-        self.material_combo = self.combo(layer_page, 'Material', self.material_profile, ['Current settings'])
-        self.button(layer_page, 'Apply material & tool', self.apply_process)
-        self.workflow.label(layer_page, 'Draw uses a pen, with compensation and overcut always off. Library edits do not change this layer until applied again.', muted=True, size=10).pack(fill='x',pady=6)
-        self.combo(layer_page, 'Layer color', self.color, list(PALETTE))
-        self.button(layer_page, 'Apply layer color', self.color_layer)
-        workflow.button_grid(layer_page, [('Include', lambda: self.show_layer(True)), ('Exclude', lambda: self.show_layer(False))])
-        workflow.button_grid(layer_page, [('Only this layer', self.only_layer), ('All layers', self.show_all)])
-        workflow.button_grid(layer_page, [('Move layer up', lambda: self.order_layer(-1)), ('Move down', lambda: self.order_layer(1))])
-        self.combo(layer_page, 'When deleting this layer', self.delete_mode, ['Keep objects in Default','Delete objects too'])
-        self.layer_delete = self.button(layer_page, 'Delete layer', self.delete_layer)
-        note = workflow.label(layer_page, 'Default holds unassigned artwork and cannot be renamed or deleted. Excluding a layer preserves each object’s own cut setting.', size=10, muted=True)
-        note.config(wraplength=285); note.pack(fill='x', pady=8)
-        self.entry(object_page, 'Object name (one selected)', self.object_name)
-        self.button(object_page, 'Rename object', self.rename_object)
-        self.target_combo = self.combo(object_page, 'Move selected objects to', self.target_layer, [DEFAULT])
-        self.button(object_page, 'Move to layer', self.assign)
-        options = tk.Frame(object_page, bg=PANEL); options.pack(fill='x', pady=(8,4))
-        workflow.label(options, 'Cut passes', size=10).pack(side='left')
-        ttk.Spinbox(options, from_=1, to=100, textvariable=self.passes, width=5).pack(side='left', padx=8)
+        self.tool_combo = self.combo(tool_box, 'Tool', self.tool_profile, [])
+        self.material_combo = self.combo(setup, 'Material', self.material_profile, ['Current settings'])
+        self.button(setup, 'Apply material & tool', self.apply_process)
+        workflow.label(setup, 'Choose a layer on the left to set its material and tool.', size=10, muted=True).pack(fill='x', pady=4)
+        self.action_field(layer_style, 'Layer color', self.color, self.color_layer, 'Apply', list(PALETTE))
+        workflow.button_grid(layer_style, [('Include', lambda:self.show_layer(True)), ('Exclude', lambda:self.show_layer(False))])
+        workflow.button_grid(layer_style, [('Only this layer', self.only_layer), ('Show all', self.show_all)])
+        self.layer_rename, _ = self.action_field(manage, 'Layer name', self.layer, self.rename_layer, 'Rename')
+        workflow.button_grid(layer_style, [('Move up', lambda:self.order_layer(-1)), ('Move down', lambda:self.order_layer(1))])
+        self.combo(manage, 'When deleting', self.delete_mode, ['Keep objects in Default','Delete objects too'])
+        self.layer_delete = self.button(manage, 'Delete layer', self.delete_layer)
+        properties = self.scroll_page('Properties', self.sections['Objects'])
+        arrange = self.scroll_page('Arrange', self.sections['Objects'])
+        object_style = self.scroll_page('Appearance', self.sections['Objects'])
+        self.action_field(properties, 'Object name', self.object_name, self.rename_object, 'Rename')
+        _, self.target_combo = self.action_field(properties, 'Layer', self.target_layer, self.assign, 'Move', [DEFAULT])
+        options = tk.Frame(properties, bg=PANEL); options.pack(fill='x', pady=(6,4))
+        workflow.label(options, 'Passes', size=10).pack(side='left')
+        ttk.Entry(options, textvariable=self.passes, width=5).pack(side='left', fill='y', padx=8)
         workflow.button(options, 'Apply', self.apply_passes).pack(side='right')
-        workflow.button_grid(object_page, [('Include objects', lambda: self.include_objects(True)), ('Exclude', self.exclude)])
-        workflow.button_grid(object_page, [('Move up', lambda: self.order_objects(-1)), ('Move down', lambda: self.order_objects(1))])
-        workflow.button_grid(object_page, [('Duplicate', self.duplicate), ('Delete objects', self.delete_objects)])
-        workflow.button_grid(object_page, [('Attach', self.attach), ('Detach', self.detach)])
-        self.combo(object_page, 'Object color', self.object_color, ['Layer color'] + list(PALETTE))
-        self.button(object_page, 'Apply object color', self.color_objects)
-        for page in (layer_page, object_page):
-            self.compact_buttons(page)
+        workflow.button_grid(arrange, [('Include', lambda:self.include_objects(True)), ('Exclude', self.exclude)])
+        workflow.button_grid(arrange, [('Move up', lambda:self.order_objects(-1)), ('Move down', lambda:self.order_objects(1))])
+        workflow.button_grid(arrange, [('Duplicate', self.duplicate), ('Delete', self.delete_objects)])
+        workflow.button_grid(arrange, [('Attach', self.attach), ('Detach', self.detach)])
+        workflow.label(arrange, 'Drag objects in the list to reorder.', size=10, muted=True).pack(fill='x', pady=8)
+        self.object_color_button, _ = self.action_field(object_style, 'Object color', self.object_color, self.color_objects, 'Apply', ['Layer color'] + list(PALETTE))
+        workflow.label(object_style, 'Layer color follows the color of the containing layer.', size=10, muted=True).pack(fill='x', pady=8)
         self.tree.bind('<<TreeviewSelect>>', self.selected)
         self.tree.bind('<ButtonPress-1>', self.press, add='+')
         self.tree.bind('<ButtonRelease-1>', self.release, add='+')
@@ -135,37 +145,51 @@ class LayersDialog(WorkspacePage):
         self.grab_set()
 
     def adapt_columns(self, event):
+        if event.widget is not self.adaptive_split.parent:
+            return
+        uniform = 'layers' if event.width >= 840 else ''
+        event.widget.columnconfigure(0, uniform=uniform)
+        event.widget.columnconfigure(1, uniform=uniform)
         self.tree.configure(displaycolumns=('included',) if event.width < 760 else ('included', 'kind', 'passes'))
 
-    def scroll_page(self, title):
-        holder = tk.Frame(self.controls, bg=PANEL, width=330)
-        self.controls.add(holder, text=title)
+    def scroll_page(self, title, notebook=None):
+        notebook = notebook or self.controls
+        holder = tk.Frame(notebook, bg=PANEL, width=1)
+        notebook.add(holder, text=title)
         holder.columnconfigure(0, weight=1)
         holder.rowconfigure(0, weight=1)
-        canvas = tk.Canvas(holder, bg=PANEL, highlightthickness=0, width=310)
+        canvas = tk.Canvas(holder, bg=PANEL, highlightthickness=0, width=1, height=1)
         bar = ttk.Scrollbar(holder, command=canvas.yview)
         canvas.grid(row=0, column=0, sticky='nsew')
-        bar.grid(row=0, column=1, sticky='ns')
-        canvas.configure(yscrollcommand=bar.set)
+        canvas.configure(yscrollcommand=lambda first,last:self.scrollbar(bar,first,last))
+        self.scrollers.append((canvas,bar))
         page = tk.Frame(canvas, bg=PANEL, padx=8, pady=4)
         window = canvas.create_window(0, 0, window=page, anchor='nw')
         canvas.bind('<Configure>', lambda e: canvas.itemconfigure(window, width=e.width))
         page.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
         return page
 
-    def compact_buttons(self, parent):
-        for child in parent.winfo_children():
-            if isinstance(child, tk.Button):
-                child.configure(pady=4, font=('DejaVu Sans', 10))
-            self.compact_buttons(child)
+    def scrollbar(self, bar, first, last):
+        bar.set(first, last)
+        needed = float(first) > 0.001 or float(last) < 0.999
+        if needed and not bar.winfo_manager():
+            bar.grid(row=0, column=1, sticky='ns')
+        elif not needed and bar.winfo_manager():
+            bar.grid_remove()
 
-    def entry(self, parent, label, variable):
+    def action_field(self, parent, label, variable, command, action, values=None):
         self.workflow.label(parent, label, size=10, bold=True).pack(anchor='w', pady=(4,3))
-        ttk.Entry(parent, textvariable=variable, font=('DejaVu Sans',11)).pack(fill='x', ipady=5)
+        row = tk.Frame(parent, bg=PANEL); row.pack(fill='x', pady=(0,4))
+        button = self.workflow.button(row, action, command)
+        button.pack(side='right', padx=(8,0))
+        field = (ttk.Entry(row, textvariable=variable, width=10) if values is None else
+                 ttk.Combobox(row, textvariable=variable, values=values, state='readonly', width=10))
+        field.pack(side='left', fill='both', expand=True)
+        return button, field
 
     def combo(self, parent, label, variable, values):
         self.workflow.label(parent, label, size=10, bold=True).pack(anchor='w', pady=(7,3))
-        combo = ttk.Combobox(parent, textvariable=variable, values=values, state='readonly', font=('DejaVu Sans',10))
+        combo = ttk.Combobox(parent, textvariable=variable, values=values, state='readonly', width=10, font=('DejaVu Sans',10))
         combo.pack(fill='x', ipady=3)
         return combo
 

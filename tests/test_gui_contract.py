@@ -265,6 +265,45 @@ class VisualContractTest(unittest.TestCase):
             self.assertLessEqual(button.winfo_rooty()+button.winfo_height(),page.winfo_rooty()+page.winfo_height())
         page.destroy()
 
+    def test_layers_sections_fit_tablet_without_scrollbars(self):
+        self.w._cut_started = False; self.w.clear_notice(); self.w.select_none()
+        self.app.geometry('1024x600'); self.app.update()
+        page = self.w.design_dialog('LayersDialog'); self.app.update()
+        self.assertFalse(page.tree_bar.winfo_ismapped())
+        for name, notebook in page.sections.items():
+            page.controls.select(notebook)
+            for index in range(len(notebook.tabs())):
+                notebook.select(index); self.app.update()
+                self.assertFalse(any(bar.winfo_ismapped() for _,bar in page.scrollers))
+                for canvas,bar in page.scrollers:
+                    if not canvas.winfo_ismapped(): continue
+                    self.assertLessEqual(canvas.bbox('all')[3], canvas.winfo_height())
+                    for button in descendants(canvas):
+                        if isinstance(button, RoundedButton) and button.winfo_ismapped():
+                            self.assertGreaterEqual(button.winfo_height(), 48)
+                            self.assertGreaterEqual(button.winfo_rooty(), canvas.winfo_rooty())
+                            self.assertLessEqual(button.winfo_rooty()+button.winfo_height(), canvas.winfo_rooty()+canvas.winfo_height())
+        page.refresh([1]); self.app.update()
+        self.assertEqual(page.context.get(), 1)
+        self.assertEqual(page.object_name.get(), self.app.gcode.blocks[1].name())
+        page.refresh('Default'); self.app.update()
+        self.assertEqual(page.context.get(), 0)
+
+    def test_layer_list_scrollbar_only_appears_for_overflow(self):
+        from copy import deepcopy
+        self.app.geometry('1024x600'); self.app.update()
+        page = self.w.design_dialog('LayersDialog'); self.app.update()
+        self.assertFalse(page.tree_bar.winfo_ismapped())
+        for i in range(20):
+            block = deepcopy(self.app.gcode.blocks[1]); block._name = f'Overflow {i}'
+            self.app.gcode.blocks.insert(-1, block)
+        page.refresh(); self.app.update()
+        self.assertTrue(page.tree_bar.winfo_ismapped())
+        page.search.set('not found'); self.app.update()
+        self.assertFalse(page.tree_bar.winfo_ismapped())
+        page.search.set(''); self.app.update()
+        self.assertTrue(page.tree_bar.winfo_ismapped())
+
     def test_tablet_machine_arrows_and_connection_copy_fit(self):
         self.w._cut_started = False; self.w.clear_notice()
         self.app.geometry('1024x600'); self.app.update()
