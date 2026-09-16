@@ -31,6 +31,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: '3.41.7'
@@ -46,6 +49,7 @@ jobs:
       - name: Check and test Rust
         shell: bash
         run: |
+          cargo fetch --locked
           cargo fmt --all --check
           cargo clippy --workspace --all-targets --locked -- -D warnings
           cargo test --workspace --locked
@@ -62,6 +66,14 @@ jobs:
           flutter analyze
           flutter test
           dart run tool/bridge_smoke.dart
+      - name: Check dependency evidence and licensing policy
+        shell: bash
+        run: |
+          python3 -m unittest discover -s tests -p 'test_license_gate.py'
+          python3 tools/check_licenses.py --output release/dependency-inventory-${{ matrix.platform }}.json
+          if [[ "$GITHUB_REF" == refs/tags/next-v* ]]; then
+            python3 tools/check_licenses.py --release
+          fi
       - name: Build desktop
         working-directory: apps/foil_studio
         run: flutter build ${{ matrix.platform }} --release
@@ -128,9 +140,8 @@ jobs:
           pattern: next-packages-*
           path: release-assets
           merge-multiple: true
-      - name: Add source, notices and checksums
+      - name: Add notices and checksums
         run: |
-          git archive --format=tar.gz --prefix=FoilStudio/ HEAD > release-assets/FoilStudio-Next-source.tar.gz
           cp LICENSE* release-assets/
           cp Cargo.lock apps/foil_studio/pubspec.lock release-assets/
           cd release-assets
