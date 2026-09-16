@@ -4,7 +4,12 @@
 
 `main` maintains Classic; `next` develops Flutter/Rust. Target feature PRs at the
 appropriate branch. No routine cross-branch merges: deliberately port fixes and sync
-`contracts/` and `fixtures/`. Both branches require the `CI gate` check. Preserve
+`contracts/` and `fixtures/`. Both branches are designed to require the `CI gate` check.
+GitHub rejected branch protection on 2026-09-16: this private repository needs GitHub
+Pro. Until the account plan changes, PR-only branch updates cannot be enforced;
+release jobs still depend on the gate. Enable strict required status `CI gate`,
+PRs (zero extra reviewers for solo work), conversation resolution, no force pushes
+and no branch deletion on both branches once available. Preserve
 attribution and history. Generated audit images, logs, videos and installers belong in
 Actions artifacts, not Git. Selected product documentation screenshots remain tracked.
 
@@ -35,8 +40,8 @@ upgrading. No machine is automatically deployed to by CI.
 ## Next release
 
 Next starts as a project-preview vertical slice, not an operational cutter. Tag
-`next-v<pubspec version without +build>` from `next`. CI packages desktop previews and
-Android APKs; iOS compile checks do not imply installable signed IPA delivery.
+`next-v<pubspec version without +build>` from `next`. CI packages desktop previews. Android and iOS receive UI compile checks only;
+these do not imply a working native mobile engine or installable signed IPA delivery.
 Apple signing/notarization, Windows signing and store accounts remain external setup.
 Mark Next releases as prereleases and never Latest while Classic is production.
 

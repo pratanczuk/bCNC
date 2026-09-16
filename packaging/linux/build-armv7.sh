@@ -37,7 +37,7 @@ docker run --rm \
         cd /tmp
         PYTHONPATH="$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
             "import bCNC, numpy, serial, shapely, svgelements"
-        PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib" /usr/bin/python3 -c \
+        PYTHONPATH="$package_root/opt/bcnc/lib/bCNC:$package_root/opt/bcnc/lib/bCNC/lib:$package_root/opt/bcnc/lib" /usr/bin/python3 -c \
             "import imagetrace, path_boolean"
         chown "$HOST_UID:$HOST_GID" "$package"
     '

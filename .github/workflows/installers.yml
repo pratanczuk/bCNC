@@ -110,7 +110,7 @@ jobs:
           grep -F "exec $package_python -m bCNC" "$package_root/usr/bin/bCNC"
           PYTHONPATH="$package_root/opt/bcnc/lib" "$package_python" -c \
             "import bCNC, cv2, numpy, serial, shapely, svgelements"
-          PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib:$package_root/opt/bcnc/lib" "$package_python" -c \
+          PYTHONPATH="$package_root/opt/bcnc/lib/bCNC:$package_root/opt/bcnc/lib/bCNC/lib:$package_root/opt/bcnc/lib" "$package_python" -c \
             "import imagetrace, path_boolean"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
