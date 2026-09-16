@@ -69,7 +69,7 @@ jobs:
       - name: Check dependency evidence and licensing policy
         shell: bash
         run: |
-          python3 -m unittest discover -s tests -p 'test_license_gate.py'
+          python3 -m unittest discover -s tests -p 'test_*.py'
           python3 tools/check_licenses.py --output release/dependency-inventory-${{ matrix.platform }}.json
           if [[ "$GITHUB_REF" == refs/tags/next-v* ]]; then
             python3 tools/check_licenses.py --release
