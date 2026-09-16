@@ -1,0 +1,142 @@
+name: Next CI and packages
+on:
+  push:
+    branches: [next]
+    tags: ["next-v*"]
+  pull_request:
+    branches: [next]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: next-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+jobs:
+  desktop:
+    if: github.ref == 'refs/heads/next' || startsWith(github.ref, 'refs/tags/next-v') || github.base_ref == 'next'
+    name: Desktop (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux
+            library: libfoil_bridge.so
+          - os: windows-2022
+            platform: windows
+            library: foil_bridge.dll
+          - os: macos-14
+            platform: macos
+            library: libfoil_bridge.dylib
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.41.7'
+          channel: stable
+          cache: true
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+      - name: Rust toolchain
+        run: rustup toolchain install 1.91.1 --profile minimal --component rustfmt --component clippy
+      - name: Check and test Rust
+        shell: bash
+        run: |
+          cargo fmt --all --check
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test --workspace --locked
+          cargo build --release -p foil_bridge --locked
+      - name: Check Flutter and native bridge
+        working-directory: apps/foil_studio
+        shell: bash
+        env:
+          FOIL_BRIDGE_LIBRARY: ${{ github.workspace }}/target/release/${{ matrix.library }}
+        run: |
+          python3 -c "from pathlib import Path; assert Path('assets/rectangle.foil').read_bytes() == Path('../../fixtures/projects/rectangle.foil').read_bytes()"
+          flutter pub get --enforce-lockfile
+          dart format --output=none --set-exit-if-changed lib test tool
+          flutter analyze
+          flutter test
+          dart run tool/bridge_smoke.dart
+      - name: Build desktop
+        working-directory: apps/foil_studio
+        run: flutter build ${{ matrix.platform }} --release
+      - name: Assemble desktop package
+        run: python3 tools/package_next.py ${{ matrix.platform }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: next-packages-${{ matrix.platform }}
+          path: release/*
+          if-no-files-found: error
+          retention-days: 14
+      - name: iOS simulator compile check (UI only)
+        if: runner.os == 'macOS'
+        working-directory: apps/foil_studio
+        run: flutter build ios --simulator --no-codesign
+  android:
+    if: github.ref == 'refs/heads/next' || startsWith(github.ref, 'refs/tags/next-v') || github.base_ref == 'next'
+    name: Android UI compile
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.41.7'
+          channel: stable
+          cache: true
+      - name: Compile Android UI (native engine packaging pending)
+        working-directory: apps/foil_studio
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter build apk --debug
+  gate:
+    name: CI gate
+    if: always() && (github.ref == 'refs/heads/next' || startsWith(github.ref, 'refs/tags/next-v') || github.base_ref == 'next')
+    needs: [desktop, android]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require all checks
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 -c 'import json,os; assert all(j["result"] == "success" for j in json.loads(os.environ["RESULTS"]).values())'
+  release:
+    name: Assemble preview release
+    if: startsWith(github.ref, 'refs/tags/next-v')
+    needs: [gate]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Validate version and branch
+        run: |
+          git merge-base --is-ancestor HEAD origin/next
+          python3 tools/validate_release_tag.py next
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: next-packages-*
+          path: release-assets
+          merge-multiple: true
+      - name: Add source, notices and checksums
+        run: |
+          git archive --format=tar.gz --prefix=FoilStudio/ HEAD > release-assets/FoilStudio-Next-source.tar.gz
+          cp LICENSE* release-assets/
+          cp Cargo.lock apps/foil_studio/pubspec.lock release-assets/
+          cd release-assets
+          find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      - name: Create draft prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 tools/publish_release.py next release-assets

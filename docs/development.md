@@ -50,3 +50,10 @@ Mark Next releases as prereleases and never Latest while Classic is production.
 Imported history through `8626953`, plus reviewed working-tree Pillow/Tk compatibility
 fixes. The old bCNC checkout is untouched. Legacy local branches and tags are not pushed.
 Historical audit output remains in Git history; no history rewriting was performed.
+
+## Manual workflow discovery
+
+`next.yml` is also present on default branch `main` so GitHub can expose its manual
+Run workflow control. Select branch `next` for Next builds. The workflow guards
+against running Next jobs on `main`. Keep that discovery copy synchronized when
+changing Next workflows; product code remains isolated by branch.
