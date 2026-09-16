@@ -171,7 +171,7 @@ class ResponsiveText:
             if isinstance(child, (tk.Label, tk.Checkbutton)) and not isinstance(child, ttk.Widget):
                 parent_width = child.master.winfo_width()
                 try:
-                    inset = int(child.master.cget('padx')) * 2
+                    inset = child.master.winfo_pixels(str(child.master.cget('padx'))) * 2
                 except (tk.TclError, ValueError):
                     inset = 0
                 available = parent_width - inset - 16 if parent_width > 10 else event.width - 48
@@ -391,7 +391,7 @@ class RoundedButton(tk.Button):
         if self._icon:
             from PlotterIcons import paint
             paint(ImageDraw.Draw(image), self._icon, width-20, height-20, palette.get(INK, INK))
-        self._background_image = ImageTk.PhotoImage(image.resize((width, height), Image.Resampling.LANCZOS), master=self)
+        self._background_image = ImageTk.PhotoImage(image.resize((width, height), getattr(Image, "Resampling", Image).LANCZOS), master=self)
         super().configure(image=self._background_image)
         if disabled:
             self._disabled_cover.configure(bg=self.master.cget('bg'))

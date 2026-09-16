@@ -141,7 +141,7 @@ class TraceDialog(DesignDialog):
         width, height = self.source.size
         ratio = 1 if self.full_resolution else min(1, 760 / max(width, height))
         sample = self.source if ratio == 1 else self.source.resize(
-            (max(1, round(width*ratio)), max(1, round(height*ratio))), Image.Resampling.LANCZOS)
+            (max(1, round(width*ratio)), max(1, round(height*ratio))), getattr(Image, "Resampling", Image).LANCZOS)
         threshold = round(self.threshold.get())
         self.threshold_label.config(text=f'{threshold} / 255 · higher values include lighter pixels')
         scale = maximum / max(sample.size)
@@ -179,7 +179,7 @@ class TraceDialog(DesignDialog):
             return super().draw_preview()
         from PIL import Image, ImageTk
         image = self.source.copy()
-        image.thumbnail((max(1, self.preview.winfo_width()-16), max(1, self.preview.winfo_height()-16)), Image.Resampling.LANCZOS)
+        image.thumbnail((max(1, self.preview.winfo_width()-16), max(1, self.preview.winfo_height()-16)), getattr(Image, "Resampling", Image).LANCZOS)
         self.photo = ImageTk.PhotoImage(image)
         self.preview.delete('all')
         self.preview.create_image(self.preview.winfo_width()/2, self.preview.winfo_height()/2, image=self.photo)

@@ -176,7 +176,7 @@ class Application(Tk):
         Utils.loadIcons()
         PlotterTk.bindClasses(self)
 
-        photo = PhotoImage(file=f"{Utils.prgpath}/bCNC.png")
+        photo = PhotoImage(master=self, file=f"{Utils.prgpath}/bCNC.png")
         self.iconphoto(True, photo)
         self.title(f"Foil Studio {__version__} {__platform_fingerprint__}")
         self.widgets = []

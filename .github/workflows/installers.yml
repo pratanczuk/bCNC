@@ -1,29 +1,37 @@
-name: Build installers
+name: Classic CI and packages
 
 on:
   push:
-    branches: [master]
-    tags: ["v*"]
+    branches: [main]
+    tags: ["classic-v*"]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: classic-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 jobs:
+  regression:
+    uses: ./.github/workflows/tests.yml
+
   windows:
     name: Windows 11 x64 installer
     runs-on: windows-latest
     env:
       PYTHONUTF8: "1"
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
           cache: pip
       - name: Install application and build tools
-        run: python -m pip install --upgrade pip pyinstaller .
+        run: python -m pip install -c packaging/constraints.txt pyinstaller .
       - name: Build bundled application
         run: pyinstaller --noconfirm --clean packaging/windows/bcnc.spec
       - name: Smoke-test bundled application
@@ -41,17 +49,25 @@ jobs:
         id: version
         shell: bash
         run: echo "value=$(python setup.py --version | tail -n 1)" >> "$GITHUB_OUTPUT"
+      - name: Record bundled dependencies and notices
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          python -m pip list --format=json | Out-File -Encoding utf8 release/windows-python-packages.json
+          Copy-Item LICENSE* dist/bCNC/
+          Copy-Item docs/foil-studio-license-review.md dist/bCNC/
       - name: Build setup executable
         shell: pwsh
         run: >-
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           "/DAppVersion=${{ steps.version.outputs.value }}"
           "packaging\windows\bcnc.iss"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: bcnc-windows-x64
-          path: release/*.exe
+          name: classic-packages-windows-x64
+          path: release/*
           if-no-files-found: error
+          retention-days: 14
 
   ubuntu:
     name: Ubuntu ${{ matrix.version }} amd64 installer
@@ -61,7 +77,7 @@ jobs:
         version: ["22.04", "24.04"]
     runs-on: ubuntu-${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install build tools
         run: |
           sudo apt-get update
@@ -96,46 +112,74 @@ jobs:
             "import bCNC, cv2, numpy, serial, shapely, svgelements"
           PYTHONPATH="$package_root/opt/bcnc/lib/bCNC/lib:$package_root/opt/bcnc/lib" "$package_python" -c \
             "import imagetrace, path_boolean"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: bcnc-ubuntu-${{ matrix.version }}-amd64
+          name: classic-packages-ubuntu-${{ matrix.version }}-amd64
           path: release/*.deb
           if-no-files-found: error
+          retention-days: 14
 
   ubuntu-armv7:
     name: Ubuntu 22.04 ARMv7 32-bit installer
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Enable ARM emulation
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: arm
       - name: Build and smoke-test ARMv7 Debian package
         run: packaging/linux/build-armv7.sh
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: bcnc-ubuntu-22.04-armv7
+          name: classic-packages-ubuntu-22.04-armv7
           path: release/*-ubuntu-22.04-armv7.deb
           if-no-files-found: error
+          retention-days: 14
+
+  gate:
+    name: CI gate
+    if: always()
+    needs: [regression, windows, ubuntu, ubuntu-armv7]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require all checks
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 -c 'import json,os; assert all(j["result"] == "success" for j in json.loads(os.environ["RESULTS"]).values())'
 
   release:
-    name: Publish GitHub Release
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [windows, ubuntu, ubuntu-armv7]
-    runs-on: ubuntu-latest
+    name: Assemble draft release
+    if: startsWith(github.ref, 'refs/tags/classic-v')
+    needs: [gate]
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          fetch-depth: 0
+      - name: Validate tag version and branch
+        run: |
+          git merge-base --is-ancestor HEAD origin/main
+          python3 tools/validate_release_tag.py classic
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: classic-packages-*
           path: release-assets
           merge-multiple: true
-      - name: Create or update release
+      - name: Prepare release assets
+        run: |
+          rm -rf release-assets/htmlcov release-assets/coverage
+          git archive --format=tar.gz --prefix=FoilStudio/ HEAD > release-assets/FoilStudio-Classic-source.tar.gz
+          cp LICENSE* release-assets/
+          cp docs/foil-studio-license-review.md release-assets/
+          cd release-assets
+          find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      - name: Create draft and attach complete assets
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
-            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
-          gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+          python3 tools/publish_release.py classic release-assets

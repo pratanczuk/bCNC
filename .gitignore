@@ -19,3 +19,10 @@ flatpak/.flatpak-builder
 htmlcov/
 coverage.xml
 coverage.json
+
+.venv/
+*.ses
+artifacts/
+docs/design/**/*.png
+docs/design/**/*.json
+docs/design/**/*.html

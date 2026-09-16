@@ -22,16 +22,13 @@ setup(
     packages=find_namespace_packages(),
     author="Vasilis Vlachoudis",
     author_email="vvlachoudis@gmail.com",
-    url="https://github.com/vlachoudis/bCNC",
+    url="https://github.com/pratanczuk/FoilStudio",
     include_package_data=True,
     install_requires=[
         "pyobjc ; sys_platform == 'darwin'",
         "pyobjc-core; sys_platform == 'darwin'",
         "pyobjc-framework-Quartz; sys_platform == 'darwin'",
-        # Windows XP can't handle pyserial newer than 3.0.1
-        #   (it can be installed, but does not work)
-        "pyserial ; sys_platform != 'win32'",
-        "pyserial<=3.0.1 ; sys_platform == 'win32'",
+        "pyserial>=3.5,<4",
         "numpy>=1.12",
         "svgelements>=1,<2",
         "fonttools>=4.0",
@@ -46,6 +43,7 @@ setup(
     entry_points={
         "console_scripts": [
             "bCNC = bCNC.__main__:main",
+            "foil-studio = bCNC.__main__:main",
         ]
     },
     classifiers=[

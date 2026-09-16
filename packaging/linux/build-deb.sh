@@ -35,6 +35,7 @@ if [[ ${BCNC_SYSTEM_NATIVE_DEPS:-0} == 1 ]]; then
     runtime_dependencies="python3 (>= 3.8), python3-tk, libgl1, libglib2.0-0"
     "$python_bin" -m pip install \
         --disable-pip-version-check \
+        --constraint "$repo_dir/packaging/constraints.txt" \
         --no-compile \
         --no-deps \
         --target "$package_root/opt/bcnc/lib" \
@@ -44,6 +45,7 @@ if [[ ${BCNC_SYSTEM_NATIVE_DEPS:-0} == 1 ]]; then
 else
     "$python_bin" -m pip install \
         --disable-pip-version-check \
+        --constraint "$repo_dir/packaging/constraints.txt" \
         --no-compile \
         --target "$package_root/opt/bcnc/lib" \
         "$repo_dir"
@@ -53,25 +55,32 @@ rm -rf -- "$package_root/opt/bcnc/lib/bin"
 sed "s|@PYTHON_EXECUTABLE@|$packaged_python|" \
     "$repo_dir/packaging/linux/bcnc" >"$package_root/usr/bin/bCNC"
 chmod 0755 "$package_root/usr/bin/bCNC"
+ln -s bCNC "$package_root/usr/bin/foil-studio"
 install -m 0644 "$repo_dir/bCNC/bCNC.desktop" "$package_root/usr/share/applications/bCNC.desktop"
-install -m 0644 "$repo_dir/bCNC/bCNC.png" "$package_root/usr/share/icons/hicolor/204x204/apps/bCNC.png"
+install -m 0644 "$repo_dir/packaging/icons/foil-studio.png" "$package_root/usr/share/icons/hicolor/204x204/apps/foil-studio.png"
 install -m 0644 "$repo_dir/LICENSE.md" "$package_root/usr/share/doc/bcnc/copyright"
+
+"$python_bin" -m pip list --path "$package_root/opt/bcnc/lib" --format=json > "$package_root/usr/share/doc/bcnc/python-packages.json"
+dpkg-query -W > "$package_root/usr/share/doc/bcnc/build-system-packages.txt"
+cp "$repo_dir"/LICENSE* "$package_root/usr/share/doc/bcnc/"
 
 installed_size=$(du -sk "$package_root" | cut -f1)
 cat >"$package_root/DEBIAN/control" <<EOF
-Package: bcnc
+Package: foil-studio-classic
+Replaces: bcnc
+Conflicts: bcnc
 Version: $version
 Section: electronics
 Priority: optional
 Architecture: $architecture
 Installed-Size: $installed_size
-Maintainer: bCNC contributors
+Maintainer: Foil Studio contributors
 Depends: $runtime_dependencies
-Description: GRBL CNC command sender and G-code editor
- bCNC is a graphical CNC command sender, autoleveler, and G-code editor.
+Description: Foil Studio Classic vinyl cutting workspace
+ Design, prepare and cut foil and vinyl using GRBL plotters.
  This build bundles its Python dependencies for Ubuntu $ubuntu_version.
 EOF
 
-artifact="$release_dir/bCNC-${version}-ubuntu-${ubuntu_version}-${artifact_architecture}.deb"
+artifact="$release_dir/FoilStudio-Classic-${version}-ubuntu-${ubuntu_version}-${artifact_architecture}.deb"
 dpkg-deb --root-owner-group --build "$package_root" "$artifact"
 echo "$artifact"

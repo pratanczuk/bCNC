@@ -2,8 +2,8 @@
 Version=1.0
 Type=Application
 Categories=Science;Electronics;Engineering
-Name=bCNC
-Comment=bCNC Controller
-Exec=bCNC
-Icon=bCNC
-Keywords=CNC;PCB;
+Name=Foil Studio Classic
+Comment=Design, prepare and cut foil and vinyl
+Exec=foil-studio
+Icon=foil-studio
+Keywords=Foil;Vinyl;Plotter;CNC;

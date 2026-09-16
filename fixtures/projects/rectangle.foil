@@ -1,0 +1,57 @@
+{
+  "format": "foil-studio-project",
+  "version": 1,
+  "mat": [
+    300,
+    300
+  ],
+  "objects": [
+    {
+      "name": "Rectangle",
+      "enabled": true,
+      "color": "#166c5e",
+      "passes": 1,
+      "lines": [
+        "G0 X10 Y10",
+        "G1 X60 Y10",
+        "G1 X60 Y40",
+        "G1 X10 Y40",
+        "G1 X10 Y10"
+      ],
+      "design": {
+        "vector": true
+      },
+      "outlines": [
+        [
+          [
+            10,
+            10
+          ],
+          [
+            60,
+            10
+          ],
+          [
+            60,
+            40
+          ],
+          [
+            10,
+            40
+          ],
+          [
+            10,
+            10
+          ]
+        ]
+      ]
+    }
+  ],
+  "layers": [
+    {
+      "name": "Default",
+      "color": "#166c5e",
+      "enabled": true
+    }
+  ]
+}
