@@ -54,6 +54,12 @@ jobs:
           cargo clippy --workspace --all-targets --locked -- -D warnings
           cargo test --workspace --locked
           cargo build --release -p foil_bridge --locked
+      - name: Check locked Rust advisories
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          cargo install cargo-audit --version 0.22.2 --locked
+          cargo audit --file Cargo.lock --deny warnings
       - name: Check Flutter and native bridge
         working-directory: apps/foil_studio
         shell: bash
