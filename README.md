@@ -11,6 +11,7 @@ by Vasilis Vlachoudis and contributors. Original copyright and license notices r
 
 [Downloads](https://github.com/pratanczuk/bCNC/releases) ·
 [Builds](https://github.com/pratanczuk/bCNC/actions) ·
+[Application tour manual](docs/Foil-Studio-Application-Tour.mp4) ·
 [Workflow guide](docs/foil-studio-workflow.md) ·
 [Development and releases](docs/development.md)
 
