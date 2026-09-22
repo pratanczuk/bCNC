@@ -6,11 +6,11 @@ by Vasilis Vlachoudis and contributors. Original copyright and license notices r
 
 | Branch | Status | Releases |
 | --- | --- | --- |
-| `main` | Working Python/Tk application | `classic-v*` |
+| [`foilstudio`](https://github.com/pratanczuk/bCNC/tree/foilstudio) | Working Python/Tk application | `foilstudio-v*` release candidates |
 | [`next`](https://github.com/pratanczuk/FoilStudio/tree/next) | Flutter/Rust development | `next-v*` prereleases |
 
-[Downloads](https://github.com/pratanczuk/FoilStudio/releases) ·
-[Builds](https://github.com/pratanczuk/FoilStudio/actions) ·
+[Downloads](https://github.com/pratanczuk/bCNC/releases) ·
+[Builds](https://github.com/pratanczuk/bCNC/actions) ·
 [Workflow guide](docs/foil-studio-workflow.md) ·
 [Development and releases](docs/development.md)
 
@@ -31,6 +31,8 @@ Use a supported machine profile; automatic material loading requires compatible 
 
 ## Licensing and release status
 
-See [LICENSE.md](LICENSE.md) and the [existing license review](docs/foil-studio-license-review.md).
-Classic binary releases remain drafts until the recorded dependency/provenance questions
-are resolved. A green CI run is not physical-cutting validation or license clearance.
+See [LICENSE.md](https://github.com/pratanczuk/bCNC/blob/foilstudio/LICENSE.md) and the
+[existing license review](https://github.com/pratanczuk/bCNC/blob/foilstudio/docs/foil-studio-license-review.md).
+Foil Studio binary release candidates are published for evaluation. The recorded
+dependency and provenance questions remain open; a published release and green CI run
+are not physical-cutting validation or license clearance.
