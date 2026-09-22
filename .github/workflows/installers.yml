@@ -2,10 +2,10 @@ name: Classic CI and packages
 
 on:
   push:
-    branches: [main]
-    tags: ["classic-v*"]
+    branches: [main, foilstudio]
+    tags: ["classic-v*", "foilstudio-v*"]
   pull_request:
-    branches: [main]
+    branches: [main, foilstudio]
   workflow_dispatch:
 
 permissions:
@@ -65,6 +65,41 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: classic-packages-windows-x64
+          path: release/*
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    name: macOS application
+    runs-on: macos-15
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install application and build tools
+        run: python -m pip install -c packaging/constraints.txt pyinstaller .
+      - name: Build bundled application
+        run: pyinstaller --noconfirm --clean packaging/windows/bcnc.spec
+      - name: Smoke-test bundled application
+        run: dist/Foil\ Studio.app/Contents/MacOS/bCNC --package-smoke-test
+      - name: Read package version
+        id: version
+        run: echo "value=$(python setup.py --version | tail -n 1)" >> "$GITHUB_OUTPUT"
+      - name: Record bundled dependencies and notices
+        run: |
+          mkdir -p release
+          python -m pip list --format=json > release/macos-python-packages.json
+          cp LICENSE* "dist/Foil Studio.app/Contents/Resources/"
+          cp docs/foil-studio-license-review.md "dist/Foil Studio.app/Contents/Resources/"
+          ditto -c -k --sequesterRsrc --keepParent "dist/Foil Studio.app" \
+            "release/FoilStudio-Classic-${{ steps.version.outputs.value }}-macos.zip"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: classic-packages-macos
           path: release/*
           if-no-files-found: error
           retention-days: 14
@@ -140,7 +175,7 @@ jobs:
   gate:
     name: CI gate
     if: always()
-    needs: [regression, windows, ubuntu, ubuntu-armv7]
+    needs: [regression, windows, macos, ubuntu, ubuntu-armv7]
     runs-on: ubuntu-24.04
     steps:
       - name: Require all checks
@@ -151,7 +186,7 @@ jobs:
 
   release:
     name: Assemble draft release
-    if: startsWith(github.ref, 'refs/tags/classic-v')
+    if: startsWith(github.ref, 'refs/tags/classic-v') || startsWith(github.ref, 'refs/tags/foilstudio-v')
     needs: [gate]
     runs-on: ubuntu-24.04
     permissions:
@@ -162,8 +197,14 @@ jobs:
           fetch-depth: 0
       - name: Validate tag version and branch
         run: |
-          git merge-base --is-ancestor HEAD origin/main
-          python3 tools/validate_release_tag.py classic
+          if [[ "$GITHUB_REF_NAME" == foilstudio-v* ]]; then
+            git fetch origin foilstudio
+            git merge-base --is-ancestor HEAD origin/foilstudio
+            python3 tools/validate_release_tag.py foilstudio
+          else
+            git merge-base --is-ancestor HEAD origin/main
+            python3 tools/validate_release_tag.py classic
+          fi
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: classic-packages-*
@@ -182,4 +223,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          python3 tools/publish_release.py classic release-assets
+          family=classic
+          [[ "$GITHUB_REF_NAME" == foilstudio-v* ]] && family=foilstudio
+          python3 tools/publish_release.py "$family" release-assets

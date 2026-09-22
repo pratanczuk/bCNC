@@ -32,7 +32,12 @@ tests, and physical pen/knife validation before publishing the draft. Repository
 immutability must be enabled so published assets and tags cannot be replaced.
 The first migration build is `classic-v0.9.17-rc.1`, not a new claim of stable readiness.
 
-Windows builds are unsigned until a signing certificate is configured. They retain the
+The Python application mirrored to the `foilstudio` branch of `pratanczuk/bCNC` uses
+`foilstudio-v<setup.py version>` or `foilstudio-v<version>-rc.<N>`. That tag must be
+an ancestor of `foilstudio`; it produces the same draft release assets, including the
+unsigned macOS application archive.
+
+Windows and macOS builds are unsigned until signing credentials are configured. They retain the
 existing installer AppId and internal path for upgrade compatibility. Linux package name
 is `foil-studio-classic` and replaces/conflicts with `bcnc`; backup user configuration before
 upgrading. No machine is automatically deployed to by CI.

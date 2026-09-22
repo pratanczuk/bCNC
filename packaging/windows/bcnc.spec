@@ -1,12 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
+import re
 import sys
 
 from PyInstaller.utils.hooks import collect_all
 
 
 repo_root = os.path.abspath(os.path.join(SPECPATH, "..", ".."))
+with open(os.path.join(repo_root, "setup.py"), encoding="utf-8") as setup_file:
+    version = re.search(r'version="([^"\n]+)"', setup_file.read())[1]
 module_paths = [
     repo_root,
     os.path.join(repo_root, "bCNC"),
@@ -59,3 +62,12 @@ collection = COLLECT(
     upx=True,
     name="bCNC",
 )
+
+if sys.platform == "darwin":
+    app = BUNDLE(
+        collection,
+        name="Foil Studio.app",
+        icon=os.path.join(repo_root, "packaging", "icons", "foil-studio.png"),
+        bundle_identifier="io.github.pratanczuk.foilstudio",
+        version=version,
+    )

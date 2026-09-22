@@ -5,9 +5,9 @@ import re
 import sys
 family = sys.argv[1]
 tag = os.environ["GITHUB_REF_NAME"]
-if family == "classic":
+if family in ("classic", "foilstudio"):
     version = re.search(r'version="([^"\n]+)"', Path("setup.py").read_text())[1]
-    pattern = re.escape("classic-v" + version) + r"(?:-rc\.[1-9][0-9]*)?"
+    pattern = re.escape(family + "-v" + version) + r"(?:-rc\.[1-9][0-9]*)?"
 else:
     version = re.search(r"^version: ([^+\n]+)", Path("apps/foil_studio/pubspec.yaml").read_text(), re.M)[1]
     pattern = re.escape("next-v" + version)

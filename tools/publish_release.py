@@ -16,7 +16,7 @@ def gh(*args):
 view = subprocess.run(["gh", "release", "view", tag, "--json", "isDraft,assets"], text=True, capture_output=True)
 if view.returncode:
     notes = ("Foil Studio Classic candidate. Binary distribution license review and physical cutting validation remain outstanding. "
-             "Unsigned Windows installer. See docs/development.md in the source archive." if family == "classic" else
+             "Unsigned Windows and macOS packages. See docs/development.md in the source archive." if family in ("classic", "foilstudio") else
              "Flutter/Rust project preview only. No machine connection, cutting or project saving yet. Unsigned desktop previews.")
     gh("release", "create", tag, "--verify-tag", "--draft", "--prerelease", "--latest=false", "--title", tag, "--notes", notes)
     existing = set()
