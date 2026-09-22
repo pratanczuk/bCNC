@@ -17,7 +17,6 @@ class PackageSmokeTest(unittest.TestCase):
             with patch.object(sys, 'argv', ['bCNC', '--serial', 'socket://plotter.local:8888',
                                           '--baud', '57600', '-S', '-g', '800x600']), \
                     patch('bmain.Application') as application, \
-                    patch('Updates.need2Check', return_value=False), \
                     patch('Utils.saveConfiguration'):
                 main()
                 application.return_value.geometry.assert_called_once_with('800x600')

@@ -63,7 +63,6 @@ import Utils
 from tkinter import filedialog
 import CNCCanvas
 
-import Updates
 import PlotterTk
 # Load configuration before anything else
 # and if needed replace the  translate function _()
@@ -429,13 +428,6 @@ class Application(Tk):
     # ---------------------------------------------------------------------
     def disable(self):
         self.configWidgets("state", DISABLED)
-
-    # ----------------------------------------------------------------------
-    # Check for updates
-    # ----------------------------------------------------------------------
-    def checkUpdates(self):
-        # Find bCNC version
-        Updates.CheckUpdateDialog(self, __version__)
 
     # ----------------------------------------------------------------------
     # Show the error message, if no serial is present
