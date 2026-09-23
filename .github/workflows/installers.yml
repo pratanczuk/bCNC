@@ -70,8 +70,20 @@ jobs:
           retention-days: 14
 
   macos:
-    name: macOS application
-    runs-on: macos-15
+    name: macOS ${{ matrix.name }} application
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Intel x64
+            runner: macos-15-intel
+            architecture: x86_64
+            package: intel-x64
+          - name: Apple Silicon arm64
+            runner: macos-15
+            architecture: arm64
+            package: apple-silicon-arm64
+    runs-on: ${{ matrix.runner }}
     env:
       PYTHONUTF8: "1"
     steps:
@@ -84,6 +96,10 @@ jobs:
         run: python -m pip install -c packaging/constraints.txt pyinstaller .
       - name: Build bundled application
         run: pyinstaller --noconfirm --clean packaging/windows/bcnc.spec
+      - name: Verify bundled architecture
+        run: |
+          file "dist/Foil Studio.app/Contents/MacOS/bCNC"
+          file "dist/Foil Studio.app/Contents/MacOS/bCNC" | grep -F "${{ matrix.architecture }}"
       - name: Smoke-test bundled application
         run: dist/Foil\ Studio.app/Contents/MacOS/bCNC --package-smoke-test
       - name: Read package version
@@ -92,14 +108,14 @@ jobs:
       - name: Record bundled dependencies and notices
         run: |
           mkdir -p release
-          python -m pip list --format=json > release/macos-python-packages.json
+          python -m pip list --format=json > "release/macos-${{ matrix.package }}-python-packages.json"
           cp LICENSE* "dist/Foil Studio.app/Contents/Resources/"
           cp docs/foil-studio-license-review.md "dist/Foil Studio.app/Contents/Resources/"
           ditto -c -k --sequesterRsrc --keepParent "dist/Foil Studio.app" \
-            "release/FoilStudio-Classic-${{ steps.version.outputs.value }}-macos.zip"
+            "release/FoilStudio-Classic-${{ steps.version.outputs.value }}-macos-${{ matrix.package }}.zip"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: classic-packages-macos
+          name: classic-packages-macos-${{ matrix.package }}
           path: release/*
           if-no-files-found: error
           retention-days: 14
