@@ -164,6 +164,9 @@ def main():
             sys.exit("Missing bundled resources: " + ", ".join(missing_paths))
         if not Utils.config.has_section("Error"):
             sys.exit(f"Missing [Error] section in bundled config: {Utils.iniSystem}")
+        from serial.urlhandler import protocol_socket
+        if not protocol_socket.Serial:
+            sys.exit("Bundled TCP socket transport failed")
         from PlotterShapes import SimpleArc
         from PlotterShapes import SimpleRectangle
         if not SimpleArc("smoke").calc(0, 0, 10, 0, 360):

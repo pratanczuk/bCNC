@@ -26,6 +26,7 @@ analysis = Analysis(
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports + [
+        "serial.urlhandler.protocol_socket",
         "simpleArc",
         "simpleRectangle",
         "tkinter",
