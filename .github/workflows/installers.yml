@@ -31,7 +31,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install application and build tools
-        run: python -m pip install -c packaging/constraints-macos.txt pyinstaller .
+        run: python -m pip install -c packaging/constraints.txt pyinstaller .
       - name: Build bundled application
         run: pyinstaller --noconfirm --clean packaging/windows/bcnc.spec
       - name: Smoke-test bundled application
@@ -93,7 +93,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install application and build tools
-        run: python -m pip install -c packaging/constraints.txt pyinstaller .
+        run: python -m pip install -c packaging/constraints-macos.txt pyinstaller .
       - name: Build bundled application
         run: pyinstaller --noconfirm --clean packaging/windows/bcnc.spec
       - name: Verify bundled architecture
