@@ -30,6 +30,17 @@ The internal package remains `bCNC`; `bCNC` is retained as a command alias.
 See [packaging](packaging/README.md) for OS dependencies and installers.
 Use a supported machine profile; automatic material loading requires compatible firmware.
 
+### macOS packages
+
+Download the package matching Intel or Apple Silicon and verify it against the release
+`SHA256SUMS` file. The macOS application is not yet Developer ID signed or notarized.
+After moving the verified application to `/Applications`, remove quarantine from that
+application only:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Foil Studio.app"
+```
+
 ## Licensing and release status
 
 See [LICENSE.md](https://github.com/pratanczuk/bCNC/blob/foilstudio/LICENSE.md) and the
