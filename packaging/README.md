@@ -11,7 +11,9 @@ Windows: install dependencies with `pip install -c packaging/constraints.txt pyi
 run `pyinstaller --noconfirm --clean packaging/windows/bcnc.spec`, then compile
 `packaging/windows/bcnc.iss` with Inno Setup and `/DAppVersion=0.9.17`.
 macOS uses the same PyInstaller spec on native Intel and Apple Silicon runners,
-verifies the Mach-O architecture, and archives `Foil Studio.app` with `ditto`.
+verifies the Mach-O architecture and bundle signature, and archives `Foil Studio.app`
+with `ditto`. Its separate constraints retain NumPy/OpenCV wheels compatible with
+macOS 12.
 
 `.deb` files use system Python/Tk. Jammy and ARM use distro native scientific packages.
 Other Python wheel dependencies use `constraints.txt`; the package contains dependency
