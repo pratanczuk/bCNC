@@ -176,7 +176,10 @@ class BluetoothConnectionTest(unittest.TestCase):
         transport.connect = Mock()
         remote.sendall(b'Grbl 1.1h\n')
         try:
-            with patch('PlotterBluetooth.socket.socket', return_value=transport):
+            with patch('PlotterBluetooth.socket.socket', return_value=transport), \
+                    patch('PlotterBluetooth.sys.platform', 'linux'), \
+                    patch('PlotterBluetooth.socket.AF_BLUETOOTH', 31, create=True), \
+                    patch('PlotterBluetooth.socket.BTPROTO_RFCOMM', 3, create=True):
                 connection = BluetoothSerial('bluetooth://AA:BB:CC:DD:EE:FF/1', timeout=0.05)
             transport.connect.assert_called_once_with(('AA:BB:CC:DD:EE:FF', 1))
             self.assertEqual(connection.readline(), b'Grbl 1.1h\n')
@@ -195,7 +198,10 @@ class BluetoothConnectionTest(unittest.TestCase):
         from PlotterBluetooth import BluetoothSerial
         from serial import SerialException
         transport = Mock(); transport.connect.side_effect = OSError('Connection refused')
-        with patch('PlotterBluetooth.socket.socket', return_value=transport):
+        with patch('PlotterBluetooth.socket.socket', return_value=transport), \
+            patch('PlotterBluetooth.sys.platform', 'linux'), \
+            patch('PlotterBluetooth.socket.AF_BLUETOOTH', 31, create=True), \
+            patch('PlotterBluetooth.socket.BTPROTO_RFCOMM', 3, create=True):
             with self.assertRaisesRegex(SerialException, 'Bluetooth SPP'):
                 BluetoothSerial('bluetooth://AA:BB:CC:DD:EE:FF/1')
         transport.close.assert_called_once()

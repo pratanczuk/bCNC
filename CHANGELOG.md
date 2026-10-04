@@ -2,7 +2,9 @@
 
 There are too much commits, so i've created this brief overview of new features in bCNC.
 
-## Foil Studio 0.9.17-rc.5
+## Foil Studio 0.9.17-rc.6
+- Isolated mocked Bluetooth transport tests from host Python Bluetooth socket
+  support; rc.5 installer builds succeeded but its regression gate blocked release.
 - Added Linux Bluetooth Classic SPP transport with BlueZ discovery and pairing.
 - FilmCut job starts now wait for X homing and fresh confirmation of work X0/Y0
   in G54 before streaming, without unloading or reloading the aligned mat.
