@@ -77,11 +77,11 @@ Architecture: $architecture
 Installed-Size: $installed_size
 Maintainer: Foil Studio contributors
 Depends: $runtime_dependencies
-Description: Foil Studio Classic vinyl cutting workspace
+Description: Foil Studio vinyl cutting workspace
  Design, prepare and cut foil and vinyl using GRBL plotters.
  This build bundles its Python dependencies for Ubuntu $ubuntu_version.
 EOF
 
-artifact="$release_dir/FoilStudio-Classic-${version}-ubuntu-${ubuntu_version}-${artifact_architecture}.deb"
+artifact="$release_dir/FoilStudio-${version}-ubuntu-${ubuntu_version}-${artifact_architecture}.deb"
 dpkg-deb --root-owner-group --build "$package_root" "$artifact"
 echo "$artifact"

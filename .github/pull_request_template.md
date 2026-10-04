@@ -1,6 +1,6 @@
 ## Change
 
-Describe the user-visible problem and resulting behavior. Target `main` for Classic or `next` for Flutter/Rust.
+Describe the user-visible problem and resulting behavior. Target `foilstudio` for this application's changes.
 
 ## Validation
 

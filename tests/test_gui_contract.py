@@ -3,9 +3,68 @@ import os
 import tkinter as tk
 import unittest
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from tests import test_adaptive_gui as adaptive
 from PlotterUI import descendants, RoundedButton, ChoiceButton, Field, fit_dialog
+
+
+class BundledFontTest(unittest.TestCase):
+    def test_private_platform_registration_and_idempotence(self):
+        import PlotterFonts
+        for platform in ('win32', 'darwin', 'linux'):
+            with self.subTest(platform=platform):
+                library = Mock()
+                foundation = Mock()
+                foundation.CFURLCreateFromFileSystemRepresentation.return_value = 42
+                def load_library(name):
+                    return foundation if 'CoreFoundation' in name else library
+                with patch.object(PlotterFonts, '_registered', False), \
+                        patch('PlotterFonts.sys.platform', platform), \
+                        patch('PlotterFonts.ctypes.WinDLL', return_value=library, create=True), \
+                        patch('PlotterFonts.ctypes.CDLL', side_effect=load_library), \
+                        patch('PlotterFonts.find_library', return_value='fontconfig'):
+                    PlotterFonts.register_fonts()
+                    PlotterFonts.register_fonts()
+                    if platform == 'win32':
+                        calls = library.AddFontResourceExW.call_args_list
+                        self.assertTrue(all(call.args[1:] == (0x10, None) for call in calls))
+                    elif platform == 'darwin':
+                        calls = library.CTFontManagerRegisterFontsForURL.call_args_list
+                        self.assertTrue(all(call.args == (42, 1, None) for call in calls))
+                        self.assertEqual(foundation.CFRelease.call_count, 2)
+                    else:
+                        calls = library.FcConfigAppFontAddFile.call_args_list
+                        self.assertTrue(all(call.args[0] is None for call in calls))
+                    self.assertEqual(len(calls), 2)
+                    self.assertTrue(PlotterFonts._registered)
+
+    def test_missing_font_is_reported(self):
+        import PlotterFonts
+        with patch.object(PlotterFonts, '_registered', False), \
+                patch('PlotterFonts.Path.is_file', return_value=False):
+            with self.assertRaisesRegex(OSError, 'Missing bundled UI font'):
+                PlotterFonts.register_fonts()
+            self.assertFalse(PlotterFonts._registered)
+
+    def test_native_registration_failures_are_reported(self):
+        import PlotterFonts
+        for platform in ('win32', 'darwin', 'linux'):
+            with self.subTest(platform=platform):
+                library = Mock()
+                library.AddFontResourceExW.return_value = 0
+                library.FcConfigAppFontAddFile.return_value = 0
+                library.CTFontManagerRegisterFontsForURL.return_value = False
+                library.CFURLCreateFromFileSystemRepresentation.return_value = 42
+                with patch.object(PlotterFonts, '_registered', False), \
+                        patch('PlotterFonts.sys.platform', platform), \
+                        patch('PlotterFonts.ctypes.WinDLL', return_value=library, create=True), \
+                        patch('PlotterFonts.ctypes.CDLL', return_value=library), \
+                        patch('PlotterFonts.find_library', return_value='fontconfig'):
+                    with self.assertRaisesRegex(OSError, 'Cannot register'):
+                        PlotterFonts.register_fonts()
+                    self.assertFalse(PlotterFonts._registered)
+                    if platform == 'darwin':
+                        library.CFRelease.assert_called_once_with(42)
 
 
 @unittest.skipUnless(os.environ.get('DISPLAY'), 'Requires Xvfb')
@@ -15,6 +74,60 @@ class VisualContractTest(unittest.TestCase):
     setUp = adaptive.AdaptiveGUITest.setUp
     tearDown = adaptive.AdaptiveGUITest.tearDown
     add_square_fixture = adaptive.AdaptiveGUITest.add_square_fixture
+
+    def test_shared_theme_font_and_light_default_preserve_preferences(self):
+        import Utils
+        from tkinter import font, ttk
+        from PlotterAppearance import apply_appearance, LIGHT, DARK
+        from PlotterFonts import FONT_DIR, FONT_FILES
+        old = Utils.config.get('Plotter', 'appearance', fallback=None)
+        try:
+            Utils.config.remove_option('Plotter', 'appearance')
+            with patch('PlotterAppearance.system_dark') as system:
+                self.assertEqual(apply_appearance(self.app), LIGHT)
+                system.assert_not_called()
+            page = self.w.settings('Appearance')
+            self.assertEqual(page.appearance.get(), 'Light')
+            page.destroy()
+            Utils.setStr('Plotter', 'appearance', 'Dark')
+            self.assertEqual(apply_appearance(self.app), DARK)
+            self.assertEqual(ttk.Style(self.app).theme_use(), 'clam')
+            for name in ('TkDefaultFont', 'TkTextFont', 'TkMenuFont', 'TkHeadingFont',
+                         'TkCaptionFont', 'TkSmallCaptionFont', 'TkIconFont', 'TkTooltipFont'):
+                named = font.nametofont(name, root=self.app).actual()
+                self.assertEqual(named['family'], 'DejaVu Sans')
+                self.assertEqual(named['size'], 11)
+            for weight in ('normal', 'bold'):
+                actual = font.Font(self.app, family='DejaVu Sans', size=11, weight=weight).actual()
+                self.assertEqual(actual['family'], 'DejaVu Sans')
+                self.assertEqual(actual['weight'], weight)
+            self.assertTrue(all((FONT_DIR / filename).is_file() for filename in FONT_FILES))
+            self.assertTrue((FONT_DIR / 'LICENSE.txt').is_file())
+        finally:
+            if old is None:
+                Utils.config.remove_option('Plotter', 'appearance')
+            else:
+                Utils.config.set('Plotter', 'appearance', old)
+            apply_appearance(self.app)
+
+    def test_disabled_button_uses_bundled_font(self):
+        from PIL import ImageFont
+        from PlotterFonts import FONT_DIR
+        button = RoundedButton(self.app, text='Disabled action', font=('DejaVu Sans', 11, 'bold'))
+        try:
+            with patch('PlotterUI.ImageFont.truetype', wraps=ImageFont.truetype) as load:
+                button.configure(state='disabled')
+                self.assertEqual(load.call_args.args[0], str(FONT_DIR / 'DejaVuSans-Bold.ttf'))
+        finally:
+            button.destroy()
+
+    def test_font_service_failure_keeps_theme_usable(self):
+        from tkinter import ttk
+        from PlotterUI import install_theme
+        with patch('PlotterFonts.register_fonts', side_effect=OSError('Font service unavailable')):
+            with self.assertWarnsRegex(RuntimeWarning, 'Font service unavailable'):
+                install_theme(self.app)
+        self.assertEqual(ttk.Style(self.app).theme_use(), 'clam')
 
     def test_repeated_controls_reuse_font_measurements(self):
         from PlotterPages import WorkspacePage
@@ -329,6 +442,74 @@ class VisualContractTest(unittest.TestCase):
             page.bluetooth_channel.set('1'); page.connect()
             self.assertEqual(connect.call_args.args[0], 'bluetooth://AA:BB:CC:DD:EE:FF/1')
         page.destroy()
+
+    def test_windows_bluetooth_filters_com_ports_and_connects_using_serial(self):
+        devices = [SimpleNamespace(device='COM3', description='USB serial', hwid='USB VID:PID', manufacturer=None),
+                   SimpleNamespace(device='COM7', description='Plotter', hwid='BTHENUM\\SPP', manufacturer=None),
+                   SimpleNamespace(device='COM9', description='Standard Serial over Bluetooth link', hwid=None, manufacturer=None)]
+        defaults = SimpleNamespace(port='COM7', baud='115200', controller='AUTO')
+        with patch('serial.tools.list_ports.comports', return_value=devices), patch('PlotterConnection.BlueZBluetooth') as bluez:
+            with patch('PlotterConnection.sys.platform', 'win32'), patch.object(self.app.connection, 'defaults', return_value=defaults):
+                page = self.w.connection_settings()
+            try:
+                self.app.update()
+                self.assertEqual(page.transport.get(), 'Bluetooth')
+                self.assertTrue(page.bluetooth_form.winfo_ismapped())
+                self.assertIsNone(page.bluetooth_poll)
+                self.assertEqual([device.device for device in page.bluetooth_devices.values()], ['COM7', 'COM9'])
+                page.search_bluetooth()
+                with patch('PlotterConnection.os.startfile', create=True) as settings:
+                    self.assertTrue(page.pair_bluetooth())
+                    settings.assert_called_once_with('ms-settings:bluetooth')
+                page.select_bluetooth()
+                page.baud.set('9600')
+                with patch.object(self.app.connection, 'connect', return_value=False) as connect:
+                    self.assertFalse(page.connect())
+                    connect.assert_called_once_with('COM7', '9600', 'AUTO')
+                bluez.assert_not_called()
+            finally:
+                page.destroy()
+
+    def test_windows_bluetooth_unknown_metadata_can_show_all_ports(self):
+        devices = [SimpleNamespace(device='COM10', description=None, hwid=None, manufacturer=None)]
+        defaults = SimpleNamespace(port='COM10', baud='115200', controller='AUTO')
+        with patch('serial.tools.list_ports.comports', return_value=devices), patch('PlotterConnection.BlueZBluetooth') as bluez:
+            with patch('PlotterConnection.sys.platform', 'win32'), patch.object(self.app.connection, 'defaults', return_value=defaults):
+                page = self.w.connection_settings()
+            try:
+                page.transport.set('Bluetooth'); page.choose_transport()
+                self.assertFalse(page.bluetooth_devices)
+                self.assertIn('No Bluetooth COM ports', page.message.get())
+                with patch.object(self.app.connection, 'connect', return_value=False) as connect:
+                    self.assertFalse(page.connect()); connect.assert_not_called()
+                    page.show_all_com_ports.set(True); page.refresh()
+                    page.select_bluetooth()
+                    self.assertEqual(page.port.get(), 'COM10')
+                    self.assertEqual(page.transport.get(), 'Bluetooth')
+                    self.assertFalse(page.connect())
+                    connect.assert_called_once_with('COM10', '115200', 'AUTO')
+                page.transport.set('Network'); page.choose_transport()
+                self.assertEqual(page.transport.get(), 'Network')
+                page.transport.set('Bluetooth'); page.choose_transport()
+                self.assertEqual(page.transport.get(), 'Bluetooth')
+                page.transport.set('Serial port'); page.choose_transport()
+                self.assertEqual(page.transport.get(), 'Serial port')
+                bluez.assert_not_called()
+            finally:
+                page.destroy()
+
+    def test_windows_bluetooth_does_not_connect_saved_linux_url(self):
+        defaults = SimpleNamespace(port='bluetooth://AA:BB:CC:DD:EE:FF/1', baud='115200', controller='AUTO')
+        with patch('serial.tools.list_ports.comports', return_value=[]), patch('PlotterConnection.BlueZBluetooth') as bluez:
+            with patch('PlotterConnection.sys.platform', 'win32'), patch.object(self.app.connection, 'defaults', return_value=defaults):
+                page = self.w.connection_settings()
+            try:
+                with patch.object(self.app.connection, 'connect') as connect:
+                    self.assertFalse(page.connect()); connect.assert_not_called()
+                self.assertIn('Select a Bluetooth COM port', page.message.get())
+                bluez.assert_not_called()
+            finally:
+                page.destroy()
 
     def test_bluetooth_controls_fit_phone_and_tablet(self):
         page = self.w.connection_settings()

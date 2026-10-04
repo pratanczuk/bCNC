@@ -1,4 +1,4 @@
-# Foil Studio — Classic
+# Foil Studio
 
 Design → Prepare → Cut for foil and vinyl plotters. This is the maintained
 Python/Tk application, derived from [bCNC](https://github.com/vlachoudis/bCNC)
@@ -7,7 +7,6 @@ by Vasilis Vlachoudis and contributors. Original copyright and license notices r
 | Branch | Status | Releases |
 | --- | --- | --- |
 | [`foilstudio`](https://github.com/pratanczuk/bCNC/tree/foilstudio) | Working Python/Tk application | `foilstudio-v*` release candidates |
-| [`next`](https://github.com/pratanczuk/FoilStudio/tree/next) | Flutter/Rust development | `next-v*` prereleases |
 
 [Downloads](https://github.com/pratanczuk/bCNC/releases) ·
 [Builds](https://github.com/pratanczuk/bCNC/actions) ·

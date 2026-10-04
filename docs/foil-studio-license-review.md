@@ -20,6 +20,7 @@ Reviewed 2026-09-15. This is a source and installed Linux dependency audit, not 
 | Python / Tcl / Tk | PSF and Tcl/Tk license families | Runtime and current UI; include runtime notices when bundled. Not pinned by application requirements. |
 | PyObjC packages (macOS-only setup dependencies) | MIT upstream | Declared by setup.py; not installed or verified in this Linux environment. No direct Quartz/PyObjC import found in current application. Reassess these packaging dependencies in a macOS build. |
 | Fonts selected by users | Font-specific | FontTools licensing does not cover input fonts or permission to redistribute them. No single license can be assigned to all system fonts. |
+| Bundled DejaVu Sans 2.37 (regular and bold) | Bitstream Vera font license; DejaVu changes public domain; `bCNC/fonts/LICENSE.txt` | Shared workspace UI fonts, registered only for the application process. Preserve the accompanying notice in packages. |
 | Icons / screenshots / artwork | Repository provenance and any embedded notices | No comprehensive per-asset attribution manifest found; do not presume every asset is MIT. |
 
 `LICENSE.MIT` names the previously vendored meshcut and svg.path code; `LICENSE.BSD3` names numpy-stl and python-utils. Those vendored directories are absent from the current tree. These notices are historical evidence, not proof those components are still runtime dependencies. They have been retained rather than deleting attribution during cleanup.

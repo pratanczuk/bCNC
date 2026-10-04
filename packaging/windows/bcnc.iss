@@ -4,15 +4,15 @@
 
 [Setup]
 AppId={{73AC3E4B-9142-46B5-A21B-B8F67908BE8B}
-AppName=Foil Studio Classic
+AppName=Foil Studio
 AppVersion={#AppVersion}
 AppPublisher=Foil Studio contributors; based on bCNC
 AppPublisherURL=https://github.com/pratanczuk/FoilStudio
 DefaultDirName={localappdata}\Programs\bCNC
-DefaultGroupName=Foil Studio Classic
+DefaultGroupName=Foil Studio
 DisableProgramGroupPage=yes
 OutputDir=..\..\release
-OutputBaseFilename=FoilStudio-Classic-{#AppVersion}-windows-x64-setup
+OutputBaseFilename=FoilStudio-{#AppVersion}-windows-x64-setup
 SetupIconFile=..\..\bCNC\bCNC.ico
 UninstallDisplayIcon={app}\bCNC.exe
 Compression=lzma2
@@ -26,11 +26,11 @@ PrivilegesRequired=lowest
 Source: "..\..\dist\bCNC\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\Foil Studio Classic"; Filename: "{app}\bCNC.exe"
-Name: "{autodesktop}\Foil Studio Classic"; Filename: "{app}\bCNC.exe"; Tasks: desktopicon
+Name: "{autoprograms}\Foil Studio"; Filename: "{app}\bCNC.exe"
+Name: "{autodesktop}\Foil Studio"; Filename: "{app}\bCNC.exe"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Run]
-Filename: "{app}\bCNC.exe"; Description: "Launch Foil Studio Classic"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\bCNC.exe"; Description: "Launch Foil Studio"; Flags: nowait postinstall skipifsilent

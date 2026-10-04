@@ -7,6 +7,8 @@ import subprocess
 import sys
 import tempfile
 family, directory = sys.argv[1:]
+if family not in ("classic", "foilstudio"):
+    raise SystemExit(f"Unsupported release family: {family}")
 tag = os.environ["GITHUB_REF_NAME"]
 assets = sorted(p for p in Path(directory).iterdir() if p.is_file())
 if not assets or not (Path(directory) / "SHA256SUMS").exists():
@@ -15,9 +17,8 @@ def gh(*args):
     return subprocess.check_output(["gh", *args], text=True)
 view = subprocess.run(["gh", "release", "view", tag, "--json", "isDraft,assets"], text=True, capture_output=True)
 if view.returncode:
-    notes = ("Foil Studio Classic candidate. Binary distribution license review and physical cutting validation remain outstanding. "
-             "Unsigned Windows and macOS packages. See docs/development.md in the source archive." if family in ("classic", "foilstudio") else
-             "Flutter/Rust project preview only. No machine connection, cutting or project saving yet. Unsigned desktop previews.")
+    notes = ("Foil Studio candidate. Binary distribution license review and physical cutting validation remain outstanding. "
+             "Unsigned Windows and macOS packages. See docs/development.md in the source archive.")
     gh("release", "create", tag, "--verify-tag", "--draft", "--prerelease", "--latest=false", "--title", tag, "--notes", notes)
     existing = set()
 else:

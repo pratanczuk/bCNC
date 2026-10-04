@@ -1,4 +1,4 @@
-name: Classic regression tests
+name: Foil Studio regression tests
 on:
   workflow_call:
 permissions:

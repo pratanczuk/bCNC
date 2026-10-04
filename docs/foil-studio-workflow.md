@@ -162,10 +162,20 @@ not configure that baud rate. Device address and channel are retained as
 `bluetooth://AA:BB:CC:DD:EE:FF/1`, including for optional startup connection.
 Pairing does not start motion or automatically connect to the plotter.
 
-On Windows and macOS, pair through system Bluetooth settings and select the
-system-provided Bluetooth serial port in **Serial port**; in-app discovery and
-pairing are currently Linux-only. After any Bluetooth connection loss, inspect
-the material and confirm the mat position before starting another cut.
+On Windows, **Bluetooth** lists paired Bluetooth COM ports identified by their
+driver descriptions or hardware IDs. **Pair** opens Windows Bluetooth settings;
+pair there, then use **Refresh ports** and select the outgoing COM port. Set the
+baud rate configured on the module. Connections use the normal serial transport,
+not BlueZ or a `bluetooth://` address. If the driver omits Bluetooth metadata,
+enable **Show all COM ports** and select the known Bluetooth port. This fallback
+can also list USB and other serial ports; it does not certify them as Bluetooth.
+Windows discovery and pairing are managed by the operating system, not an in-app
+radio scan. If Windows creates no COM port, check that the device exposes Classic SPP.
+
+On macOS, pair through system Bluetooth settings and select the system-provided
+Bluetooth serial port in **Serial port**. In-app radio discovery and pairing are
+Linux-only. After any Bluetooth connection loss, inspect the material and confirm
+the mat position before starting another cut.
 
 Connection failures, command errors, alarms, and unexpected disconnects appear
 in a persistent recovery card. The card explains the problem in plain language
@@ -222,6 +232,13 @@ resetting the card on each update.
   read inch-mode G-code; applying Configuration keeps the application in millimeters.
 
 ## Compatibility and remaining work
+
+The workspace uses the same `clam` widget theme and bundled DejaVu Sans regular
+and bold fonts on Windows, Linux, and macOS. Fonts are registered only for the
+running application, without modifying system font installations. New settings
+default to Light appearance and Comfortable density; saved Light, Dark, or
+System preferences are preserved. Native window borders and display scaling
+remain controlled by the operating system.
 
 **Advanced settings** replaces the Machine diagnostics toggle. The design canvas
 stays in place; there is no legacy ribbon workspace or alternate cut path.

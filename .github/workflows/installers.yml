@@ -1,4 +1,4 @@
-name: Classic CI and packages
+name: Foil Studio CI and packages
 
 on:
   push:
@@ -62,6 +62,47 @@ jobs:
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           "/DAppVersion=${{ steps.version.outputs.value }}"
           "packaging\windows\bcnc.iss"
+      - name: Install and verify setup payload
+        shell: pwsh
+        run: |
+          $installRoot = Join-Path $env:RUNNER_TEMP "Foil Studio installation test"
+          $logPath = Join-Path $env:RUNNER_TEMP "foil-studio-install.log"
+          $installers = @(Get-ChildItem "release/*-windows-x64-setup.exe")
+          if ($installers.Count -ne 1) { throw "Expected exactly one Windows installer." }
+          $arguments = @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/CURRENTUSER", "/TASKS=", "/DIR=`"$installRoot`"", "/LOG=`"$logPath`"")
+          $process = Start-Process -FilePath $installers[0].FullName -ArgumentList $arguments -PassThru
+          if (-not $process.WaitForExit(120000)) {
+            Stop-Process -Id $process.Id -Force
+            throw "Windows installation timed out. See installation log."
+          }
+          if ($process.ExitCode -ne 0) { throw "Windows installation failed: $($process.ExitCode). See installation log." }
+          $sourceRoot = (Resolve-Path "dist/bCNC").Path
+          $sourceFiles = @(Get-ChildItem $sourceRoot -File -Recurse)
+          foreach ($source in $sourceFiles) {
+            $relative = [System.IO.Path]::GetRelativePath($sourceRoot, $source.FullName)
+            $installed = Join-Path $installRoot $relative
+            if (-not (Test-Path -LiteralPath $installed -PathType Leaf)) {
+              throw "Installer omitted file: $relative"
+            }
+            if ((Get-FileHash -LiteralPath $source.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $installed -Algorithm SHA256).Hash) {
+              throw "Installer corrupted file: $relative"
+            }
+          }
+          Write-Output "Verified $($sourceFiles.Count) installed files, including Tcl timezone data."
+          $process = Start-Process -FilePath (Join-Path $installRoot "bCNC.exe") -ArgumentList "--package-smoke-test" -PassThru
+          if (-not $process.WaitForExit(20000)) {
+            Stop-Process -Id $process.Id -Force
+            throw "Installed application smoke test timed out."
+          }
+          if ($process.ExitCode -ne 0) { throw "Installed application smoke test failed: $($process.ExitCode)" }
+      - name: Upload Windows installation log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: windows-installation-log
+          path: ${{ runner.temp }}/foil-studio-install.log
+          if-no-files-found: warn
+          retention-days: 14
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: classic-packages-windows-x64
@@ -114,7 +155,7 @@ jobs:
           codesign --force --deep --sign - "dist/Foil Studio.app"
           codesign --verify --deep --strict --verbose=2 "dist/Foil Studio.app"
           ditto -c -k --sequesterRsrc --keepParent "dist/Foil Studio.app" \
-            "release/FoilStudio-Classic-${{ steps.version.outputs.value }}-macos-${{ matrix.package }}.zip"
+            "release/FoilStudio-${{ steps.version.outputs.value }}-macos-${{ matrix.package }}.zip"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: classic-packages-macos-${{ matrix.package }}
@@ -231,7 +272,7 @@ jobs:
       - name: Prepare release assets
         run: |
           rm -rf release-assets/htmlcov release-assets/coverage
-          git archive --format=tar.gz --prefix=FoilStudio/ HEAD > release-assets/FoilStudio-Classic-source.tar.gz
+          git archive --format=tar.gz --prefix=FoilStudio/ HEAD > release-assets/FoilStudio-source.tar.gz
           cp LICENSE* release-assets/
           cp docs/foil-studio-license-review.md release-assets/
           cd release-assets

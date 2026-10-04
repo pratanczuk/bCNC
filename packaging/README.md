@@ -1,8 +1,8 @@
-# Foil Studio Classic packages
+# Foil Studio packages
 
 CI builds Windows x64 (`.exe`), separate macOS Intel x64 and Apple Silicon arm64
 archives (`.zip` containing an unsigned `.app`), Ubuntu 22.04/24.04 amd64 (`.deb`)
-and Ubuntu 22.04 ARMv7 (`.deb`). Names start with `FoilStudio-Classic-`. The internal
+and Ubuntu 22.04 ARMv7 (`.deb`). Names start with `FoilStudio-`. The internal
 Python module and executable remain `bCNC` for compatibility.
 
 Linux: `packaging/linux/build-deb.sh release 24.04` on the matching Ubuntu release.

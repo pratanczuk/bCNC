@@ -66,7 +66,7 @@ class PlotterSettingsDialog(WorkspacePage):
         picker.pack(fill='x')
         picker.bind('<<ComboboxSelected>>', self.choose_category)
 
-        self.appearance = tk.StringVar(self, Utils.getStr('Plotter', 'appearance', 'System'))
+        self.appearance = tk.StringVar(self, Utils.getStr('Plotter', 'appearance', 'Light'))
         self.density = tk.StringVar(self, Utils.getStr('Plotter', 'density', 'Comfortable'))
         for title, variable, choices in [('Appearance', self.appearance, ('System','Light','Dark')),
                                           ('Control density', self.density, ('Comfortable','Compact for mouse'))]:

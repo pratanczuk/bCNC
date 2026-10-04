@@ -1,5 +1,7 @@
 """Connection setup using the existing sender and saved serial configuration."""
 import tkinter as tk
+import os
+import sys
 from queue import Empty, Queue
 import threading
 from PlotterUI import Field
@@ -39,6 +41,9 @@ class ConnectionDialog(WorkspacePage):
         self.bluetooth_backend = None
         self.bluetooth_busy = False
         self.bluetooth_devices = {}
+        self.windows_bluetooth = sys.platform == 'win32'
+        self.bluetooth_ports = []
+        self.show_all_com_ports = tk.BooleanVar(self, False)
         self.bluetooth_poll = None
         self.bluetooth_address = tk.StringVar(self)
         self.bluetooth_channel = tk.StringVar(self, '1')
@@ -73,18 +78,24 @@ class ConnectionDialog(WorkspacePage):
             row=tk.Frame(self.network_form,bg=PANEL);row.pack(fill='x',pady=3)
             workflow.label(row,title).pack(side='left',padx=(0,12))
             ttk.Entry(row,textvariable=variable).pack(side='right',fill='x',expand=True)
-        workflow.label(self.bluetooth_form, 'Bluetooth device').pack(anchor='w')
+        workflow.label(self.bluetooth_form, 'Bluetooth COM port' if self.windows_bluetooth else 'Bluetooth device').pack(anchor='w')
         self.bluetooth_combo = ttk.Combobox(self.bluetooth_form, textvariable=self.bluetooth_selection,
             state='readonly', style='Foil.TCombobox')
         self.bluetooth_combo.pack(fill='x', pady=3)
         self.bluetooth_combo.bind('<<ComboboxSelected>>', self.select_bluetooth)
         row = tk.Frame(self.bluetooth_form, bg=PANEL); row.pack(fill='x', pady=3)
-        self.bluetooth_scan_button = workflow.button(row, 'Search', self.search_bluetooth)
+        self.bluetooth_scan_button = workflow.button(row, 'Refresh ports' if self.windows_bluetooth else 'Search', self.search_bluetooth)
         self.bluetooth_scan_button.pack(side='left', fill='x', expand=True, padx=(0,4))
         self.bluetooth_pair_button = workflow.button(row, 'Pair', self.pair_bluetooth)
         self.bluetooth_pair_button.pack(side='left', fill='x', expand=True)
         self.bluetooth_cancel_button = workflow.button(self.bluetooth_form, 'Cancel Bluetooth operation', self.cancel_bluetooth)
-        for title, variable in [('Device address', self.bluetooth_address), ('SPP channel', self.bluetooth_channel)]:
+        if self.windows_bluetooth:
+            tk.Checkbutton(self.bluetooth_form, text='Show all COM ports', variable=self.show_all_com_ports,
+                command=self.refresh, bg=PANEL, fg=INK, selectcolor=PANEL).pack(anchor='w')
+            workflow.label(self.bluetooth_form, 'Baud rate').pack(anchor='w', pady=(3,0))
+            ttk.Combobox(self.bluetooth_form, textvariable=self.baud,
+                values=['115200','57600','38400','9600'], style='Foil.TCombobox').pack(fill='x')
+        for title, variable in ([] if self.windows_bluetooth else [('Device address', self.bluetooth_address), ('SPP channel', self.bluetooth_channel)]):
             workflow.label(self.bluetooth_form, title).pack(anchor='w', pady=(3,0))
             if variable is self.bluetooth_channel:
                 ttk.Spinbox(self.bluetooth_form, from_=1, to=30, textvariable=variable, width=5).pack(anchor='w')
@@ -117,8 +128,8 @@ class ConnectionDialog(WorkspacePage):
         self.refresh()
         fit_dialog(self, self.app, 570, 740)
         self.grab_set()
-        self.bluetooth_poll = self.after(100, self.poll_bluetooth)
-        if self.transport.get() == 'Bluetooth':
+        self.bluetooth_poll = None if self.windows_bluetooth else self.after(100, self.poll_bluetooth)
+        if self.transport.get() == 'Bluetooth' and not self.windows_bluetooth:
             self.start_bluetooth(lambda backend: backend.devices(), 'Loading Bluetooth devices...')
 
     def change_autoconnect(self):
@@ -129,8 +140,10 @@ class ConnectionDialog(WorkspacePage):
     def update_transport(self, *args):
         tcp = is_tcp_address(self.port.get())
         bluetooth = is_bluetooth_address(self.port.get())
-        self.transport.set('Bluetooth' if bluetooth else 'Network' if tcp else 'Serial port')
-        if bluetooth:
+        native_bluetooth = self.windows_bluetooth and not tcp and (
+            self.transport.get() == 'Bluetooth' or any(device.device == self.port.get() for device in self.bluetooth_ports))
+        self.transport.set('Bluetooth' if bluetooth or native_bluetooth else 'Network' if tcp else 'Serial port')
+        if bluetooth and not self.windows_bluetooth:
             try:
                 address = validate_bluetooth_address(self.port.get()).split('://', 1)[1]
                 address, channel = address.rsplit('/', 1)
@@ -149,14 +162,20 @@ class ConnectionDialog(WorkspacePage):
         self.serial_form.pack_forget()
         self.network_form.pack_forget()
         self.bluetooth_form.pack_forget()
-        (self.bluetooth_form if bluetooth else self.network_form if tcp else self.serial_form).pack(fill='x', before=self.firmware_label)
+        (self.bluetooth_form if bluetooth or native_bluetooth else self.network_form if tcp else self.serial_form).pack(fill='x', before=self.firmware_label)
         self.baud_combo.config(state='disabled' if tcp or bluetooth else 'normal')
-        self.transport_hint.set('Bluetooth Classic / SPP' if bluetooth else 'TCP connection · baud rate is not used. The plotter must be reachable on your network.' if tcp
+        self.transport_hint.set('Bluetooth serial connection · select the outgoing COM port created by Windows pairing.' if self.windows_bluetooth and (bluetooth or native_bluetooth) else 'Bluetooth Classic / SPP' if bluetooth else 'TCP connection · baud rate is not used. The plotter must be reachable on your network.' if tcp
                                 else 'Serial connection · choose the baud rate used by your firmware.')
 
     def choose_transport(self):
         self.cancel_bluetooth()
         if self.transport.get() == 'Bluetooth':
+            if self.windows_bluetooth:
+                if is_bluetooth_address(self.port.get()) or is_tcp_address(self.port.get()):
+                    self.port.set('')
+                self.update_transport()
+                self.refresh()
+                return
             self.port.set(f'bluetooth://{self.bluetooth_address.get()}/{self.bluetooth_channel.get()}')
             self.start_bluetooth(lambda backend: backend.devices(), 'Loading Bluetooth devices...')
         else:
@@ -165,10 +184,17 @@ class ConnectionDialog(WorkspacePage):
     def select_bluetooth(self, event=None):
         device = self.bluetooth_devices.get(self.bluetooth_selection.get())
         if device is not None:
+            if self.windows_bluetooth:
+                self.port.set(device.device)
+                self.message.set('Bluetooth serial port selected.')
+                return
             self.bluetooth_address.set(device.address)
             self.message.set('Device paired.' if device.paired else 'Device not paired.')
 
     def start_bluetooth(self, action, message):
+        if self.windows_bluetooth:
+            self.message.set('Pair the plotter in Windows Bluetooth settings, then refresh ports.')
+            return False
         if self.bluetooth_busy:
             return False
         if self.app.sender.running or self.app.mat_handling.active or self.app.tool_sequence.active:
@@ -191,9 +217,20 @@ class ConnectionDialog(WorkspacePage):
         return True
 
     def search_bluetooth(self):
+        if self.windows_bluetooth:
+            self.refresh()
+            return True
         return self.start_bluetooth(lambda backend: backend.devices(scan=True), 'Searching for Bluetooth devices...')
 
     def pair_bluetooth(self):
+        if self.windows_bluetooth:
+            try:
+                os.startfile('ms-settings:bluetooth')
+                self.message.set('Refresh ports after pairing the plotter in Windows.')
+                return True
+            except OSError as error:
+                self.message.set(f'Could not open Windows Bluetooth settings: {error}')
+                return False
         address = self.bluetooth_address.get().strip().upper()
         try:
             validate_bluetooth_address(f'bluetooth://{address}/1')
@@ -262,12 +299,25 @@ class ConnectionDialog(WorkspacePage):
     def refresh(self):
         try:
             from serial.tools.list_ports import comports
-            values = sorted(p.device for p in comports())
+            devices = sorted(comports(), key=lambda device: device.device)
+            values = [device.device for device in devices]
             current = self.port.get().strip()
             if current and current not in values:
                 values.insert(0, current)
             self.ports.configure(values=values)
             self.message.set('')
+            if self.windows_bluetooth:
+                self.bluetooth_ports = [device for device in devices if any(marker in
+                    ' '.join(str(getattr(device, field, '') or '') for field in ('description', 'hwid', 'manufacturer')).upper()
+                    for marker in ('BLUETOOTH', 'BTHENUM', 'BTHMODEM'))]
+                visible = devices if self.show_all_com_ports.get() else self.bluetooth_ports
+                self.bluetooth_devices = {f'{device.device} - {device.description or "Serial port"}': device for device in visible}
+                self.bluetooth_combo.configure(values=list(self.bluetooth_devices))
+                self.bluetooth_selection.set(next((label for label, device in self.bluetooth_devices.items()
+                    if device.device == current), ''))
+                self.update_transport()
+                if self.transport.get() == 'Bluetooth' and not visible:
+                    self.message.set('No Bluetooth COM ports found. Pair the plotter in Windows, or show all COM ports if its driver omits Bluetooth details.')
         except Exception as error:
             self.message.set('We couldn’t list serial ports. Check the cable or enter the port manually.')
             self.app.reportPlotterError('Connection scan failed', str(error))
@@ -298,8 +348,14 @@ class ConnectionDialog(WorkspacePage):
             return False
         try:
             if self.transport.get() == 'Bluetooth':
-                self.port.set(validate_bluetooth_address(
-                    f'bluetooth://{self.bluetooth_address.get().strip()}/{self.bluetooth_channel.get().strip()}'))
+                if self.windows_bluetooth:
+                    device = self.bluetooth_devices.get(self.bluetooth_selection.get())
+                    if device is None:
+                        raise ValueError('Select a Bluetooth COM port. Pair in Windows settings and refresh ports first.')
+                    self.port.set(device.device)
+                else:
+                    self.port.set(validate_bluetooth_address(
+                        f'bluetooth://{self.bluetooth_address.get().strip()}/{self.bluetooth_channel.get().strip()}'))
             elif self.transport.get() == 'Network':
                 host, port = self.host.get().strip(), int(self.network_port.get())
                 if not host or any(c.isspace() for c in host) or not 1 <= port <= 65535:

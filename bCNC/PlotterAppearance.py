@@ -27,7 +27,7 @@ def apply_appearance(root, appearance=None, density=None, scope=None):
     if scope is not None and hasattr(root, '_appearance'):
         appearance = root._appearance
         density = root._density
-    mode = appearance or Utils.getStr('Plotter', 'appearance', 'System')
+    mode = appearance or Utils.getStr('Plotter', 'appearance', 'Light')
     density = density or Utils.getStr('Plotter', 'density', 'Comfortable')
     dark = (getattr(root, '_dark', False) if scope is not None and hasattr(root, '_palette')
             else mode == 'Dark' or (mode == 'System' and system_dark()))

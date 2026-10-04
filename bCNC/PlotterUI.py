@@ -1,5 +1,6 @@
 """Shared, adaptive Tk presentation primitives. No machine commands live here."""
 from dataclasses import dataclass
+import warnings
 import tkinter as tk
 from tkinter import ttk, font as tkfont
 from PIL import Image, ImageDraw, ImageTk, ImageFont
@@ -28,6 +29,14 @@ def layout_for(width, height):
 
 
 def install_theme(root):
+    from PlotterFonts import register_fonts
+    try:
+        register_fonts()
+    except OSError as error:
+        warnings.warn(str(error), RuntimeWarning, stacklevel=2)
+    for name in ('TkDefaultFont', 'TkTextFont', 'TkMenuFont', 'TkHeadingFont',
+                 'TkCaptionFont', 'TkSmallCaptionFont', 'TkIconFont', 'TkTooltipFont'):
+        tkfont.nametofont(name, root=root).configure(family='DejaVu Sans', size=11)
     style = ttk.Style(root)
     style.theme_use('clam')
     style.configure('.', background=PANEL, foreground=INK, font=('DejaVu Sans', 11))
@@ -382,7 +391,8 @@ class RoundedButton(tk.Button):
             size = max(12, round(metrics.metrics('linespace') * 1.6))
             face = 'DejaVuSans-Bold.ttf' if metrics.actual('weight') == 'bold' else 'DejaVuSans.ttf'
             try:
-                font = ImageFont.truetype(face, size)
+                from PlotterFonts import FONT_DIR
+                font = ImageFont.truetype(str(FONT_DIR / face), size)
             except OSError:
                 font = ImageFont.load_default()
             ink = palette.get(INK, INK)
