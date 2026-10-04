@@ -78,5 +78,6 @@ class ConfigurationTest(unittest.TestCase):
             with patch.object(Utils, 'config', stale), patch.object(Utils, 'iniUser', str(path)):
                 Utils.loadConfiguration()
                 self.assertFalse(Utils.config.has_section('OldPlugin'))
-                self.assertFalse(Utils.config.has_option('Plotter', 'pressure'))
+                self.assertEqual(Utils.getFloat('Plotter', 'pressure'), 380)
+                self.assertEqual(Utils.getFloat('Plotter', 'speed'), 2500)
                 self.assertTrue(Utils.config.has_section('Error'))

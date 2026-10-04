@@ -20,6 +20,7 @@ class Firmware:
     extended: bool = False
     report_inches: bool = False
     board: str = ''
+    work_report: bool = False
 
     def __post_init__(self):
         self.started = time.monotonic()
@@ -138,6 +139,7 @@ def _parse_status(line, firmware):
     result = {'state': state, 'pins': fields.get('Pn', '')}
     scale = 25.4 if firmware.report_inches else 1.0
     positions = {k: tuple(v * scale for v in vector(fields[k])) for k in ('MPos','WPos','WCO') if k in fields}
+    firmware.work_report = 'WPos' in positions or ('MPos' in positions and 'WCO' in positions)
     if 'WCO' in positions: firmware.last_wco = positions['WCO']
     if 'MPos' in positions: firmware.last_mpos = positions['MPos']
     if 'WPos' in positions: firmware.last_wpos = positions['WPos']

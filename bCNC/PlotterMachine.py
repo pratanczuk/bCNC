@@ -26,6 +26,7 @@ class MachineSnapshot:
     status_sequence: int = 0
     machine_position: tuple = (0.0, 0.0, 0.0)
     job_running: bool = False
+    work_status_sequence: int = 0
 
     @property
     def connected(self):

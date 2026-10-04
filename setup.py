@@ -29,6 +29,7 @@ setup(
         "pyobjc-core; sys_platform == 'darwin'",
         "pyobjc-framework-Quartz; sys_platform == 'darwin'",
         "pyserial>=3.5,<4",
+        "dbus-next>=0.2.3,<0.3; sys_platform == 'linux'",
         "numpy>=1.12",
         "svgelements>=1,<2",
         "fonttools>=4.0",

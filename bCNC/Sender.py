@@ -141,7 +141,9 @@ class Sender:
     # Open serial port
     # ----------------------------------------------------------------------
     def open(self, device, baudrate):
-        self.serial = serial.serial_for_url(
+        from PlotterBluetooth import BluetoothSerial, is_bluetooth_address
+        factory = BluetoothSerial if is_bluetooth_address(device) else serial.serial_for_url
+        self.serial = factory(
             device.replace("\\", "\\\\"),  # Escape for windows
             baudrate,
             bytesize=serial.EIGHTBITS,
@@ -154,6 +156,7 @@ class Sender:
         from PlotterProtocol import Firmware
         mode = getattr(getattr(self, 'connection_preferences', None), 'controller', 'AUTO')
         self.firmware = Firmware(mode)
+        self._status_sequence = self._work_status_sequence = 0
         self._stop = self._pause = False
         self.mcontrol.has_override = False
         CNC.vars.update(state=CONNECTED, version='', pins='', mat_confirmation_invalid=True)

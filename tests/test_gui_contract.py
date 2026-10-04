@@ -25,6 +25,52 @@ class VisualContractTest(unittest.TestCase):
             second.configure(minimum_height=second._minimum_height)
         self.assertEqual(first.winfo_reqwidth(), second.winfo_reqwidth())
 
+    def test_application_exit_cleans_page_owned_timer_callbacks(self):
+        from bmain import Application
+        from PlotterPages import WorkspacePage
+        app = Application.__new__(Application)
+        tk.Tk.__init__(app)
+        try:
+            page = WorkspacePage(app)
+            child = tk.Frame(page)
+            callback = unittest.mock.Mock()
+            for widget in (app, page, child):
+                widget.after(60000, callback)
+                widget.after_idle(callback)
+            app.destroy()
+            callback.assert_not_called()
+        finally:
+            try:
+                if app.winfo_exists():
+                    app.destroy()
+            except tk.TclError:
+                pass
+
+    def test_default_cut_settings_load_and_save(self):
+        import Utils
+        from CNC import CNC
+        from PlotterJob import SETTING_FIELDS
+        original = {key: Utils.config.get('Plotter', key, fallback=None)
+                    for key in ('pressure', 'speed')}
+        try:
+            for key in original:
+                Utils.config.remove_option('Plotter', key)
+            self.app.loadConfig()
+            self.assertEqual(CNC.vars['mat_pressure'], 380)
+            self.assertEqual(CNC.vars['mat_speed'], 2500)
+            self.assertEqual(SETTING_FIELDS['mat_pressure'][1], 380)
+            self.assertEqual(SETTING_FIELDS['mat_speed'][1], 2500)
+            self.app.saveConfig()
+            self.assertEqual(Utils.getFloat('Plotter', 'pressure'), 380)
+            self.assertEqual(Utils.getFloat('Plotter', 'speed'), 2500)
+        finally:
+            for key, value in original.items():
+                if value is None:
+                    Utils.config.remove_option('Plotter', key)
+                else:
+                    Utils.config.set('Plotter', key, value)
+            self.app.loadConfig()
+
     def test_page_styling_is_scoped_and_presentation_is_idempotent(self):
         from PlotterPages import WorkspacePage
         from PlotterAppearance import apply_appearance
@@ -263,6 +309,96 @@ class VisualContractTest(unittest.TestCase):
             page.connect();connect.assert_not_called()
         page.transport.set('Serial port');page.choose_transport();self.app.update()
         self.assertTrue(page.serial_form.winfo_ismapped());self.assertFalse(page.network_form.winfo_ismapped())
+        page.destroy()
+
+    def test_bluetooth_form_selects_device_and_validates_channel(self):
+        from PlotterBluetooth import BluetoothDevice
+        page = self.w.connection_settings(); self.app.update()
+        with patch.object(page, 'start_bluetooth'):
+            page.transport.set('Bluetooth'); page.choose_transport(); self.app.update()
+        self.assertTrue(page.bluetooth_form.winfo_ismapped())
+        self.assertFalse(page.serial_form.winfo_ismapped())
+        self.assertFalse(page.network_form.winfo_ismapped())
+        device = BluetoothDevice('/device', 'AA:BB:CC:DD:EE:FF', 'Plotter', True)
+        page.bluetooth_devices = {'Plotter': device}
+        page.bluetooth_selection.set('Plotter'); page.select_bluetooth()
+        self.assertEqual(page.bluetooth_address.get(), device.address)
+        with patch.object(self.app.connection, 'connect', return_value=False) as connect:
+            page.bluetooth_channel.set('31'); self.assertFalse(page.connect())
+            connect.assert_not_called()
+            page.bluetooth_channel.set('1'); page.connect()
+            self.assertEqual(connect.call_args.args[0], 'bluetooth://AA:BB:CC:DD:EE:FF/1')
+        page.destroy()
+
+    def test_bluetooth_controls_fit_phone_and_tablet(self):
+        page = self.w.connection_settings()
+        with patch.object(page, 'start_bluetooth'):
+            page.transport.set('Bluetooth'); page.choose_transport()
+        for size in ('320x600', '390x844', '1024x600'):
+            self.app.geometry(size); self.app.update()
+            for button in descendants(page):
+                if isinstance(button, ChoiceButton) and button.cget('text') in ('Serial port', 'Network', 'Bluetooth'):
+                    self.assertTrue(button.winfo_ismapped(), (size, button.cget('text')))
+                    self.assertGreaterEqual(button.winfo_rootx(), page.winfo_rootx())
+                    self.assertLessEqual(button.winfo_rootx() + button.winfo_width(), page.winfo_rootx() + page.winfo_width())
+        page.destroy()
+
+    def test_bluetooth_worker_results_errors_and_cancel_are_polled_on_ui_thread(self):
+        import threading
+        from unittest.mock import Mock
+        from PlotterBluetooth import BluetoothDevice
+        page = self.w.connection_settings(); self.app.update()
+        device = BluetoothDevice('/plotter', 'AA:BB:CC:DD:EE:FF', 'Plotter', True)
+        backend = Mock(); backend.cancelled = threading.Event(); backend.devices.return_value = [device]
+        def poll():
+            page.after_cancel(page.bluetooth_poll)
+            page.poll_bluetooth()
+            self.app.update()
+        with patch('PlotterConnection.BlueZBluetooth', return_value=backend), patch('PlotterConnection.threading.Thread') as thread:
+            self.assertTrue(page.search_bluetooth())
+            self.assertTrue(page.bluetooth_busy)
+            self.assertEqual(str(page.connect_button['state']), 'disabled')
+            self.assertFalse(page.search_bluetooth())
+            self.assertFalse(page.connect())
+            thread.call_args.kwargs['target'](); poll()
+            self.assertFalse(page.bluetooth_busy)
+            self.assertEqual(len(page.bluetooth_combo['values']), 1)
+            self.assertEqual(str(page.connect_button['state']), 'normal')
+            page.bluetooth_address.set(device.address)
+            backend.pair.return_value = [device]
+            self.assertTrue(page.pair_bluetooth())
+            thread.call_args.kwargs['target'](); poll()
+            self.assertEqual(page.bluetooth_selection.get(), 'Plotter - paired')
+            backend.devices.side_effect = RuntimeError('Adapter not available')
+            page.search_bluetooth(); thread.call_args.kwargs['target'](); poll()
+            self.assertIn('Adapter not available', page.message.get())
+            page.search_bluetooth(); page.cancel_bluetooth()
+            self.assertTrue(backend.cancelled.is_set())
+            thread.call_args.kwargs['target'](); poll()
+            backend.cancelled.clear()
+            page.search_bluetooth(); page.destroy()
+            self.assertTrue(backend.cancelled.is_set())
+            self.assertIsNone(page.bluetooth_poll)
+
+    def test_bluetooth_pairing_prompts_and_motion_guard(self):
+        import threading
+        from PlotterBluetooth import BlueZBluetooth
+        page = self.w.connection_settings(); self.app.update()
+        page.bluetooth_backend = BlueZBluetooth()
+        for kind, expected in [('pin', '1234'), ('passkey', '42'), ('confirm', True), ('display', True)]:
+            request = dict(kind=kind, message='Pairing request', ready=threading.Event(), result=None, backend=page.bluetooth_backend)
+            with patch('tkinter.simpledialog.askstring', return_value=expected), patch('tkinter.messagebox.askyesno', return_value=expected):
+                page.bluetooth_events.put(('prompt', request))
+                page.after_cancel(page.bluetooth_poll); page.poll_bluetooth()
+            self.assertEqual(request['result'], expected)
+            self.assertTrue(request['ready'].is_set())
+        page.bluetooth_backend.cancelled.set()
+        self.assertIsNone(page.bluetooth_prompt(page.bluetooth_backend, 'pin', 'Cancelled request'))
+        page.after_cancel(page.bluetooth_poll); page.poll_bluetooth()
+        page.bluetooth_address.set('invalid')
+        self.assertFalse(page.pair_bluetooth())
+        with patch.object(self.app.sender, 'running', True):
+            self.assertFalse(page.search_bluetooth())
         page.destroy()
 
     def test_alarm_actions_stay_visible_on_short_phone(self):

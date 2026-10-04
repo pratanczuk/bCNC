@@ -10,7 +10,7 @@ artifact_architecture=${BCNC_ARTIFACT_ARCH:-$architecture}
 python_bin=${PYTHON_BIN:-/usr/bin/python3}
 python_version=$("$python_bin" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
 packaged_python="/usr/bin/python${python_version}"
-runtime_dependencies="python${python_version}, python3-tk, libgl1, libglib2.0-0"
+runtime_dependencies="python${python_version}, python3-tk, libgl1, libglib2.0-0, bluez"
 
 if [[ ! $version =~ ^[0-9]+([.][0-9]+)*([+~-][0-9A-Za-z.+~-]+)?$ ]]; then
     echo "Invalid Debian package version: $version" >&2
@@ -32,7 +32,7 @@ mkdir -p \
 
 if [[ ${BCNC_SYSTEM_NATIVE_DEPS:-0} == 1 ]]; then
     packaged_python="/usr/bin/python3"
-    runtime_dependencies="python3 (>= 3.8), python3-tk, libgl1, libglib2.0-0"
+    runtime_dependencies="python3 (>= 3.8), python3-tk, libgl1, libglib2.0-0, bluez"
     "$python_bin" -m pip install \
         --disable-pip-version-check \
         --constraint "$repo_dir/packaging/constraints.txt" \
@@ -40,7 +40,8 @@ if [[ ${BCNC_SYSTEM_NATIVE_DEPS:-0} == 1 ]]; then
         --no-deps \
         --target "$package_root/opt/bcnc/lib" \
         "$repo_dir" \
-        "svgelements>=1,<2"
+        "svgelements>=1,<2" \
+        "dbus-next>=0.2.3,<0.3"
     runtime_dependencies+=", python3-numpy, python3-serial, python3-pil, python3-fonttools, python3-shapely, python3-opencv"
 else
     "$python_bin" -m pip install \

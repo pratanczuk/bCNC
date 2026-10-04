@@ -135,8 +135,15 @@ class Application(Tk):
             self.workflow.adaptive_ready = False
         # Tcl timers otherwise outlive their Python callbacks when a window is
         # closed and a new application is opened in the same process.
+        owners = {}
+        widgets = [self]
+        while widgets:
+            widget = widgets.pop()
+            owners.update({command: widget for command in widget._tclCommands or ()})
+            widgets.extend(widget.children.values())
         for timer in self.tk.call('after', 'info'):
-            self.after_cancel(timer)
+            command = self.tk.call('after', 'info', timer)[0]
+            owners.get(command, self).after_cancel(timer)
         super().destroy()
 
     def showTextInsertion(self, event=None):
@@ -472,8 +479,8 @@ class Application(Tk):
         GCode.LOOP_MERGE = Utils.getBool('File', 'dxfloopmerge')
 
         # ── Plotter / cutting-mat settings ──────────────────────────────────
-        CNC.vars["mat_pressure"]      = Utils.getFloat("Plotter", "pressure",      500.0)
-        CNC.vars["mat_speed"]         = Utils.getFloat("Plotter", "speed",         500.0)
+        CNC.vars["mat_pressure"]      = Utils.getFloat("Plotter", "pressure",      380.0)
+        CNC.vars["mat_speed"]         = Utils.getFloat("Plotter", "speed",         2500.0)
         CNC.vars["mat_knife_offset"]  = Utils.getFloat("Plotter", "knife_offset",  0.5)
         CNC.vars["mat_overcut"] = Utils.getFloat("Plotter", "overcut", Utils.getFloat("DragKnife", "overcut", 0.0))
         CNC.vars["mat_width"]         = Utils.getFloat("Plotter", "mat_width",     300.0)
@@ -497,8 +504,8 @@ class Application(Tk):
 
         # ── Plotter / cutting-mat settings ──────────────────────────────────
         Utils.addSection("Plotter")
-        Utils.setStr("Plotter", "pressure",      CNC.vars.get("mat_pressure",      500.0))
-        Utils.setStr("Plotter", "speed",         CNC.vars.get("mat_speed",         500.0))
+        Utils.setStr("Plotter", "pressure",      CNC.vars.get("mat_pressure",      380.0))
+        Utils.setStr("Plotter", "speed",         CNC.vars.get("mat_speed",         2500.0))
         Utils.setStr("Plotter", "knife_offset",  CNC.vars.get("mat_knife_offset",  0.5))
         Utils.setStr("Plotter", "overcut", CNC.vars.get("mat_overcut", 0.0))
         Utils.setStr("Plotter", "mat_width",     CNC.vars.get("mat_width",         300.0))
@@ -1144,6 +1151,23 @@ class Application(Tk):
             else:
                 self.reportPlotterError('Cut already running', 'Stop the current cut before starting another.')
             return
+        reason = self.workflow.start_reason()
+        if reason:
+            self.reportPlotterError('Before cutting', reason)
+            return
+        if getattr(self.sender.firmware, 'board', '') == 'GRBLFilmCut':
+            try:
+                self.mat_handling.prepare_job(self._run_after_origin)
+            except ValueError as error:
+                self.reportPlotterError('Before cutting', str(error))
+                return
+            self.workflow._cut_started = True
+            self.workflow._stopped = False
+            self.workflow.update_state()
+            return
+        self._run_after_origin()
+
+    def _run_after_origin(self):
         reason = self.workflow.start_reason()
         if reason:
             self.reportPlotterError('Before cutting', reason)

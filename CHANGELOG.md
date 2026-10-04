@@ -2,6 +2,17 @@
 
 There are too much commits, so i've created this brief overview of new features in bCNC.
 
+## Foil Studio 0.9.17-rc.5
+- Added Linux Bluetooth Classic SPP transport with BlueZ discovery and pairing.
+- FilmCut job starts now wait for X homing and fresh confirmation of work X0/Y0
+  in G54 before streaming, without unloading or reloading the aligned mat.
+- Fixed application shutdown when pages own pending Tcl timer callbacks.
+- Changed default cutting pressure to 380 PWM and speed to 2500 mm/min; controller
+  axis limits and explicitly selected material presets still apply.
+- Verified 338 regression tests, 93.76% GUI coverage, and two consecutive physical
+  no-pressure rectangle jobs. Knife cutting and platform installation/upgrade/
+  rollback validation remain required before stable publication.
+
 ## 0.9.17
 - Added path smoothing with configurable simplification and Chaikin passes.
 - Added LibreCAD and Inkscape editing workflows.

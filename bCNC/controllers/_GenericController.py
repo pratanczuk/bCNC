@@ -45,6 +45,8 @@ class _GenericController:
         state = values.pop('state')
         CNC.vars.update(values)
         self.master._status_sequence = getattr(self.master, '_status_sequence', 0) + 1
+        if firmware.work_report:
+            self.master._work_status_sequence = self.master._status_sequence
         self.displayState(state)
         self.master._posUpdate = True
         self.master._pause = state.startswith('Hold')

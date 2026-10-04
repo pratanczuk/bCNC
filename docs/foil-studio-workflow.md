@@ -35,6 +35,17 @@ not introduce another serial connection or require Qt.
    during the job. Progress reports acknowledged commands, not a time estimate
    or a claim that every buffered move has physically completed.
 
+On FilmCut firmware, each job start releases blade pressure (`M5`), homes only
+X (`$HX`), and waits for acknowledgement and a new Idle status before selecting
+millimeters and G54 (`G21 G54`). It then establishes the current position as work
+X0/Y0 with `G10 L20 P1 X0 Y0`, including any retained G92 offset in the controller's
+calculation. This does not unload or reload an already aligned mat and must not
+change machine Y. No job moves are streamed until a fresh status explicitly
+reports work X/Y zero (within 0.001 mm), either through `WPos` or `MPos` and `WCO`
+in the same report. An `ok`, cached offsets, or a nonzero report cannot release
+the job. Stop cancels this preparation; a timeout or failed confirmation prevents
+the job from starting and requires inspecting the plotter before retrying.
+
 In Prepare, **New pressure & corner test** creates a separate job containing a
 10 mm square, circle, and triangle. The normal save/discard/cancel prompt protects
 unsaved artwork; creating this job does not start motion. Review setup and mat
@@ -123,11 +134,38 @@ future work; supported artwork tools are available in Design.
 
 ## Readiness and preparation
 
-**Connection…** now opens a Foil Studio dialog with USB/serial port refresh,
-manual port entry, baud rate, and GRBL0/GRBL1 selection. It uses the existing
+**Connection…** opens a Foil Studio dialog with serial, TCP network, and Bluetooth
+transports, plus automatic or explicit GRBL firmware selection. It uses the existing
 sender and serial configuration; settings are retained on normal application
 exit. Opening a port does not imply readiness: Start still requires an Idle
 status report. Connection changes are blocked while cutting.
+
+### Bluetooth Classic / SPP (Linux)
+
+Bluetooth discovery and pairing require a powered Bluetooth adapter, the BlueZ
+system service (`bluez` on Debian/Ubuntu), and the `dbus-next` Python dependency
+installed with Foil Studio. No root-only `/dev/rfcomm` binding is required.
+This transport is Bluetooth Classic Serial Port Profile (SPP), not BLE/GATT.
+
+In **Connection**, select **Bluetooth**, then **Search** with the plotter powered
+on and discoverable. The list includes known paired devices and newly discovered
+devices; devices advertising only non-SPP services are excluded. Select a device
+and choose **Pair**. Enter its PIN when requested, or confirm the matching
+six-digit code. Pairing credentials are handled by BlueZ and are not saved in
+the Foil Studio configuration. Search and pairing can be cancelled or interrupted
+by closing the connection page without blocking normal workspace navigation.
+
+Set **SPP channel** to the channel provided by the plotter/module (often `1`),
+then choose **Connect**. Channel discovery is not automatic. The module's UART
+baud rate must already match the controller; a Bluetooth SPP connection does
+not configure that baud rate. Device address and channel are retained as
+`bluetooth://AA:BB:CC:DD:EE:FF/1`, including for optional startup connection.
+Pairing does not start motion or automatically connect to the plotter.
+
+On Windows and macOS, pair through system Bluetooth settings and select the
+system-provided Bluetooth serial port in **Serial port**; in-app discovery and
+pairing are currently Linux-only. After any Bluetooth connection loss, inspect
+the material and confirm the mat position before starting another cut.
 
 Connection failures, command errors, alarms, and unexpected disconnects appear
 in a persistent recovery card. The card explains the problem in plain language

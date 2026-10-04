@@ -30,6 +30,7 @@ class SenderMachinePort:
             board=getattr(getattr(app.sender, 'firmware', None), 'board', ''),
             pins=CNC.vars.get('pins', ''),
             status_sequence=getattr(app.sender, '_status_sequence', 0),
+            work_status_sequence=getattr(app.sender, '_work_status_sequence', 0),
             machine_position=tuple(float(CNC.vars.get(axis) or 0) for axis in ('mx','my','mz')),
             job_running=bool(app.sender.running))
 
@@ -97,7 +98,7 @@ class DocumentJobPort:
             startup=CNC.startup,
             origin=tuple(values.get(axis, 0) or 0 for axis in ('wx', 'wy', 'wz')),
             width=values.get('mat_width', 0), height=values.get('mat_height', 0),
-            speed=values.get('mat_speed', 500), pressure=values.get('mat_pressure', 500),
+            speed=values.get('mat_speed', 2500), pressure=values.get('mat_pressure', 380),
             compensate=bool(values.get('mat_auto_dragknife', False)),
             knife_offset=values.get('mat_knife_offset', 0.5), overcut=values.get('mat_overcut', 0),
             inner_first=bool(values.get('mat_inner_first',False)),

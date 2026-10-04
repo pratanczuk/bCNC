@@ -1304,6 +1304,80 @@ class WorkflowGUITest(unittest.TestCase):
         a.workflow.update_state()
         a.workflow.confirmed.set(True)
 
+    def filmcut_ready_machine(self):
+        from PlotterProtocol import Firmware
+        self.ready_machine()
+        sender = self.app.sender
+        sender.firmware = Firmware()
+        sender.firmware.identify('grblHAL', '1.1')
+        sender.firmware.board = 'GRBLFilmCut'
+        sender.firmware.units_known = True
+        sender.firmware.last_mpos = (0, -73, 0)
+        sender.firmware.last_wpos = (215, 0, 0)
+        sender._status_sequence = sender._work_status_sequence = 0
+        sender._sumcline = 0
+        CNC.vars.update(state='Idle', pins='P', wx=215, wy=0, mx=0, my=-73)
+        self.app.workflow.confirmed.set(True)
+
+    def test_filmcut_job_stream_waits_for_fresh_confirmed_xy_origin(self):
+        a = self.app
+        self.filmcut_ready_machine()
+        with patch.object(a.sender, 'submit_program') as submit, patch('Sender.time.sleep'):
+            a.run()
+            self.assertTrue(a.mat_handling.active)
+            self.assertFalse(a.sender.running)
+            for command in ('M5', '$HX', 'G21 G54'):
+                self.assertEqual(a.sender.queue.get_nowait(), command + '\n')
+                a.mat_handling.receive('ok')
+                if command == '$HX':
+                    CNC.vars.update(mx=-215, wx=-215)
+                a.sender._status_sequence += 1
+                a.mat_handling.tick()
+                submit.assert_not_called()
+            self.assertEqual(a.sender.queue.get_nowait(), 'G10 L20 P1 X0 Y0\n')
+            a.mat_handling.receive('ok')
+            CNC.vars.update(wx=0, wy=0)
+            a.sender._status_sequence += 1
+            a.mat_handling.tick()
+            submit.assert_not_called()
+            a.sender._work_status_sequence = a.sender._status_sequence
+            a.mat_handling.tick()
+            submit.assert_called_once()
+            self.assertTrue(a.sender.running)
+        a.sender.running = False; a.sender.serial = None; a.sender.firmware = None
+        a.sender.emptyQueue(); a.enable()
+
+    def test_filmcut_ignored_origin_write_never_submits_job_moves(self):
+        a = self.app
+        self.filmcut_ready_machine()
+        with patch.object(a.sender, 'submit_program') as submit, patch.object(a, 'reportPlotterError') as error:
+            a.run()
+            for command in ('M5', '$HX', 'G21 G54', 'G10 L20 P1 X0 Y0'):
+                self.assertEqual(a.sender.queue.get_nowait(), command + '\n')
+                a.mat_handling.receive('ok')
+                CNC.vars.update(mx=-215, wx=-215, wy=-73)
+                a.sender._status_sequence += 1
+                a.sender._work_status_sequence = a.sender._status_sequence
+                a.mat_handling.tick()
+            submit.assert_not_called()
+            self.assertFalse(a.sender.running)
+            self.assertFalse(a.mat_handling.active)
+            self.assertIn('did not confirm work X0/Y0', error.call_args.args[1])
+        a.sender.serial = None; a.sender.firmware = None
+
+    def test_stop_cancels_filmcut_origin_preparation_without_starting_job(self):
+        a = self.app
+        self.filmcut_ready_machine()
+        with patch.object(a.sender, 'submit_program') as submit, patch.object(a.sender, 'feedHold') as hold, patch.object(a.sender, 'softReset') as reset:
+            a.run()
+            a.workflow.stop()
+            submit.assert_not_called()
+            hold.assert_called_once(); reset.assert_called_once()
+            self.assertFalse(a.mat_handling.active)
+            self.assertIsNone(a.mat_handling.job_ready)
+            self.assertTrue(a.sender.queue.empty())
+        a.sender.serial = None; a.sender.firmware = None
+
     def test_valid_cut_compiles_material_settings_without_modifying_artwork(self):
         a = self.app
         self.ready_machine()
@@ -1584,6 +1658,14 @@ class WorkflowGUITest(unittest.TestCase):
         try:
             with patch('Sender.time.sleep'):
                 a.run()
+                self.assertTrue(a.mat_handling.active)
+                self.assertFalse(a.tool_sequence.active)
+                for command in ('M5', '$HX', 'G21 G54', 'G10 L20 P1 X0 Y0'):
+                    self.assertEqual(a.sender.queue.get_nowait(), command + '\n')
+                    a.mat_handling.receive('ok')
+                    a.sender._status_sequence += 1
+                    a.sender._work_status_sequence = a.sender._status_sequence
+                    a.mat_handling.tick()
                 self.assertTrue(a.tool_sequence.active)
                 self.assertFalse(a.sender.running)
                 self.assertEqual(str(w.cut_mat_button.cget('state')),'disabled')
@@ -1620,7 +1702,7 @@ class WorkflowGUITest(unittest.TestCase):
         a.sender.firmware.last_wpos=(0,0,0)
         a.sender._sumcline=0
         a.sender.sio_wait=False
-        CNC.vars.update(state='Idle',pins='YZP')
+        CNC.vars.update(state='Idle',pins='YZP',mx=0,my=0,wx=0,wy=0)
         w.update_state(); w.confirmed.set(True)
         def status(state):
             a.sender.mcontrol.parseStatus(f'<{state}|MPos:0,0,0|WCO:0,0,0|Pn:YZP>', [])
@@ -1630,6 +1712,11 @@ class WorkflowGUITest(unittest.TestCase):
                     patch('Sender.time.sleep'):
                 # Use the real job entry point and normal completion monitor.
                 a.run()
+                self.assertTrue(a.mat_handling.active)
+                self.assertFalse(a.sender.running)
+                for command in ('M5', '$HX', 'G21 G54', 'G10 L20 P1 X0 Y0'):
+                    self.assertEqual(a.sender.queue.get_nowait(), command + '\n')
+                    a.mat_handling.receive('ok'); status('Idle'); a.mat_handling.tick()
                 self.assertTrue(a.sender.running)
                 status('Run'); a.sender.emptyQueue()
                 a.sender._gcount=a.sender._runLines

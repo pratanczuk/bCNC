@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read-only candidate report. Never deletes code or proves dynamic reachability.
 
-Attribute loads, imported names and literal callback names count as references.
+Attribute loads, imported names, literal callback names and D-Bus exports count as references.
 Self-recursion, runtime-generated names and inheritance require human review.
 Run from any directory; --include-libraries includes bundled utility methods.
 """
@@ -16,6 +16,9 @@ def candidates(root, include_libraries=False):
     definitions = []
     for path in sorted(root.rglob('*.py')):
         tree = ast.parse(path.read_text())
+        exported_methods = {alias.asname or alias.name for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module == 'dbus_next.service'
+            for alias in node.names if alias.name == 'method'}
         for node in ast.walk(tree):
             if isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
                 references[node.attr] += 1
@@ -28,6 +31,9 @@ def candidates(root, include_libraries=False):
                     references[alias.name] += 1
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 definitions.append((path, node.lineno, node.name))
+                if any(isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name)
+                       and decorator.func.id in exported_methods for decorator in node.decorator_list):
+                    references[node.name] += 1
     return [(path, line, name) for path, line, name in definitions
             if not references[name] and not name.startswith('__')
             and (include_libraries or 'lib' not in path.relative_to(root).parts)]

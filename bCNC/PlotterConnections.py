@@ -1,6 +1,7 @@
 """Connection lifecycle policy with an injected adapter to the existing sender."""
 from dataclasses import dataclass
 from typing import Protocol
+from PlotterBluetooth import is_bluetooth_address, validate_bluetooth_address
 
 
 @dataclass(frozen=True)
@@ -59,8 +60,9 @@ class ConnectionService:
         if self.port.busy():
             raise ValueError('Disconnect the plotter before changing its connection.')
         device = device.strip()
-        if is_tcp_address(device):
-            device = validate_tcp_address(device)
+        if is_tcp_address(device) or is_bluetooth_address(device):
+            device = (validate_tcp_address(device) if is_tcp_address(device)
+                      else validate_bluetooth_address(device))
             # Raw TCP has no baud setting; retain the serial UI's saved baud value.
             try:
                 baud = int(baud)

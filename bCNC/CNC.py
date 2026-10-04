@@ -212,8 +212,8 @@ class CNC:
         # ── Cutting-mat / foil-plotter parameters (MatManager) ──────────
         "mat_width":          300.0,   # mm – physical mat X dimension
         "mat_height":         300.0,   # mm – physical mat Y dimension
-        "mat_pressure":         500.0, # PWM value 0-1000 for M3 S command
-        "mat_speed":          500.0,   # mm/min – default cutting feed
+        "mat_pressure":         380.0, # PWM value 0-1000 for M3 S command
+        "mat_speed":          2500.0,   # mm/min – default cutting feed
         "mat_knife_offset":     0.5,   # mm – swivel-axis to blade-tip
         "mat_auto_dragknife": False,   # auto-apply drag-knife on load
         "mat_loaded":         False,   # physical mat present flag

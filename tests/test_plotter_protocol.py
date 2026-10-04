@@ -18,6 +18,22 @@ from PlotterProtocol import Firmware, status_report
 
 
 class ProtocolTest(unittest.TestCase):
+    def test_only_fresh_work_coordinate_reports_can_confirm_origin(self):
+        from GRBL1 import Controller
+        master = self.master(); controller = Controller(master)
+        controller.parseStatus('<Idle|MPos:-215,-73,0|WCO:-215,-73,0>', [])
+        self.assertEqual(master._work_status_sequence, master._status_sequence)
+        sequence = master._work_status_sequence
+        controller.parseStatus('<Idle|MPos:-215,-73,0>', [])
+        self.assertGreater(master._status_sequence, sequence)
+        self.assertEqual(master._work_status_sequence, sequence)
+        controller.parseStatus('<Idle|WCO:-215,-73,0>', [])
+        self.assertEqual(master._work_status_sequence, sequence)
+        controller.parseStatus('<Idle|WPos:0,0,0>', [])
+        self.assertEqual(master._work_status_sequence, master._status_sequence)
+        controller.parseStatus('<Idle|MPos:-215,-73,0|WCO:-215,-73,0>', [])
+        self.assertEqual(master._work_status_sequence, master._status_sequence)
+
     def test_version_capabilities_not_major_digit(self):
         for version, jog in [('0.8c',False),('0.9j',False),('1.0c',False),('1.1h',True)]:
             with self.subTest(version=version):

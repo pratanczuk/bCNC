@@ -80,6 +80,14 @@ def friendly_error(title, detail):
         return ('Check your cutting settings',
                 'Use positive dimensions and speed, a blade offset of zero or more, and pressure between 0 and 1000.',
                 'Check cut settings', 'settings')
+    if 'bluetooth' in raw or 'rfcomm' in raw:
+        if any(word in raw for word in ('lost', 'disconnected', 'reset by peer', 'closed', 'broken pipe')):
+            return ('The Bluetooth connection was interrupted',
+                    'Check the plotter power and Bluetooth range, then reconnect. Inspect the material and confirm the mat position before another cut.',
+                    'Reconnect plotter', 'connection')
+        return ('We couldn\u2019t connect over Bluetooth',
+                'Check that Bluetooth is enabled, pair the plotter and verify its SPP channel. Close other apps connected to it and try again.',
+                'Connection setup', 'connection')
     if 'socket://' in raw or 'tcp connection' in raw:
         if any(word in raw for word in ('name or service not known', 'getaddrinfo', 'name resolution', 'nodename nor servname')):
             return ('We can’t find that plotter on the network',

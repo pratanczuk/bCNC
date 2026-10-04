@@ -5,3 +5,4 @@ opencv-python>=4.10
 fonttools>=4.0
 shapely>=2.0
 svgelements>=1,<2
+dbus-next>=0.2.3,<0.3; sys_platform == 'linux'

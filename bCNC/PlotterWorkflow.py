@@ -352,7 +352,7 @@ class PlotterWorkflow:
                 return
             self._stopped = False
             self.app.plotter.start()
-            self._cut_started = bool(self.app.sender.running or self.app.tool_sequence.active)
+            self._cut_started = bool(self.app.sender.running or self.app.tool_sequence.active or self.app.mat_handling.active)
             self.update_state()
 
     def start_reason(self):
@@ -395,6 +395,11 @@ class PlotterWorkflow:
             self.app.plotter.pause()
 
     def stop(self):
+        if self.app.mat_handling.active:
+            self._stopped = True
+            self.confirmed.set(False)
+            self.app.mat_handling.cancel()
+            return
         if self.app.tool_sequence.active:
             self.app.tool_sequence.cancel()
             return
@@ -865,11 +870,11 @@ class PlotterWorkflow:
         self.pass_hint.configure(text=('Pens first, then knives. Confirm each tool change; keep the mat loaded.') if len(passes)>1 and chosen==ALL_TOOLS else
             ('Fit ' + (chosen if chosen != ALL_TOOLS else ', '.join(passes)) + '. Pen compensation and overcut are off.') if passes else
             'Assign layer tools in Layers & objects.')
-        pressure = CNC.vars.get('mat_pressure', 500)
+        pressure = CNC.vars.get('mat_pressure', 380)
         knife_on = bool(CNC.vars.get('mat_auto_dragknife'))
-        self.settings_summary.config(text=f"Pressure {pressure:g}/1000 · {CNC.vars.get('mat_speed', 500):g} mm/min\n"
+        self.settings_summary.config(text=f"Pressure {pressure:g}/1000 · {CNC.vars.get('mat_speed', 2500):g} mm/min\n"
             f"Drag knife: {'On' if knife_on else 'Off'}")
-        self.cut_setup.config(text=f"Pressure: {pressure:g}/1000 PWM\nSpeed: {CNC.vars.get('mat_speed', 500):g} mm/min\n"
+        self.cut_setup.config(text=f"Pressure: {pressure:g}/1000 PWM\nSpeed: {CNC.vars.get('mat_speed', 2500):g} mm/min\n"
             + (f"Drag knife: On\nOffset: {CNC.vars.get('mat_knife_offset', .5):g} mm\nOvercut: {CNC.vars.get('mat_overcut', 0):g} mm" if knife_on
                else "Drag knife: Off\nEnable compensation for original swivel-blade outlines; leave it off for already-compensated files."))
         if processes:
@@ -885,13 +890,13 @@ class PlotterWorkflow:
                 if process:
                     tool = process['tool']
                     material = self.library.records['materials'].get(self.material.get())
-                    speed = material['speed'] if material else CNC.vars.get('mat_speed',500)
+                    speed = material['speed'] if material else CNC.vars.get('mat_speed',2500)
                     strength = material['pressure'] if material else pressure
                     descriptions.append(f"{layer['name']} · {process['operation']}\n{tool['name']} · {strength:g}/1000 · {speed:g} mm/min\n" +
                         ('Compensation and overcut: Off' if tool['kind']=='Pen' else f"Drag knife: {'On' if tool['compensate'] else 'Off'}"))
                 else:
                     descriptions.append(layer['name'] + ' · Current knife settings')
-            self.settings_summary.config(text=f"Pressure {pressure:g}/1000 · {CNC.vars.get('mat_speed',500):g} mm/min\nLayer tools apply to this material.")
+            self.settings_summary.config(text=f"Pressure {pressure:g}/1000 · {CNC.vars.get('mat_speed',2500):g} mm/min\nLayer tools apply to this material.")
             self.cut_setup.config(text='\n\n'.join(descriptions) or 'Choose a tool pass with included objects.')
         reason = self.start_reason()
         self.checks.config(text=f"{'✓' if fits else '○'} Design fits the mat\n\n"
@@ -914,6 +919,8 @@ class PlotterWorkflow:
         else:
             self.pause_button.pack_forget()
             self.stop_button.pack_forget()
+            if a.mat_handling.active:
+                self.stop_button.pack(side=tk.LEFT, padx=8)
             self.progress.pack_forget()
             self.progress_label.pack_forget()
             text = reason or "Ready. Check your material settings, then start the cut."
@@ -923,6 +930,8 @@ class PlotterWorkflow:
                 if reason:
                     text += "\n\n" + reason
             self.cut_message.config(text=text)
+            if a.mat_handling.active:
+                self.cut_message.config(text=a.mat_handling.message)
         phase = (sequence.active, sequence.phase, sequence.index)
         if phase != self._sequence_phase:
             self._sequence_phase = phase

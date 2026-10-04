@@ -9,8 +9,8 @@ from CNC import CNC, Block
 
 
 SETTING_FIELDS = {
-    "mat_speed": ("Cutting speed", 500, False, None),
-    "mat_pressure": ("Cutting pressure", 500, True, 1000),
+    "mat_speed": ("Cutting speed", 2500, False, None),
+    "mat_pressure": ("Cutting pressure", 380, True, 1000),
     "mat_knife_offset": ("Blade offset", 0.5, True, None),
     "mat_overcut": ("Overcut", 0, True, None),
     "mat_width": ("Mat width", 300, False, None),
